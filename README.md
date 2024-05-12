@@ -46,32 +46,102 @@ up Nix on MacOS.  This
 [page](https://nixos.org/manual/nix/stable/installation/installing-binary#macos-installation)
 documents what actually occurs on your MacOS system during the setup process.
 
-## Phase 2: Decision time 
+## Phase 2: Nix and its versions
+
+Getting the version of `nix` installed
+
+```
+  nix --version
+```
+
+Getting the list of subscribed channels:
+
+```
+  sudo nix-channel --list
+```
+
+Channels are something like Linux Debian apt sources - they point to where
+packages can be downloaded and installed.
+
+The default subscribed channel is `nixpkgs` which by default points to
+`https://nixos.org/channels/nixpkgs-unstable`
+
+When you install `nix` via the "official"
+[nixos install method](https://nixos.org/manual/nix/stable/installation/installing-binary#macos-installation),
+it uses the latest version you can find in the [nix releases
+folder](https://releases.nixos.org/?prefix=nix/) here.
+
+But if you subsequently execute the command `nix upgrade-nix`, you may likely
+downgrade your `nix` version.  You can find out the version of the `nix` you are
+"upgrading" to before running it by executing either of the following commands:
+
+```
+nix-env -qaA nixpkgs.nix
+
+sudo nix upgrade-nix --dry-run
+```
+
+Follow these instructions to [install a specific version of
+nix](https://nixos.org/manual/nix/stable/installation/installing-binary#installing-a-pinned-nix-version-from-a-url).
+
+
+To find the actual latest version of `nix` (outside of `nixpkgs`):
+
+```
+sudo nix-env --query nix 2>/dev/null
+```
+
+If you had accidentally ran the command:
+
+```
+sudo nix upgrade-nix
+```
+
+that resulted in an older version of `nix` being installed, you can restore to
+the latest version by running the following commands:
+
+```
+sudo -i
+nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-env --query nix)/fallback-paths.nix
+```
+
+### Why the messy Nix version issue
+
+This was discussed in the [Nix installer bug
+report](https://github.com/DeterminateSystems/nix-installer/issues/744) - see
+grahamc's comment on 26 Nov 2023 for context.  Ultimately, it is the `nixpkgs`
+maintenance team that decides which is the "safe" version of `nix` to use when
+an upgrade is executed.
+
+I am still not yet decided which is "safe" to use - but since the purpose of
+`nix` is to be a package manager, then it may be best to start the experiment
+with using the `nixpkgs` team's recommendation of the safe version to use.
+
+## Phase 3: Decision time 
 
 ### Flakes 
 
-I first experimented with flakes because
-it was a very popular recommendation amongst many Nix enthusiasts.  And it was
-also recommended by [Determinate Systems](https://determinate.systems), a
-company cofounded by [Eelco Dolstra](https://github.com/edolstra) - the
-inventor of Nix.
+I first experimented with flakes because it was a very popular recommendation
+amongst many Nix enthusiasts.  And it was also recommended by [Determinate
+Systems](https://determinate.systems), a company cofounded by [Eelco
+Dolstra](https://github.com/edolstra) - the inventor of Nix.
 
 I decided against using flakes for starting my Nix journey for the following
 reasons:
 
 * I felt that I could transition to flakes easily later
-* After installing the Determinate Systems installer, I tried to uninstall.
-But I found that there are some leftover folders and services that were not
-removed after uninstall.
+* After installing the Determinate Systems installer, I tried to uninstall. But
+I found that there are some leftover folders and services that were not removed
+after uninstall.
 * The articles arguing against flakes
 * Parts of the Nix development community seem to be against it because of the
 lack of proper process in the manner it was adopted
 
 ### nix-darwin 
 
-I have not delved too much into nix-darwin except to confirm
-that it does not require flakes.  So, it is likely I would proceed with playing
-around with this project to see how it helps in reproducing a macOS setup with
-a "declarative system approach to macOS".
+I have not delved too much into nix-darwin except to confirm that it does not
+require flakes.  So, it is likely I would proceed with playing around with this
+project to see how it helps in reproducing a macOS setup with a "declarative
+system approach to macOS".
 
 [ vim: set textwidth=80: ]: #
