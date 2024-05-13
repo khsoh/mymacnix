@@ -52,6 +52,8 @@ sudo launchctl disable system/org.nixos.nix-daemon
 sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist
 sudo launchctl disable system/org.nixos.darwin-store
 sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist
+sudo /usr/libexec/PlistBuddy -c 'Delete :org.nixos.nix-daemon' /var/db/com.apple.xpc.launchd/disabled.plist
+sudo /usr/libexec/PlistBuddy -c 'Delete :org.nixos.darwin-store' /var/db/com.apple.xpc.launchd/disabled.plist
 
 # Remove the nixbld group and the _nixbuildN users
 sudo dscl . -delete /Groups/nixbld
@@ -66,6 +68,9 @@ echo -e "  and then save the file${ESC}"
 dly 8
 sudo vifs
 
+echo ""
+echo ""
+
 # Edit /etc/synthetic.conf to remove the nix line. If this is the only line in the file 
 # you can remove it entirely, sudo rm /etc/synthetic.conf. This will prevent the creation of 
 # the empty /nix directory to provide a mountpoint for the Nix Store volume.
@@ -76,6 +81,8 @@ echo -e "  If this is the only line, you may remove the file${ESC}"
 
 dly 8
 sudo vim /etc/synthetic.conf
+echo ""
+echo ""
 
 if [[ $(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' /etc/synthetic.conf|wc -l) -eq 0 ]]; then
     prompt="[y/n]"
