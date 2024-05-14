@@ -13,6 +13,7 @@ following are some of the important I had read before I decided on the current
 way of setting up Nix on my MacOS systems:
 
 * [Official Nix site](https://nixos.org/)
+* [How to learn Nix](https://ianthehenry.com/posts/how-to-learn-nix/)
 * [Determinate Systems](https://determinate.systems/oss/)
 * [Zero to Nix](https://zero-to-nix.com/)
 * [Flakes - NixOS Wiki](https://nixos.wiki/wiki/Flakes)
@@ -77,7 +78,11 @@ downgrade your `nix` version.  You can find out the version of the `nix` you are
 
 ```
 nix-env -qaA nixpkgs.nix
+```
 
+or
+
+```
 sudo nix upgrade-nix --dry-run
 ```
 
@@ -97,25 +102,32 @@ If you had accidentally ran the command:
 sudo nix upgrade-nix
 ```
 
-that resulted in an older version of `nix` being installed, you can restore to
-the latest version by running the following commands:
+that would result in an older version of `nix` being installed, you can force
+`nix` back to the latest version by running the following command:
 
 ```
-sudo -i
-nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-env --query nix)/fallback-paths.nix
+sudo nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-env --query nix)/fallback-paths.nix
 ```
 
 ### Why the messy Nix version issue
 
 This was discussed in the [Nix installer bug
 report](https://github.com/DeterminateSystems/nix-installer/issues/744) - see
-grahamc's comment on 26 Nov 2023 for context.  Ultimately, it is the `nixpkgs`
-maintenance team that decides which is the "safe" version of `nix` to use when
-an upgrade is executed.
+grahamc's comment on 26 Nov 2023 for context.  It seems that the `nixpkgs`
+maintenance team is "responsible" for deciding on the "safe" version of `nix` to
+use when an upgrade is executed.
 
 I am still not yet decided which is "safe" to use - but since the purpose of
-`nix` is to be a package manager, then it may be best to start the experiment
-with using the `nixpkgs` team's recommendation of the safe version to use.
+`nix` is to be a package manager, **then it may be best to start the experiment
+with using the `nixpkgs` team's recommendation of the safe version to use**.
+
+### Uninstalling Nix
+
+There is a series of complex steps for [uninstalling Nix from
+MacOS](https://nixos.org/manual/nix/stable/installation/uninstall#macos).
+Because these steps require reboots and messing around with MacOS's daemons, I
+created an uninstall.sh script to automate this process so that it is easier to
+uninstall `nix` correctly.
 
 ## Phase 3: Decision time 
 
