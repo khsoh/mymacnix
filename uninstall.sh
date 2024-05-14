@@ -109,6 +109,8 @@ sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.ni
 
 # Remove the Nix Store volume
 if getyesno "Do you want to schedule a task to remove Nix Store volume after reboot?" ; then
+    sudo cp -f $PWD/removenixvol.sh /var/root
+    sudo chown root:wheel /var/root/removenixvol.sh
     sudo cp $PWD/org.nixos.removenixvol.plist /Library/LaunchDaemons
     sudo chown root:wheel /Library/LaunchDaemons/org.nixos.removenixvol.plist
     sudo launchctl enable system/org.nixos.removenixvol
