@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -u
 set -o pipefail
 
 #
@@ -26,6 +26,21 @@ dly () {
       : $((secs--))
    done
    echo -ne "\r${CLRLINE}${ESC}"
+}
+
+getyesno () {
+    local prompt="[y/n]"
+    echo -n "$1 $prompt"
+    while read -r y; do
+        if [ "$y" = "y" ]; then
+            return 0
+        elif [ "$y" = "n" ]; then
+            return 1
+        else
+            echo -e "$RED" "Sorry, I didn't understand. I can only understand answers of y or n${ESC}"
+            echo -n "$prompt"
+        fi
+    done
 }
 
 # Edit /etc/zshrc, /etc/bashrc, and /etc/bash.bashrc to remove the lines sourcing nix-daemon.sh,
@@ -85,20 +100,9 @@ echo ""
 echo ""
 
 if [[ $(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' /etc/synthetic.conf|wc -l) -eq 0 ]]; then
-    prompt="[y/n]"
-    echo -n "/etc/synthetic.conf file can be removed.  Do you want to remove it? $prompt"
-    while read -r y; do
-        if [ "$y" = "y" ]; then
-            sudo rm /etc/synthetic.conf
-            break
-        elif [ "$y" = "n" ]; then
-            echo ""
-            break
-        else
-            echo -e "$RED" "Sorry, I didn't understand. I can only understand answers of y or n${ESC}"
-            echo -n "$prompt"
-        fi
-    done
+    if getyesno "/etc/synthetic.conf file can be removed.  Do you want to remove it?" ; then
+        sudo rm /etc/synthetic.conf
+    fi
 fi
 
 # Remove the files Nix added to your system:
@@ -106,7 +110,13 @@ sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.ni
 
 
 # Remove the Nix Store volume
-sudo diskutil apfs deleteVolume /nix
+if getyesno "Do you want to schedule a task to remove Nix Store volume after reboot?" ; then
+    sudo cp $PWD/org.nixos.removenixvol.plist /Library/LaunchDaemons
+    sudo chown root.wheel /Library/LaunchDaemons/org.nixos.removenixvol.plist
+    sudo launchctl enable system/org.nixos.removenixvol
 
-
+    if getyesno "The Nix Store volume will only be removed after reboot - do you want to reboot now?" ; then
+        sudo shutdown -r now
+    fi
+fi
 
