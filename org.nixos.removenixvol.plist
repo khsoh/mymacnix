@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>Label</key>
+  <string>org.nixos.removenixvol</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+      <string>/usr/sbin/diskutil apfs deleteVolume $(/usr/sbin/diskutil list | /usr/bin/grep 'Nix Store' | /usr/bin/sed -e 's/.*\((disk.*\)/\1/'));/bin/launchctl disable system/org.nixos.removenixvol &amp;&amp; /usr/libexec/PlistBuddy -c 'Delete :org.nixos.removenixvol &amp;&amp; /bin/rm -f /Library/LaunchDaemons/org.nixos.removenixvol.plist </string>
+  </array>
+  <key>StandardErrorPath</key>
+  <string>/var/log/removenixvol.log</string>
+  <key>StandardOutPath</key>
+  <string>/dev/null</string>
+</dict>
+</plist>
