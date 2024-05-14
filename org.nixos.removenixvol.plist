@@ -10,7 +10,7 @@
   <array>
     <string>/bin/sh</string>
     <string>-c</string>
-      <string>/usr/sbin/diskutil apfs deleteVolume $(/usr/sbin/diskutil list | /usr/bin/grep 'Nix Store' | /usr/bin/sed -e 's/.*\(disk.*\)/\1/');/bin/launchctl disable system/org.nixos.removenixvol &amp;&amp; /usr/libexec/PlistBuddy -c 'Delete :org.nixos.removenixvol' /var/db/com.apple.xpc.launchd/disabled.plist &amp;&amp; /bin/rm -f /Library/LaunchDaemons/org.nixos.removenixvol.plist </string>
+      <string>/usr/sbin/diskutil apfs deleteVolume $(/usr/sbin/diskutil list | /usr/bin/grep 'Nix Store' | /usr/bin/sed -e 's/.*\(disk.*\)/\1/');/bin/launchctl disable system/org.nixos.removenixvol &amp;&amp; /bin/rm -f /Library/LaunchDaemons/org.nixos.removenixvol.plist &amp;&amp; /bin/rm -f /var/db/com.apple.xpc.launchd/disabled.plist </string>
   </array>
   <key>StandardErrorPath</key>
   <string>/var/log/removenixvol.log</string>

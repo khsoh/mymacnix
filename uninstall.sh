@@ -67,8 +67,6 @@ sudo launchctl disable system/org.nixos.nix-daemon
 sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist
 sudo launchctl disable system/org.nixos.darwin-store
 sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist
-sudo /usr/libexec/PlistBuddy -c 'Delete :org.nixos.nix-daemon' /var/db/com.apple.xpc.launchd/disabled.plist
-sudo /usr/libexec/PlistBuddy -c 'Delete :org.nixos.darwin-store' /var/db/com.apple.xpc.launchd/disabled.plist
 
 # Remove the nixbld group and the _nixbuildN users
 sudo dscl . -delete /Groups/nixbld
@@ -114,9 +112,12 @@ if getyesno "Do you want to schedule a task to remove Nix Store volume after reb
     sudo cp $PWD/org.nixos.removenixvol.plist /Library/LaunchDaemons
     sudo chown root:wheel /Library/LaunchDaemons/org.nixos.removenixvol.plist
     sudo launchctl enable system/org.nixos.removenixvol
+    sudo rm -f /var/db/com.apple.xpc.launchd/disabled.plist
 
     if getyesno "The Nix Store volume will only be removed after reboot - do you want to reboot now?" ; then
         sudo shutdown -r now
     fi
+else
+    sudo rm -f /var/db/com.apple.xpc.launchd/disabled.plist
 fi
 
