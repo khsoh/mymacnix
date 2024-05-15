@@ -1,0 +1,26 @@
+#!/bin/sh
+
+
+# Script to perform installation of Nix on MacOS
+#
+
+{ # Prevent execution if this script was only partially downloaded
+oops() {
+    echo "$0:" "$@" >&2
+    exit 1
+}
+
+umask 0022
+
+# Perform automated install
+yes | sh <(curl -L https://nixos.org/nix/install)
+
+osascript <<END
+tell application "Terminal"  
+    do script "nix --version"  
+    activate  
+end tell
+END
+
+} # End of wrapping
+
