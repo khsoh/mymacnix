@@ -13,14 +13,14 @@ oops() {
 umask 0022
 
 # Perform automated install
-yes | sh <(curl -L https://nixos.org/nix/install)
+tmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX || \
+          oops "Can't create temporary directory for downloading the Nix install script")"
 
-osascript <<END
-tell application "Terminal"  
-    do script "nix --version"  
-    activate  
-end tell
-END
+cleanup() {
+    rm -rf "$tmpDir"
+}
+curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
+yes | sh "$tmpDir/nixinstall"
 
 } # End of wrapping
 
