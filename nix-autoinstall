@@ -19,6 +19,7 @@ tmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX || \
 cleanup() {
     rm -rf "$tmpDir"
 }
+trap cleanup EXIT INT QUIT TERM
 curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
