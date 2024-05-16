@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+# Script to perform installation of nix-darwin on MacOS
+#
+
+{ # Prevent execution if this script was only partially downloaded
+umask 0022
+
+nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
+yes | ./result/bin/darwin-installer
+
+} # End of wrapping
+
