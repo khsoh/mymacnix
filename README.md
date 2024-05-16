@@ -156,4 +156,13 @@ require flakes.  So, it is likely I would proceed with playing around with this
 project to see how it helps in reproducing a macOS setup with a "declarative
 system approach to macOS".
 
+## Phase 4: Creating my own install tools
+
+I created auto-install scripts to install Nix with minimal user intervention.
+Nix can now be installed by executing this command in the Terminal window:
+
+```
+  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
+```
+
 [ vim: set textwidth=80: ]: #
