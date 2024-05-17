@@ -22,7 +22,7 @@ umask 0022
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 yes | ./result/bin/darwin-installer
 
-echo -e "${BOLD}{$GREEN}Start a new Terminal to start using nix-darwin"
+echo "${BOLD}{$GREEN}Start a new Terminal to start using nix-darwin"
 
 } # End of wrapping
 

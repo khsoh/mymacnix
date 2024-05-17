@@ -36,8 +36,8 @@ curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
 
-echo -e "${BOLD}${GREEN}Start a new Terminal window to install nix-darwin with the command:"
-echo -e "    sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)${ESC}"
+echo "${GREEN}Start a new Terminal window to install nix-darwin with the command:"
+echo "${BOLD}${RED}    sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)${ESC}"
 
 } # End of wrapping
 
