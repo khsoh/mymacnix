@@ -49,7 +49,7 @@ documents what actually occurs on your MacOS system during the setup process.
 
 ## Phase 2: Nix and its versions
 
-Getting the version of `nix` installed
+Getting the version of `Nix` installed
 
 ```
   nix --version
@@ -67,13 +67,13 @@ packages can be downloaded and installed.
 The default subscribed channel is `nixpkgs` which by default points to
 `https://nixos.org/channels/nixpkgs-unstable`
 
-When you install `nix` via the "official"
+When you install `Nix` via the "official"
 [nixos install method](https://nixos.org/manual/nix/stable/installation/installing-binary#macos-installation),
 it uses the latest version you can find in the [nix releases
 folder](https://releases.nixos.org/?prefix=nix/) here.
 
 But if you subsequently execute the command `nix upgrade-nix`, you may likely
-downgrade your `nix` version.  You can find out the version of the `nix` you are
+downgrade your `Nix` version.  You can find out the version of the `Nix` you are
 "upgrading" to before running it by executing either of the following commands:
 
 ```
@@ -90,7 +90,7 @@ Follow these instructions to [install a specific version of
 nix](https://nixos.org/manual/nix/stable/installation/installing-binary#installing-a-pinned-nix-version-from-a-url).
 
 
-To find the actual latest version of `nix` (outside of `nixpkgs`):
+To find the actual latest version of `Nix` (outside of `nixpkgs`):
 
 ```
 sudo nix-env --query nix 2>/dev/null
@@ -102,8 +102,8 @@ If you had accidentally ran the command:
 sudo nix upgrade-nix
 ```
 
-that would result in an older version of `nix` being installed, you can force
-`nix` back to the latest version by running the following command:
+that would result in an older version of `Nix` being installed, you can force
+`Nix` back to the latest version by running the following command:
 
 ```
 sudo nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-env --query nix)/fallback-paths.nix
@@ -114,11 +114,11 @@ sudo nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-
 This was discussed in the [Nix installer bug
 report](https://github.com/DeterminateSystems/nix-installer/issues/744) - see
 grahamc's comment on 26 Nov 2023 for context.  It seems that the `nixpkgs`
-maintenance team is "responsible" for deciding on the "safe" version of `nix` to
+maintenance team is "responsible" for deciding on the "safe" version of `Nix` to
 use when an upgrade is executed.
 
 I am still not yet decided which is "safe" to use - but since the purpose of
-`nix` is to be a package manager, **then it may be best to start the experiment
+`Nix` is to be a package manager, **then it may be best to start the experiment
 with using the `nixpkgs` team's recommendation of the safe version to use**.
 
 ### Uninstalling Nix
@@ -127,7 +127,7 @@ There is a series of complex steps for [uninstalling Nix from
 MacOS](https://nixos.org/manual/nix/stable/installation/uninstall#macos).
 Because these steps require reboots and messing around with MacOS's daemons, I
 created an uninstall.sh script to automate this process so that it is easier to
-uninstall `nix` correctly.
+uninstall `Nix` correctly.
 
 ## Phase 3: Decision time 
 
@@ -158,8 +158,8 @@ system approach to macOS".
 
 ## Phase 4: Creating my own install tools
 
-I created auto-install scripts to install Nix with minimal user intervention.
-Nix can now be installed by executing this command in the Terminal window:
+I created auto-install scripts to install `Nix` and `nix-darwin` with minimal user intervention.
+`Nix` can now be installed by executing this command in the Terminal window:
 
 ```
   sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
