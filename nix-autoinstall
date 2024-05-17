@@ -36,8 +36,31 @@ curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
 
-echo "${GREEN}Start a new Terminal window to install nix-darwin with the command:"
-echo "${BOLD}${RED}    sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)${ESC}"
+zsh -l <<-EOF
+echo "${BOLD}${GREEN}Starting a new sub-shell nix-darwin${ESC}"
+
+## Executed the startup scripts to ensure nix path is present
+. /etc/zprofile
+. /etc/zshrc
+
+# Upgrade nix
+echo "${BOLD}${GREEN}Executing nix upgrade-nix${ESC}"
+nix upgrade-nix
+
+# Script to perform installation of nix-darwin on MacOS
+#
+
+umask 0022
+
+echo "${BOLD}${GREEN}Downloading nix-darwin${ESC}"
+nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
+
+echo "${BOLD}${GREEN}Executing nix-darwin installer${ESC}"
+yes | ./result/bin/darwin-installer
+
+echo "${BOLD}${GREEN}Start a new Terminal to start using nix-darwin${ESC}"
+
+EOF
 
 } # End of wrapping
 
