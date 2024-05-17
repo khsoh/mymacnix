@@ -43,10 +43,6 @@ echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
 . /etc/zprofile
 . /etc/zshrc
 
-# Upgrade nix
-echo "${BOLD}${GREEN}--> Executing nix upgrade-nix${ESC}"
-nix upgrade-nix
-
 # Script to perform installation of nix-darwin on MacOS
 #
 
