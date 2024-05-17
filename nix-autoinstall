@@ -37,14 +37,14 @@ yes | sh "$tmpDir/nixinstall"
 
 
 zsh -l <<-EOF
-echo "${BOLD}${GREEN}Starting a new sub-shell nix-darwin${ESC}"
+echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
 
 ## Executed the startup scripts to ensure nix path is present
 . /etc/zprofile
 . /etc/zshrc
 
 # Upgrade nix
-echo "${BOLD}${GREEN}Executing nix upgrade-nix${ESC}"
+echo "${BOLD}${GREEN}--> Executing nix upgrade-nix${ESC}"
 nix upgrade-nix
 
 # Script to perform installation of nix-darwin on MacOS
@@ -52,13 +52,13 @@ nix upgrade-nix
 
 umask 0022
 
-echo "${BOLD}${GREEN}Downloading nix-darwin${ESC}"
+echo "${BOLD}${GREEN}--> Downloading nix-darwin${ESC}"
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
-echo "${BOLD}${GREEN}Executing nix-darwin installer${ESC}"
+echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
 yes | ./result/bin/darwin-installer
 
-echo "${BOLD}${GREEN}Start a new Terminal to start using nix-darwin${ESC}"
+echo "${BOLD}${GREEN}--> Start a new Terminal to start using nix-darwin${ESC}"
 
 EOF
 
