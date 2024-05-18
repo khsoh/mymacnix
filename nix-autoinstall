@@ -32,6 +32,24 @@ cleanup() {
     rm -rf "$tmpDir"
 }
 trap cleanup EXIT INT QUIT TERM
+
+
+zsh <<EOF
+prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
+echo -n "\$prompt"
+while read -r gitfolder </dev/tty; do
+    if [ "\$gitfolder" != "" ]; then
+        if [[ ! -e "$HOME/\$gitfolder" ]]; then
+            break
+        fi
+        echo "${RED}$HOME/\$gitfolder already exists - please choose another directory${ESC}"
+    fi
+    echo -n "\$prompt"
+done
+echo "gitfolder=$HOME/\$gitfolder" > $tmpDir/gitfolder
+EOF
+
+
 curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
@@ -60,19 +78,6 @@ EOF
 
 
 
-prompt="Enter name of subfolder within $HOME to clone mymacnix: "
-echo -n "$prompt"
-while read -r gitfolder; do
-    if [ "$gitfolder" != "" ]; then
-        if [[ ! -e "$HOME/$gitfolder" ]]; then
-            break
-        fi
-        echo -e "${RED}$HOME/$gitfolder already exists - please choose another director${ESC}"
-    fi
-    echo -n "$prompt"
-done
-
-
 zsh -l <<-EOF
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder ${ESC}"
@@ -81,12 +86,15 @@ echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder $
 . /etc/zprofile
 . /etc/zshrc
 
-nix-env -iA nixpkgs.git nixpkgs.stow
+eval $(cat $tmpDir/gitfolder)
+nix-shell -p git stow
 
-git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$HOME/$gitfolder"
+git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "\$gitfolder"
 
-cd "$HOME/$gitfolder"
+cd "\$gitfolder"
 stow -Rt ~ HOME
+
+darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
 
 EOF
 
