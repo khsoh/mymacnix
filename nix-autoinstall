@@ -50,11 +50,12 @@ echo "gitfolder=$HOME/\$gitfolder" > $tmpDir/gitfolder
 EOF
 
 
+zsh -l <<EOF
 curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
 
-zsh -l <<-EOF
+zsh -l <<DARWIN_EOF
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
 
 ## Executed the startup scripts to ensure nix path is present
@@ -72,13 +73,10 @@ nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
 yes | ./result/bin/darwin-installer
 
-echo "${BOLD}${GREEN}--> Start a new Terminal to start using nix-darwin${ESC}"
-
-EOF
+DARWIN_EOF
 
 
-
-zsh -l <<-EOF
+zsh -l <<CLONE_EOF
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder ${ESC}"
 
@@ -86,15 +84,16 @@ echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder $
 . /etc/zprofile
 . /etc/zshrc
 
+nix-shell -p git stow --command '
 eval $(cat $tmpDir/gitfolder)
-nix-shell -p git stow
-
 git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "\$gitfolder"
-
 cd "\$gitfolder"
 stow -Rt ~ HOME
+'
 
 darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
+
+CLONE_EOF
 
 EOF
 
