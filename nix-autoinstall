@@ -60,6 +60,18 @@ EOF
 
 
 
+prompt="Enter name of subfolder within $HOME to clone mymacnix: "
+echo -n "$prompt"
+while read -r gitfolder; do
+    if [ "$gitfolder" != "" ]; then
+        if [[ ! -e "$HOME/$gitfolder" ]]; then
+            break
+        fi
+        echo -e "${RED}$HOME/$gitfolder already exists - please choose another director${ESC}"
+    fi
+    echo -n "$prompt"
+done
+
 
 zsh -l <<-EOF
 
@@ -69,23 +81,11 @@ echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder $
 . /etc/zprofile
 . /etc/zshrc
 
-prompt="Enter name of subfolder within $HOME to clone mymacnix: "
-echo -n "\$prompt"
-while read -r gitfolder; do
-    if [ "\$gitfolder" != "" ]; then
-        if [[ ! -e "$HOME/\$gitfolder" ]]; then
-            break
-        fi
-        echo -e "${RED}$HOME/\$gitfolder already exists - please choose another director${ESC}"
-    fi
-    echo -n "\$prompt"
-done
-
 nix-env -iA nixpkgs.git nixpkgs.stow
 
-git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$HOME/\$gitfolder"
+git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$HOME/$gitfolder"
 
-cd "$HOME/\$gitfolder"
+cd "$HOME/$gitfolder"
 stow -Rt ~ HOME
 
 EOF
