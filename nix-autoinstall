@@ -49,6 +49,7 @@ done
 echo "gitfolder=$HOME/\$gitfolder" > $tmpDir/gitfolder
 EOF
 
+eval $(cat $tmpDir/gitfolder)
 
 zsh -l <<EOF
 curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
@@ -84,10 +85,10 @@ echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder $
 . /etc/zprofile
 . /etc/zshrc
 
+nix --version
 nix-shell -p git stow --command '
-eval $(cat $tmpDir/gitfolder)
-git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "\$gitfolder"
-cd "\$gitfolder"
+git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
+cd "$gitfolder"
 stow -Rt ~ HOME
 '
 
