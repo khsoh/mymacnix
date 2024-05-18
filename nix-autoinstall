@@ -58,5 +58,34 @@ echo "${BOLD}${GREEN}--> Start a new Terminal to start using nix-darwin${ESC}"
 
 EOF
 
+
+
+
+zsh -l <<-EOF
+
+echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder ${ESC}"
+
+## Executed the startup scripts to ensure nix path is present
+. /etc/zprofile
+. /etc/zshrc
+
+prompt="Enter name of subfolder within $HOME to clone mymacnix: "
+echo -n "$prompt"
+while read -r gitfolder; do
+    if [ "$gitfolder" != "" ]; then
+        if [[ ! -e "$HOME/$gitfolder" ]]; then
+            break
+        fi
+        echo -e "${RED}$HOME/$gitfolder already exists - please choose another director${ESC}"
+    fi
+    echo -n "$prompt"
+done
+
+nix-env -iA nixpkgs.git
+
+git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$HOME/$gitfolder"
+
+EOF
+
 } # End of wrapping
 
