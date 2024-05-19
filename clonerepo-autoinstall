@@ -21,7 +21,7 @@ readonly RED='\033[31m'
 function get_gitfolder () {
     [[ ! -n "${gitfolder+1}" ]] || return
     local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
-    echo -n "$prompt"
+    printf "$prompt"
     while read -r folder </dev/tty; do
         if [ "$folder" != "" ]; then
             if [[ ! -e "$HOME/$folder" ]]; then
@@ -29,7 +29,7 @@ function get_gitfolder () {
             fi
             echo "${RED}$HOME/$folder already exists - please choose another directory${ESC}"
         fi
-        echo -n "$prompt"
+        printf "$prompt"
     done
     eval "gitfolder=$HOME/$folder"
 }
