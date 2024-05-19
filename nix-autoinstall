@@ -55,8 +55,9 @@ get_gitfolder
 curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
-echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
-zsh -l <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)
+echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder${ESC}"
+sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/clonerepo-autoinstall)
+
 
 } # End of wrapping
 
