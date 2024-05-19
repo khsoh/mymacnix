@@ -30,11 +30,16 @@ nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
 yes | ./result/bin/darwin-installer
 
+echo "${BOLD}${GREEN}--> Starting a new sub-shell to configure nix-darwin${ESC}"
+zsh -l <<EOF
 . /etc/zshenv
 . /etc/zprofile
 . /etc/zshrc
 
 darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
+EOF
+
+echo "${BLUE}Restart a new terminal to start using Nix and nix-darwin${ESC}"
 
 } # End of wrapping
 
