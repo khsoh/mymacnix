@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 
 set -u
@@ -17,22 +17,6 @@ readonly RED='\033[31m'
 #
 
 { # Prevent execution if this script was only partially downloaded
-oops() {
-    echo "$0:" "$@" >&2
-    exit 1
-}
-
-umask 0022
-
-# Perform automated install
-tmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX || \
-          oops "Can't create temporary directory for downloading the Nix install script")"
-
-cleanup() {
-    rm -rf "$tmpDir"
-}
-trap cleanup EXIT INT QUIT TERM
-
 
 function get_gitfolder () {
     [[ ! -n "${gitfolder+1}" ]] || return
@@ -52,11 +36,20 @@ function get_gitfolder () {
 
 get_gitfolder
 
-curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
-yes | sh "$tmpDir/nixinstall"
+## Executed the startup scripts to ensure nix path is present
+if [[ ! $(nix --version) ]]; then
+    . /etc/zprofile
+    . /etc/zshrc
+fi
 
-echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
-zsh -l <<(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)
+nix-shell -p git stow --command '
+git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
+cd "$gitfolder"
+stow -Rt ~ HOME
+'
+
+darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
+
 
 } # End of wrapping
 
