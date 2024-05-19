@@ -31,7 +31,7 @@ function get_gitfolder () {
         fi
         printf "$prompt"
     done
-    eval "gitfolder=$HOME/$folder"
+    eval "export gitfolder=$HOME/$folder"
 }
 
 get_gitfolder
@@ -52,7 +52,7 @@ stow -Rt ~ HOME
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
 pushd "$gitfolder"
-sh darwin-autoinstall
+zsh -l darwin-autoinstall
 popd
 
 } # End of wrapping
