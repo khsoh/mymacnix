@@ -24,16 +24,16 @@ if [[ ! $(nix --version) ]]; then
     . /etc/zshrc
 fi
 
-umask 0022
-
 echo "${BOLD}${GREEN}--> Downloading nix-darwin${ESC}"
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
 yes | ./result/bin/darwin-installer
 
-echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder ${ESC}"
-zsh -l clonerepo-autoinstall
+. /etc/zprofile
+. /etc/zshrc
+
+darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
 
 } # End of wrapping
 

@@ -42,14 +42,18 @@ if [[ ! $(nix --version) ]]; then
     . /etc/zshrc
 fi
 
+mkdir -p ~/.config
+
 nix-shell -p git stow --command '
 git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
 cd "$gitfolder"
 stow -Rt ~ HOME
 '
 
-darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
-
+echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
+pushd "$gitfolder"
+sh darwin-autoinstall
+popd
 
 } # End of wrapping
 
