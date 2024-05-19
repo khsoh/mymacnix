@@ -37,7 +37,7 @@ trap cleanup EXIT INT QUIT TERM
 function get_gitfolder () {
     [[ ! -n "${gitfolder+1}" ]] || return
     local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
-    echo -n "$prompt"
+    printf "$prompt"
     while read -r folder </dev/tty; do
         if [ "$folder" != "" ]; then
             if [[ ! -e "$HOME/$folder" ]]; then
@@ -45,7 +45,7 @@ function get_gitfolder () {
             fi
             echo "${RED}$HOME/$folder already exists - please choose another directory${ESC}"
         fi
-        echo -n "$prompt"
+        printf "$prompt"
     done
     eval "gitfolder=$HOME/$folder"
 }
@@ -56,7 +56,7 @@ curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
-zsh -l <<(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)
+zsh -l <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)
 
 } # End of wrapping
 
