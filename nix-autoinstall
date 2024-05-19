@@ -47,7 +47,7 @@ function get_gitfolder () {
         fi
         printf "$prompt"
     done
-    eval "gitfolder=$HOME/$folder"
+    eval "export gitfolder=$HOME/$folder"
 }
 
 get_gitfolder
@@ -56,7 +56,8 @@ curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
 yes | sh "$tmpDir/nixinstall"
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder${ESC}"
-sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/clonerepo-autoinstall)
+curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/clonerepo-autoinstall > "$tmpDir/clonerepo"
+zsh -l "$tmpDir/clonerepo"
 
 
 } # End of wrapping
