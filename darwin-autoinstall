@@ -1,0 +1,39 @@
+#!/bin/zsh
+
+
+set -u
+set -o pipefail
+
+readonly CLRLINE='\033[0K'
+readonly ESC='\033[0m'
+readonly BOLD='\033[1m'
+readonly BLUE='\033[34m'
+readonly BLUE_UL='\033[4;34m'
+readonly GREEN='\033[32m'
+readonly GREEN_UL='\033[4;32m'
+readonly RED='\033[31m'
+
+# Script to perform installation of nix-darwin on MacOS
+#
+
+{ # Prevent execution if this script was only partially downloaded
+
+## Executed the startup scripts to ensure nix path is present
+if [[ ! $(nix --version) ]]; then
+    . /etc/zprofile
+    . /etc/zshrc
+fi
+
+umask 0022
+
+echo "${BOLD}${GREEN}--> Downloading nix-darwin${ESC}"
+nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
+
+echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
+yes | ./result/bin/darwin-installer
+
+echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder ${ESC}"
+zsh -l clonerepo-autoinstall
+
+} # End of wrapping
+
