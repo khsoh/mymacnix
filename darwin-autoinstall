@@ -19,7 +19,7 @@ readonly RED='\033[31m'
 { # Prevent execution if this script was only partially downloaded
 
 ## Executed the startup scripts to ensure nix path is present
-if [[ ! $(nix --version) ]]; then
+if [[ ! $(nix --version 2>/dev/null) ]]; then
     . /etc/zprofile
     . /etc/zshrc
 fi
@@ -30,6 +30,7 @@ nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
 yes | ./result/bin/darwin-installer
 
+. /etc/zshenv
 . /etc/zprofile
 . /etc/zshrc
 
