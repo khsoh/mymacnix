@@ -159,16 +159,10 @@ system approach to macOS".
 ## Phase 4: Creating my own install tools
 
 I created auto-install scripts to install `Nix` and `nix-darwin` with minimal user intervention.
-`Nix` can now be installed by executing this command in the Terminal window:
+These tools can now be installed by executing this command in the Terminal window:
 
 ```
   sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
-```
-
-After restarting a new terminal, run the darwin-autoinstall script:
-
-```
-  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/darwin-autoinstall)
 ```
 
 [ vim: set textwidth=80: ]: #
