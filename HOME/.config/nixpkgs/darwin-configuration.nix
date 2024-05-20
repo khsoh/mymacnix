@@ -6,6 +6,7 @@
   environment.systemPackages =
     [ pkgs.vim
       pkgs.neovim
+      pkgs.tmux
       pkgs.stow
     ];
 
