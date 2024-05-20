@@ -33,6 +33,11 @@ cleanup() {
 }
 trap cleanup EXIT INT QUIT TERM
 
+if [[ $(darwin-version --version) ]]; then
+    echo nix-darwin already installed
+    exit 1
+fi
+
 ## Executed the startup scripts to ensure nix path is present
 if [[ ! $(nix --version 2>/dev/null) ]]; then
     . /etc/zprofile
