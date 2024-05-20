@@ -17,6 +17,21 @@ readonly RED='\033[31m'
 #
 
 { # Prevent execution if this script was only partially downloaded
+oops() {
+    echo "$0:" "$@" >&2
+    exit 1
+}
+
+umask 0022
+
+# Perform automated install
+darwintmpDir="$(mktemp -d -t darwinautoinstalldir.XXXXXXXXX || \
+          oops "Can't create temporary directory for downloading the nix-darwin install script")"
+
+cleanup() {
+    rm -rf "$darwintmpDir"
+}
+trap cleanup EXIT INT QUIT TERM
 
 ## Executed the startup scripts to ensure nix path is present
 if [[ ! $(nix --version 2>/dev/null) ]]; then
@@ -25,19 +40,22 @@ if [[ ! $(nix --version 2>/dev/null) ]]; then
 fi
 
 echo "${BOLD}${GREEN}--> Downloading nix-darwin${ESC}"
+pushd $darwintmpDir
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
-yes | ./result/bin/darwin-installer
+yes | $darwintmpDir/result/bin/darwin-installer
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to configure nix-darwin${ESC}"
 zsh -l <<EOF
+
 . /etc/zshenv
 . /etc/zprofile
 . /etc/zshrc
 
 darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
 EOF
+popd
 
 echo "${BLUE}Restart a new terminal to start using Nix and nix-darwin${ESC}"
 
