@@ -17,6 +17,13 @@ readonly RED='\033[31m'
 #
 
 { # Prevent execution if this script was only partially downloaded
+function print_arrow () {
+    printf "${BOLD}${GREEN}"
+    printf "=%.0s" {1..$SHLVL} 
+    printf "> "
+    printf "$1${ESC}\n"
+}
+
 oops() {
     echo "$0:" "$@" >&2
     exit 1
@@ -33,36 +40,42 @@ cleanup() {
 }
 trap cleanup EXIT INT QUIT TERM
 
-if [[ $(darwin-version --version 2>/dev/null) ]]; then
-    echo nix-darwin already installed
+## Test to confirm nix has been installed
+if [[ ! $(mount | grep -w "/nix") ]]; then
+    printf "${BOLD}${RED}Error: Nix has not yet been installed - darwin-autoinstall script cannot be executed${ESC}\n"
     exit 1
 fi
 
-## Executed the startup scripts to ensure nix path is present
-if [[ ! $(nix --version 2>/dev/null) ]]; then
+## Test to confirm nix-darwin has NOT yet been installed
+if [[ $(darwin-version --version 2>/dev/null) ]]; then
+    printf "${BOLD}${RED}nix-darwin already installed${ESC}\n"
+    exit 1
+elif [[ ! $(nix --version 2>/dev/null) ]]; then
+    ## Executed the startup scripts to ensure nix path is present
     . /etc/zprofile
     . /etc/zshrc
 fi
 
-echo "${BOLD}${GREEN}--> Downloading nix-darwin${ESC}"
+print_arrow "Downloading nix-darwin"
 pushd $darwintmpDir
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
-echo "${BOLD}${GREEN}--> Executing nix-darwin installer${ESC}"
-yes | $darwintmpDir/result/bin/darwin-installer
-
-echo "${BOLD}${GREEN}--> Starting a new sub-shell to configure nix-darwin${ESC}"
+print_arrow "Starting a new sub-shell to configure nix-darwin"
 zsh -l <<EOF
 
 . /etc/zshenv
 . /etc/zprofile
 . /etc/zshrc
 
+print_arrow "Executing nix-darwin installer"
+yes | $darwintmpDir/result/bin/darwin-installer
+
+print_arrow "Configuring nix-darwin"
 darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 popd
 
-echo "${BLUE}Restart a new terminal to start using Nix and nix-darwin${ESC}"
+printf "${BOLD}${BLUE}Restart a new terminal to start using Nix and nix-darwin${ESC}\n"
 
 } # End of wrapping
 
