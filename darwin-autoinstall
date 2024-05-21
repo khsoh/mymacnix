@@ -60,12 +60,17 @@ pushd $darwintmpDir
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 print_arrow "Starting a new sub-shell to configure nix-darwin"
-export -f print_arrow
 zsh -l <<EOF
 
 . /etc/zshenv
 . /etc/zprofile
 . /etc/zshrc
+
+function print_arrow () {
+    printf "${BOLD}${GREEN}"
+    eval $(echo printf '"=%.0s"' {1..$SHLVL})
+    printf "> $*${ESC}\n"
+}
 
 print_arrow "Executing nix-darwin installer"
 yes | $darwintmpDir/result/bin/darwin-installer
