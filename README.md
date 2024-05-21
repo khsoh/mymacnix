@@ -52,13 +52,13 @@ documents what actually occurs on your MacOS system during the setup process.
 Getting the version of `Nix` installed
 
 ```
-  nix --version
+nix --version
 ```
 
 Getting the list of subscribed channels:
 
 ```
-  sudo nix-channel --list
+sudo nix-channel --list
 ```
 
 Channels are something like Linux Debian apt sources - they point to where
@@ -162,7 +162,7 @@ I created auto-install scripts to install `Nix` and `nix-darwin` with minimal us
 These tools can now be installed by executing this command in the Terminal window:
 
 ```
-  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
+sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
 ```
 
 [ vim: set textwidth=80: ]: #
