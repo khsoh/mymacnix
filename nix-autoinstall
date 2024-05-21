@@ -13,26 +13,17 @@ readonly GREEN='\033[32m'
 readonly GREEN_UL='\033[4;32m'
 readonly RED='\033[31m'
 
-# Script to perform installation of Nix on MacOS
+# Script to perform automated installation of Nix on MacOS and clone mymacnix to install nix-Darwin
 #
 
 { # Prevent execution if this script was only partially downloaded
-oops() {
-    echo "$0:" "$@" >&2
-    exit 1
+
+function print_arrow () {
+    printf "${BOLD}${GREEN}"
+    printf "=%.0s" {1..$SHLVL} 
+    printf "> "
+    printf "$1${ESC}\n"
 }
-
-umask 0022
-
-# Perform automated install
-tmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX || \
-          oops "Can't create temporary directory for downloading the Nix install script")"
-
-cleanup() {
-    rm -rf "$tmpDir"
-}
-trap cleanup EXIT INT QUIT TERM
-
 
 function get_gitfolder () {
     [[ ! -n "${gitfolder+1}" ]] || return
@@ -43,21 +34,34 @@ function get_gitfolder () {
             if [[ ! -e "$HOME/$folder" ]]; then
                 break
             fi
-            echo "${RED}$HOME/$folder already exists - please choose another directory${ESC}"
+            printf "${RED}$HOME/$folder already exists - please choose another directory${ESC}\n"
         fi
         printf "$prompt"
     done
     eval "export gitfolder=$HOME/$folder"
 }
 
+# Test if Nix is already installed
+if [[ $(nix --version 2>/dev/null) ]]; then
+    printf "${BOLD}${RED}Nix already installed - nix-autoinstall will not be executed${ESC}\n"
+    exit 1
+fi
+
+# Prompt user for git folder early in install process because the Nix installation
+# time takes a while - so we want the automated installation can proceed without 
+# interruption after all the user inputs are collected first.
 get_gitfolder
 
-curl -L https://nixos.org/nix/install > "$tmpDir/nixinstall"
-yes | sh "$tmpDir/nixinstall"
+print_arrow "Starting to auto-install nix from https://nixos.org/nix/install"
 
-echo "${BOLD}${GREEN}--> Starting a new sub-shell to clone mymacnix git folder${ESC}"
-curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/clonerepo-autoinstall > "$tmpDir/clonerepo"
-zsh -l "$tmpDir/clonerepo"
+yes | sh <<EOF
+$(curl -L https://nixos.org/nix/install)
+EOF
+
+print_arrow "Starting a new sub-shell to clone mymacnix git folder"
+zsh -l <<EOF
+$(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/clonerepo-autoinstall)
+EOF
 
 
 } # End of wrapping
