@@ -58,7 +58,7 @@ zsh -l <<EOF
 . /etc/zprofile
 . /etc/zshrc
 
-darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin-configuration.nix
+darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 popd
 
