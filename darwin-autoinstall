@@ -33,7 +33,7 @@ cleanup() {
 }
 trap cleanup EXIT INT QUIT TERM
 
-if [[ $(darwin-version --version) ]]; then
+if [[ $(darwin-version --version 2>/dev/null) ]]; then
     echo nix-darwin already installed
     exit 1
 fi
