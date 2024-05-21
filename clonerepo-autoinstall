@@ -46,8 +46,7 @@ mkdir -p ~/.config
 
 nix-shell -p git stow --command '
 git clone --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
-cd "$gitfolder"
-stow -Rt ~ HOME
+bash -l "$gitfolder/dostow.sh"
 '
 
 echo "${BOLD}${GREEN}--> Starting a new sub-shell to install nix-darwin${ESC}"
