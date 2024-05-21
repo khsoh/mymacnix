@@ -19,9 +19,8 @@ readonly RED='\033[31m'
 { # Prevent execution if this script was only partially downloaded
 function print_arrow () {
     printf "${BOLD}${GREEN}"
-    printf "=%.0s" {1..$SHLVL} 
-    printf "> "
-    printf "$1${ESC}\n"
+    eval $(echo printf '"=%.0s"' {1..$SHLVL})
+    printf "> $*${ESC}\n"
 }
 
 oops() {
@@ -61,6 +60,7 @@ pushd $darwintmpDir
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 print_arrow "Starting a new sub-shell to configure nix-darwin"
+export -f print_arrow
 zsh -l <<EOF
 
 . /etc/zshenv

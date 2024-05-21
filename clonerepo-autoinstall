@@ -20,9 +20,8 @@ readonly RED='\033[31m'
 
 function print_arrow () {
     printf "${BOLD}${GREEN}"
-    printf "=%.0s" {1..$SHLVL} 
-    printf "> "
-    printf "$1${ESC}\n"
+    eval $(echo printf '"=%.0s"' {1..$SHLVL})
+    printf "> $*${ESC}\n"
 }
 
 function get_gitfolder () {
