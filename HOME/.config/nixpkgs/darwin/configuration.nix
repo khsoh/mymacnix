@@ -7,6 +7,10 @@
     [ pkgs.vim
       pkgs.neovim
       pkgs.tmux
+      pkgs.git
+      pkgs.git-lfs
+      pkgs.git-repo
+      pkgs.gh
       pkgs.stow
     ];
 
