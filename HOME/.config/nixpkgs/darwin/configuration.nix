@@ -3,15 +3,17 @@
 {
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
-  environment.systemPackages =
-    [ pkgs.vim
-      pkgs.neovim
-      pkgs.tmux
-      pkgs.git
-      pkgs.git-lfs
-      pkgs.git-repo
-      pkgs.gh
-      pkgs.stow
+  environment.systemPackages = with pkgs;
+    [ vim
+      neovim
+      tmux
+      git
+      git-lfs
+      git-repo
+      gh
+      tree
+      dhall-json
+      stow
     ];
 
   # Use a custom configuration.nix location.
