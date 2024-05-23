@@ -15,22 +15,22 @@ function __build_prompt {
     # Print the right-aligned current working directory
     local PSPATH=$PWD
     if [[ $PSPATH/ = "$HOME"/* ]]; then PSPATH=\~${PSPATH#$HOME}; fi    
-    printf "${GREEN}%${COLUMNS}s${RESET}\r" "$PSPATH"
 
-    if [[ "$PS1" =~ ^"$RED["[[:digit:]]+"]$RESET "(.*)$ ]]; then
-      PS1="${BASH_REMATCH[1]}"
-    elif [[ -z "$IN_NIX_SHELL" ]]; then
-      # this is the default prompt for 
+    if [[ -z "$IN_NIX_SHELL" ]]; then
+      # this is the default prompt for non-Nix setup
       PS1="\u # "
-    elif [[ "$PS1" =~ ^"\n"(.*)$ ]]; then
-      PS1="${BASH_REMATCH[1]}"
     fi
-    # start with an empty PS1
-    #PS1=""
 
+    ADJLEN=${#PSPATH}
     if [[ $EXIT -ne 0 ]]; then
-        PS1="${RED}[${EXIT}]${RESET} ${PS1}"	# Add red if exit code non 0
+        XPSPATH="${PSPATH} [${EXIT}]"
+        ADJLEN=${#XPSPATH}
+        PSPATH="${GREEN}${PSPATH} ${RED}[${EXIT}]${RESET}"
+    else
+        PSPATH="${GREEN}${PSPATH}${RESET}"
     fi
+    ADJLEN=$((${#PSPATH}-${ADJLEN}))
+    printf "%$((COLUMNS+${ADJLEN}))s\r" "${PSPATH}"
 
 }
 
