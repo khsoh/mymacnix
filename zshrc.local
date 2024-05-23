@@ -1,0 +1,5 @@
+
+autoload -U colors && colors
+
+declare RPROMPT="%{$bold$fg[green]%}%~%{$reset_color%}"
+declare PS1="%(?..%{$fg[red]%}[%?] %{$reset_color%})%n %% "
