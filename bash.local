@@ -23,11 +23,13 @@ function __build_prompt {
 
     ADJLEN=${#PSPATH}
     if [[ $EXIT -ne 0 ]]; then
-        XPSPATH="${PSPATH} [${EXIT}]"
+        XPSPATH="${PSPATH} [${EXIT}] "
         ADJLEN=${#XPSPATH}
-        PSPATH="${GREEN}${PSPATH} ${RED}[${EXIT}]${RESET}"
+        PSPATH="${GREEN}${PSPATH} ${RED}[${EXIT}] ${RESET}"
     else
-        PSPATH="${GREEN}${PSPATH}${RESET}"
+        XPSPATH="${PSPATH} "
+        ADJLEN=${#XPSPATH}
+        PSPATH="${GREEN}${PSPATH} ${RESET}"
     fi
     ADJLEN=$((${#PSPATH}-${ADJLEN}))
     printf "%$((COLUMNS+${ADJLEN}))s\r" "${PSPATH}"
