@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-SCRIPTNAME=$(readlink -f ${BASH_SOURCE[0]})
+SCRIPTNAME=$(readlink -f $0)
 pushd "$(dirname $SCRIPTNAME)" > /dev/null
 
 # Copy local startup files
