@@ -2,38 +2,44 @@
 
 # default macOS prompt is: \h:\W \u\$
 
-# assemble the prompt string PS1
+# assemble the right-aligned prompt string 
+# - represented as PS1RHS within function
 function __build_prompt {
     local EXIT="$?" # store current exit code
     
     # define some colors
-    local RESET=$(tput sgr0)
+    local RESET=$(printf "\x1B[0m")
     local GRAY=$(tput setaf 0)
     local RED=$(tput setaf 1)
     local GREEN=$(tput setaf 2)
 
-    # Print the right-aligned current working directory
-    local PSPATH=$PWD
-    if [[ $PSPATH/ = "$HOME"/* ]]; then PSPATH=\~${PSPATH#$HOME}; fi    
+    # Generate current working directory string
+    local PSPATH=${PWD/#${HOME}/\~}
 
     if [[ -z "$IN_NIX_SHELL" ]]; then
       # this is the default prompt for non-Nix setup
       PS1="\u # "
-    fi
-
-    ADJLEN=${#PSPATH}
-    if [[ $EXIT -ne 0 ]]; then
-        XPSPATH="${PSPATH} [${EXIT}] "
-        ADJLEN=${#XPSPATH}
-        PSPATH="${GREEN}${PSPATH} ${RED}[${EXIT}] ${RESET}"
     else
-        XPSPATH="${PSPATH} "
-        ADJLEN=${#XPSPATH}
-        PSPATH="${GREEN}${PSPATH} ${RESET}"
+      # Nix-shell - remove \w in PS1 because we already have it at the right prompt
+      PS1=${PS1/:*\\w/}
+      # Remove any starting \n
+      PS1=${PS1/#\\n/}
     fi
-    ADJLEN=$((${#PSPATH}-${ADJLEN}))
-    printf "%$((COLUMNS+${ADJLEN}))s\r" "${PSPATH}"
 
+    # Create a right-aligned prompt in GREEN
+    printf -v PS1RHS "${GREEN}${PSPATH}${RESET} "
+
+    # Print non-zero exit code of the last command in RED
+    if [[ $EXIT -ne 0 ]]; then
+        PS1RHS="${PS1RHS}${RED}[${EXIT}]${RESET} "
+    fi
+
+    # Strip ANSI commands before counting length
+    local PS1RHS_stripped=$(sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" <<<"$PS1RHS")
+
+    ## colpos positions the cursor at the specified column via \x1B[#G command
+    local colpos=$(printf "\x1B[%dG" $(($(tput cols) - ${#PS1RHS_stripped} + 1)))
+    printf "${colpos}%s\r" "${PS1RHS}"
 }
 
 # set the prompt command
