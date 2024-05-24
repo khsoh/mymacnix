@@ -1,17 +1,22 @@
 # PROMPT
 
+shopt -s extglob
+
 # default macOS prompt is: \h:\W \u\$
 
 # assemble the right-aligned prompt string 
 # - represented as PS1RHS within function
 function __build_prompt {
     local EXIT="$?" # store current exit code
-    
+
+
     # define some colors
-    local RESET=$(printf "\x1B[0m")
-    local GRAY=$(tput setaf 0)
+    local RESET=$(tput sgr0)
     local RED=$(tput setaf 1)
     local GREEN=$(tput setaf 2)
+
+    # Need to add \\ to escape [ for $RESET pattern matching
+    local RE_RESET=${RESET//[/\\\\[}  
 
     # Generate current working directory string
     local PSPATH=${PWD/#${HOME}/\~}
@@ -35,7 +40,17 @@ function __build_prompt {
     fi
 
     # Strip ANSI commands before counting length
-    local PS1RHS_stripped=$(sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" <<<"$PS1RHS")
+    local matchstr=$(printf "@(${RE_RESET}|\x1B\\[+(+([0-9])?(;))m)")
+    local PS1RHS_stripped=${PS1RHS//${matchstr}/}
+
+    ### DEBUGGING CODE
+    # instr="$PS1RHS_stripped"
+    #
+    # for ((i = 0 ; i < ${#instr}; i++)); do
+    #     chr="${instr:i:1}"
+    #     ascv=$(printf "%d" "'$chr")
+    #     echo "$chr: $ascv"
+    # done
 
     ## colpos positions the cursor at the specified column via \x1B[#G command
     local colpos=$(printf "\x1B[%dG" $(($(tput cols) - ${#PS1RHS_stripped} + 1)))
