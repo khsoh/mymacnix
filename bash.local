@@ -14,9 +14,9 @@ function __build_prompt {
 
 
     # define some colors
-    local RESET=$(tput sgr0)
-    local BTRED=$(tput setaf 9)
-    local BTGREEN=$(tput setaf 10)
+    local RESET=$(printf "\1$(tput sgr0)\2")
+    local BTRED=$(printf "\1$(tput setaf 9)\2")
+    local BTGREEN=$(printf "\1$(tput setaf 10)\2")
 
     # Need to add \\ to escape [ for $RESET pattern matching
     local RE_BTRED=${BTRED//[/\\\\[}  
@@ -24,7 +24,7 @@ function __build_prompt {
     local RE_RESET=${RESET//[/\\\\[}  
 
     # EXIT CODE matching
-    local RE_EXITCODE=$(printf "\1${RE_BTRED}\2\\\\[+([0-9])\\\\]\1${RE_RESET}\2 ")
+    local RE_EXITCODE=$(printf "${RE_BTRED}\\\\[+([0-9])\\\\]${RE_RESET} ")
 
     # Remove any pre-existing exit code setting in PS1 prompt
     PS1=${PS1#${RE_EXITCODE}}
@@ -43,24 +43,23 @@ function __build_prompt {
     fi
 
     # Create a right-aligned prompt in bright GREEN
-    printf -v PS1RHS "\1${BTGREEN}\2${PSPATH}\1${RESET}\2 "
+    printf -v PS1RHS "${BTGREEN}${PSPATH}${RESET} "
 
     # Print non-zero exit code of the last command in Bright RED
     if [[ $EXIT -ne 0 ]]; then
         if [[ $EXITCODE_RHS -eq 1 ]]; then
-          PS1RHS=${PS1RHS}$(printf "\1${BTRED}\2[${EXIT}]\1${RESET}\2 ")
+          PS1RHS=${PS1RHS}$(printf "${BTRED}[${EXIT}]${RESET} ")
         else
-          PS1=$(printf "\1${BTRED}\2[${EXIT}]\1${RESET}\2 ")$PS1
+          PS1=$(printf "${BTRED}[${EXIT}]${RESET} ")$PS1
         fi
     fi
 
     # Strip ANSI commands before counting length
-    local matchstr=$(printf "\1@(${RE_RESET}|\x1B\\[+(+([0-9])?(;))m)\2")
+    local matchstr=$(printf "@(${RE_RESET}|\1\x1B\\[+(+([0-9])?(;))m\2)")
     local PS1RHS_stripped=${PS1RHS//${matchstr}/}
 
     ### DEBUGGING CODE
     # instr="$PS1RHS_stripped"
-    #
     # for ((i = 0 ; i < ${#instr}; i++)); do
     #     chr="${instr:i:1}"
     #     ascv=$(printf "%d" "'$chr")
