@@ -60,7 +60,7 @@ print_arrow "Starting a new sub-shell to configure nix-darwin"
 
 # Trick to export print_arrow function to zsh sub-shell
 func_print_arrow="$(typeset -f print_arrow)"
-export func_print_arrow
+export func_print_arrow ESC BOLD RED GREEN BLUE
 zsh -l <<EOF
 
 eval "\$func_print_arrow"
