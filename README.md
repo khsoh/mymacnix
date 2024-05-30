@@ -165,4 +165,10 @@ These tools can now be installed by executing this command in the Terminal windo
 sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
 ```
 
+For testing purposes, user may test changes of this repo with a branch as follows:
+
+```
+MMXBRANCH=<git-branch-name> sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall)
+```
+
 [ vim: set textwidth=80: ]: #
