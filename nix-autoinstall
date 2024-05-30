@@ -57,9 +57,12 @@ yes | sh <<EOF
 $(curl -L https://nixos.org/nix/install)
 EOF
 
-print_arrow "Starting a new sub-shell to clone mymacnix git folder"
+MMXBRANCH=${MMXBRANCH:-main}
+print_arrow "Starting a new sub-shell to clone $MMXBRANCH branch of mymacnix repository"
 zsh -l <<EOF
-$(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/clonerepo-autoinstall)
+echo Downloading and executing clonerepo-autoinstall from ${MMXBRANCH:-main} branch of mymacnix repo
+MMXBRANCH=${MMXBRANCH:-main}
+$(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/${MMXBRANCH:-main}/clonerepo-autoinstall)
 EOF
 
 

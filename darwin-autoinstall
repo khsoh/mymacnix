@@ -80,8 +80,6 @@ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuratio
 EOF
 popd
 
-. $(dirname $(readlink -f $0))/copystartup.sh
-
 printf "${BOLD}${BLUE}Restart a new terminal to start using Nix and nix-darwin${ESC}\n"
 
 } # End of wrapping
