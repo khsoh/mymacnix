@@ -13,6 +13,7 @@
       gh
       tree
       dhall-json
+      rectangle
       stow
     ];
 
