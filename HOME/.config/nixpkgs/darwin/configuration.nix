@@ -23,7 +23,11 @@ in {
       gnumake
       gcc
       go
+      gotools
       rustc
+      python312
+      nodejs_22
+      powershell
     ];
 
   # Use a custom configuration.nix location.
