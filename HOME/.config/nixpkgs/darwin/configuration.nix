@@ -1,6 +1,9 @@
 { config, pkgs, ... }:
 
-{
+let
+  USER = builtins.getEnv "USER";
+  USERHOME = builtins.getEnv "HOME";
+in {
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs;
@@ -40,11 +43,11 @@
   '';
 
   imports = [ <home-manager/nix-darwin> ];
-  users.users.rxdev = {
-    name = "rxdev";
-    home = "/Users/rxdev";
+  users.users.${USER} = {
+    name = "${USER}";
+    home = "${USERHOME}";
   };
-  home-manager.users.rxdev = { pkgs, ... }: {
+  home-manager.users.${USER} = { pkgs, ... }: {
     home.packages = with pkgs;
     [ 
       (nerdfonts.override { fonts = [ "FiraMono" ]; })
