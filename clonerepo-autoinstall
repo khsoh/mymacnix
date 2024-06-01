@@ -60,6 +60,7 @@ mkdir -p ~/.config
 print_arrow "Cloning branch ${MMXBRANCH:-main} of mymacnix repo"
 nix-shell -p git stow --command '
 git clone --branch ${MMXBRANCH:-main} --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
+mkdir -p ~/Library/LaunchAgents
 bash -l "$gitfolder/dostow.sh"
 '
 
