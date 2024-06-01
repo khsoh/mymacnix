@@ -3,15 +3,16 @@
 <plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>com.nvim.update</string>
+		<string>com.tmux.update</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/run/current-system/sw/bin/nvim</string>
-			<string>--headless</string>
-			<string>+Lazy! sync</string>
-			<string>+MasonUpdate</string>
-			<string>+MasonToolsUpdateSync</string>
-			<string>+qa</string>
+			<string>/bin/bash</string>
+			<string>-c</string>
+			<string>
+				for d in $HOME/.tmux/plugins/*; do
+					git -C $d pull --recurse-submodules
+				done
+			</string>
 		</array>
 		<key>KeepAlive</key>
 		<dict>
@@ -19,8 +20,8 @@
 			<false/>
 		</dict>
 		<key>StandardErrorPath</key>
-		<string>/tmp/nvimupdateError.log</string>
+		<string>/tmp/tmuxupdateError.log</string>
 		<key>StandardOutputPath</key>
-		<string>/tmp/nvimupdate.log</string>
+		<string>/tmp/tmuxupdate.log</string>
 	</dict>
 </plist>
