@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   USER = builtins.getEnv "USER";
@@ -18,6 +18,7 @@ in {
       tree
       dhall-json
       rectangle
+      _1password
       stow
 # The following packages are to support neovim-related builds
       gnumake
@@ -64,6 +65,10 @@ in {
     [ 
       (nerdfonts.override { fonts = [ "FiraMono" ]; })
       gotools
+    ];
+
+    nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+      "1password-cli"
     ];
 
     # The state version is required and should stay at the version you
