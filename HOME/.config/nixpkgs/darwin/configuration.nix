@@ -10,6 +10,7 @@ in {
     [ vim
       neovim
       tmux
+      gnused
       git
       git-lfs
       git-repo
@@ -18,6 +19,11 @@ in {
       dhall-json
       rectangle
       stow
+# The following packages are to support neovim-related builds
+      gnumake
+      gcc
+      go
+      rustc
     ];
 
   # Use a custom configuration.nix location.
