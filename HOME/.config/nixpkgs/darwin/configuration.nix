@@ -24,6 +24,9 @@ in {
       gcc
       go
       rustc
+      marksman
+      lua
+      luarocks
     ];
 
   # Use a custom configuration.nix location.
