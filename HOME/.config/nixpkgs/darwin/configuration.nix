@@ -27,6 +27,9 @@ in {
       marksman
       lua
       luarocks
+      python312
+      nodejs_22
+      powershell
     ];
 
   # Use a custom configuration.nix location.
@@ -60,6 +63,7 @@ in {
     home.packages = with pkgs;
     [ 
       (nerdfonts.override { fonts = [ "FiraMono" ]; })
+      gotools
     ];
 
     # The state version is required and should stay at the version you
