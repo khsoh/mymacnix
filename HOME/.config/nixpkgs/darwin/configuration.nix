@@ -67,14 +67,14 @@ in {
       gotools
     ];
 
-    nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-      "1password-cli"
-    ];
-
     # The state version is required and should stay at the version you
     # originally installed.
     home.stateVersion = "24.05";
   };
+
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "1password-cli"
+  ];
 
 # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
