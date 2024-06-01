@@ -1,0 +1,3 @@
+[submodule "HOME/.config/tmux"]
+	path = HOME/.config/tmux
+	url = https://github.com/khsoh/tmuxconf.git

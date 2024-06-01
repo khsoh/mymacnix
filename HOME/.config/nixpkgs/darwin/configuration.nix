@@ -39,6 +39,22 @@
   [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
 
+  imports = [ <home-manager/nix-darwin> ];
+  users.users.rxdev = {
+    name = "rxdev";
+    home = "/Users/rxdev";
+  };
+  home-manager.users.rxdev = { pkgs, ... }: {
+    home.packages = with pkgs;
+    [ 
+      (nerdfonts.override { fonts = [ "FiraMono" ]; })
+    ];
+
+    # The state version is required and should stay at the version you
+    # originally installed.
+    home.stateVersion = "24.05";
+  };
+
 # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 4;
