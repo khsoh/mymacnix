@@ -23,7 +23,6 @@ in {
       gnumake
       gcc
       go
-      gotools
       rustc
       python312
       nodejs_22
@@ -61,6 +60,7 @@ in {
     home.packages = with pkgs;
     [ 
       (nerdfonts.override { fonts = [ "FiraMono" ]; })
+      gotools
     ];
 
     # The state version is required and should stay at the version you
