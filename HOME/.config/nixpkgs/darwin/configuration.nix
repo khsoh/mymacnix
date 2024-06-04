@@ -31,6 +31,7 @@ in {
   environment.systemPackages = with pkgs;
     [ vim
       neovim
+      ripgrep   # used by kickstart.nvim
       tmux
       gnused
       git
