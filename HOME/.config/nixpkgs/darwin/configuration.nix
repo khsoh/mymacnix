@@ -31,7 +31,13 @@ in {
   environment.systemPackages = with pkgs;
     [ vim
       neovim
-      ripgrep   # used by kickstart.nvim
+
+      ### The following are for kickstart.nvim
+      ripgrep
+      unzip
+      wget
+      fd
+
       tmux
       gnused
       git
@@ -43,6 +49,7 @@ in {
       rectangle
       _1password
       stow
+      exiftool
 # The following packages are to support neovim-related builds
       gnumake
       gcc
