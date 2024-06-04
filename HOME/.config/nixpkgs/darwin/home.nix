@@ -28,6 +28,23 @@ in {
         StandardErrorPath = "${USERHOME}/log/tmuxupdateError.log";
       };
     };
+    updateNvimPlugins = {
+      enable = true;
+      config = {
+        Label = "updateNvimPlugins";
+        ProgramArguments = [ "${pkgs.nvim}/bin/nvim"
+          "--headless"
+          "+Lazy! sync"
+          "+MasonUpdate"
+          "+MasonToolsUpdateSync"
+          "+qa"
+          ];
+        RunAtLoad = true;
+        KeepAlive = { SuccessfulExit = false; };
+        StandardOutputPath = "${USERHOME}/log/nvimupdate.log";
+        StandardErrorPath = "${USERHOME}/log/nvimupdateError.log";
+      };
+    };
   };
 
   # The state version is required and should stay at the version you
