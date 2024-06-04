@@ -25,6 +25,11 @@ tmux () {
     fi
 }
 
+delagent () {
+    launchctl disable user/$UID/$1
+    sudo /usr/libexec/PlistBuddy -c "Delete $1" /var/db/com.apple.xpc.launchd/disabled.$UID.plist
+}
+
 # vim mode config
 # ---------------
 
