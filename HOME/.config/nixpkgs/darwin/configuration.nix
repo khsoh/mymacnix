@@ -4,6 +4,28 @@ let
   USER = builtins.getEnv "USER";
   USERHOME = builtins.getEnv "HOME";
 in {
+  imports = [ <home-manager/nix-darwin> ];
+
+  users.users.${USER} = {
+    name = "${USER}";
+    home = "${USERHOME}";
+
+    # packages = with pkgs;
+    # [
+    #   ## Commented out because nix-darwin does not put the symlinks in ~/Library/Fonts
+    #   ## - will move nerdfonts from home-manager back to here when nix-darwin sort out this issue
+    #   ##(nerdfonts.override { fonts = [ "FiraMono" ]; })
+    # ];
+  };
+
+  ## We use home-manager because this nix-darwin does not seem
+  #  to handle the installation of nerdfonts correctly
+  home-manager.users.${USER} = if builtins.pathExists ./home.nix then import ./home.nix else {};
+
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "1password-cli"
+  ];
+
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs;
@@ -54,27 +76,6 @@ in {
   programs.bash.interactiveShellInit = ''
   [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
-
-  imports = [ <home-manager/nix-darwin> ];
-  users.users.${USER} = {
-    name = "${USER}";
-    home = "${USERHOME}";
-  };
-  home-manager.users.${USER} = { pkgs, ... }: {
-    home.packages = with pkgs;
-    [ 
-      (nerdfonts.override { fonts = [ "FiraMono" ]; })
-      gotools
-    ];
-
-    # The state version is required and should stay at the version you
-    # originally installed.
-    home.stateVersion = "24.11";
-  };
-
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-    "1password-cli"
-  ];
 
 # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
