@@ -79,27 +79,8 @@ nix-channel --update
 darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 
-
-print_arrow "Starting a new sub-shell to install tmux plug-ins"
-
-zsh -l <<EOF
-
-eval "\$func_print_arrow"
-
-. /etc/zshenv
-. /etc/zprofile
-. /etc/zshrc
-
-## Note that ~/.config/tmux/tmux.conf was already linked via dostow.sh earlier in 
-#  clonerepo-autoinstall
-git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
-tmux -c "~/.tmux/plugins/tpm/bindings/install_plugins" 2>/dev/null
-
-EOF
-
 popd
 
-printf "${BOLD}${BLUE}Restart a new terminal to start using Nix and nix-darwin${ESC}\n"
 
 } # End of wrapping
 

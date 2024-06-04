@@ -20,6 +20,29 @@ function print_arrow () {
     printf "> $*${ESC}\n"
 }
 
+function usage () {
+    print_arrow "Usage: "
+    print_arrow "  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=(nixonly|darwin)] [--branch=<feature-branch>]"
+    print_arrow "    The default feature-branch is 'main' if it is not specified"
+    exit 1
+}
+
+oops() {
+    echo "$0:" "$@" >&2
+    exit 1
+}
+
+umask 0022
+
+# Perform automated install
+nixtmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX || \
+          oops "Can't create temporary directory for downloading the nix install scripts")"
+
+cleanup() {
+    rm -rf "$nixtmpDir"
+}
+trap cleanup EXIT INT QUIT TERM
+
 function get_gitfolder () {
     [[ ! -n "${gitfolder+1}" ]] || return
     local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
@@ -36,11 +59,29 @@ function get_gitfolder () {
     eval "export gitfolder=$HOME/$folder"
 }
 
+OPTINSTALL="all"
+BRANCH="main"
+CMDARGS=( "$@" )
+while test $# -gt 0; do
+    case "$1" in
+        --install=*)
+            OPTINSTALL="${1##--install=}";;
+        --branch=*)
+            BRANCH="${1##--branch=}";;
+        *)
+            echo "Invalid option $1"
+            usage;;
+    esac
+    shift
+done
+
+
 # Test if Nix is already installed
 if [[ $(nix --version 2>/dev/null) ]]; then
     printf "${BOLD}${RED}Nix already installed - nix-autoinstall will not be executed${ESC}\n"
     exit 1
 fi
+
 
 # Prompt user for git folder early in install process because the Nix installation
 # time takes a while - so we want the automated installation can proceed without 
@@ -53,14 +94,9 @@ yes | sh <<EOF
 $(curl -L https://nixos.org/nix/install)
 EOF
 
-MMXBRANCH=${MMXBRANCH:-main}
-print_arrow "Starting a new sub-shell to clone $MMXBRANCH branch of mymacnix repository"
-zsh -l <<EOF
-echo Downloading and executing clonerepo-autoinstall from ${MMXBRANCH:-main} branch of mymacnix repo
-MMXBRANCH=${MMXBRANCH:-main}
-$(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/${MMXBRANCH:-main}/clonerepo-autoinstall)
-EOF
-
+print_arrow "Downloading and executing nixsys-setup from ${BRANCH} branch of mymacnix repo"
+curl -L https://raw.githubusercontent.com/khsoh/mymacnix/${BRANCH}/nixsys-setup -o ${nixtmpDir}/nixsys-setup
+zsh -l ${nixtmpDir}/nixsys-setup ${CMDARGS[@]}
 
 } # End of wrapping
 
