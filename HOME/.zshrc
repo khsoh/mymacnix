@@ -16,7 +16,7 @@ tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
     if [[ -z "$1" ]]; then
         if [[ $(command tmux list-session 2>&/dev/null) ]]; then
-            command tmux switch-client -t $(command tmux new-session -d -P)
+            osascript -e 'tell app "Terminal" to do script "tmux new-session"'
         else
             command tmux new-session -A
         fi
