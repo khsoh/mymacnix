@@ -32,7 +32,7 @@ in {
       enable = true;
       config = {
         Label = "updateNvimPlugins";
-        ProgramArguments = [ "${pkgs.nvim}/bin/nvim"
+        ProgramArguments = [ "${pkgs.neovim}/bin/nvim"
           "--headless"
           "+Lazy! sync"
           "+MasonUpdate"
