@@ -36,12 +36,8 @@ in {
         Label = "updateNvimPlugins";
         ProgramArguments = [ "${SYSPATH}/zsh"
           "-c"
-          "${SYSPATH}/nvim --headless
-          \"+Lazy! sync\"
-          \"+MasonUpdate\"
-          \"+MasonToolsUpdateSync\"
-          \"+qa\"
-          "];
+          "${SYSPATH}/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
+          ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
         StandardOutputPath = "${HOME}/log/nvimupdate.log";
