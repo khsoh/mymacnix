@@ -15,13 +15,12 @@ in {
       enable = true;
       config = {
         Label = "updateTmuxPlugins";
-        ProgramArguments = [ "/usr/bin/bash"
+        ProgramArguments = [ "/bin/bash"
           "-c"
-          "[ -d ${USERHOME}/.tmux/plugins/tpm ] || exit ;
-           for d in ${USERHOME}/.tmux/plugins/*; do
-             ${pkgs.git}/bin/git -C $d pull --recurse-submodules ;
-           done"
-          ];
+          "[ -d ${USERHOME}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${USERHOME}/.tmux/plugins/tpm ;
+           ${pkgs.tmux}/bin/tmux -c \"${USERHOME}/.tmux/plugins/tpm/bindings/install_plugins\"
+           ${pkgs.tmux}/bin/tmux -c \"${USERHOME}/.tmux/plugins/tpm/scripts/update_plugin.sh all\"
+          "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
         StandardOutputPath = "${USERHOME}/log/tmuxupdate.log";
