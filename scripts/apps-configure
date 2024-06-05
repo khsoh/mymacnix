@@ -49,9 +49,8 @@ if [[ ! $(darwin-version --version 2>/dev/null) ]]; then
 fi
 
 ## Note that ~/.config/tmux/tmux.conf was already linked via dostow.sh earlier in 
-#  clonerepo-autoinstall
+#  nixsys-setup
 print_arrow "Configuring tmux"
-git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
 tmux -c "~/.tmux/plugins/tpm/bindings/install_plugins" 2>/dev/null
 
 

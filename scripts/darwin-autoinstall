@@ -76,6 +76,9 @@ print_arrow "Configuring nix-darwin"
 
 nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 nix-channel --update
+
+# Clone the tpm first to setup tmux to pull in plugins
+git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
 darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 
