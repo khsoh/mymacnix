@@ -1,6 +1,9 @@
 { config, pkgs, ... }: 
 let
-  USERHOME = builtins.getEnv "HOME";
+  usersys = import ./usersys.nix;
+  USER = usersys.USER;
+  HOME = usersys.HOME;
+  SYSPATH = usersys.NIXSYSPATH;
 in {
   ## Need to install nerdfonts here instead of nix-darwin's users.users
   ## because nix-darwin did not link the fonts to ~/Library/Fonts folder
@@ -15,33 +18,34 @@ in {
       enable = true;
       config = {
         Label = "updateTmuxPlugins";
-        ProgramArguments = [ "/bin/bash"
+        ProgramArguments = [ "${SYSPATH}/zsh"
           "-c"
-          "[ -d ${USERHOME}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${USERHOME}/.tmux/plugins/tpm ;
-           ${pkgs.tmux}/bin/tmux -c \"${USERHOME}/.tmux/plugins/tpm/bindings/install_plugins\"
-           ${pkgs.tmux}/bin/tmux -c \"${USERHOME}/.tmux/plugins/tpm/scripts/update_plugin.sh all\"
+          "[ -d ${HOME}/.tmux/plugins/tpm ] || ${SYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${HOME}/.tmux/plugins/tpm ;
+           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bindings/install_plugins\"
+           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/scripts/update_plugin.sh all\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${USERHOME}/log/tmuxupdate.log";
-        StandardErrorPath = "${USERHOME}/log/tmuxupdateError.log";
+        StandardOutputPath = "${HOME}/log/tmuxupdate.log";
+        StandardErrorPath = "${HOME}/log/tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
       enable = true;
       config = {
         Label = "updateNvimPlugins";
-        ProgramArguments = [ "${pkgs.neovim}/bin/nvim"
-          "--headless"
-          "+Lazy! sync"
-          "+MasonUpdate"
-          "+MasonToolsUpdateSync"
-          "+qa"
-          ];
+        ProgramArguments = [ "${SYSPATH}/zsh"
+          "-c"
+          "${SYSPATH}/nvim --headless
+          \"+Lazy! sync\"
+          \"+MasonUpdate\"
+          \"+MasonToolsUpdateSync\"
+          \"+qa\"
+          "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${USERHOME}/log/nvimupdate.log";
-        StandardErrorPath = "${USERHOME}/log/nvimupdateError.log";
+        StandardOutputPath = "${HOME}/log/nvimupdate.log";
+        StandardErrorPath = "${HOME}/log/nvimupdateError.log";
       };
     };
   };

@@ -1,14 +1,16 @@
 { config, pkgs, lib, ... }:
 
 let
-  USER = builtins.getEnv "USER";
-  USERHOME = builtins.getEnv "HOME";
+  usersys = import ./usersys.nix;
+  USER = usersys.USER;
+  HOME = usersys.HOME;
+  SYSPATH = usersys.NIXSYSPATH;
 in {
   imports = [ <home-manager/nix-darwin> ];
 
   users.users.${USER} = {
     name = "${USER}";
-    home = "${USERHOME}";
+    home = "${HOME}";
 
     # packages = with pkgs;
     # [
