@@ -51,16 +51,8 @@ in {
       stow
       exiftool
 # The following packages are to support neovim-related builds
-      gnumake
-      gcc
       go
-      rustc
-      marksman
-      lua
-      luarocks
-      python312
       nodejs_22
-      powershell
     ];
 
   # Use a custom configuration.nix location.
