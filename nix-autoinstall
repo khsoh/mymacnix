@@ -22,7 +22,7 @@ function print_arrow () {
 
 function usage () {
     print_arrow "Usage: "
-    print_arrow "  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=(nixonly|darwin)] [--branch=<feature-branch>]"
+    print_arrow "  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly] [--branch=<feature-branch>]"
     print_arrow "    The default feature-branch is 'main' if it is not specified"
     exit 1
 }
@@ -64,7 +64,7 @@ BRANCH="main"
 CMDARGS=( "$@" )
 while test $# -gt 0; do
     case "$1" in
-        --install=*)
+        --install=nixonly)
             OPTINSTALL="${1##--install=}";;
         --branch=*)
             BRANCH="${1##--branch=}";;
