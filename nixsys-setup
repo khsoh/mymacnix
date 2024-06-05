@@ -139,15 +139,13 @@ else
     cd "$gitfolder"
     zsh -l scripts/darwin-autoinstall
 
-    if [[ $OPTINSTALL == "darwin" ]]; then
-        print_arrow "Completed installing only nix, cloning repo and nix-darwin"
-        print_arrow "To proceed, open a new terminal and execute:"
-        print_arrow "   cd \"$gitfolder\""
-        print_arrow "   zsh -l nixsys-setup $NEWCMDARGS"
-        exit
-    fi
+    # if [[ $OPTINSTALL == "darwin" ]]; then
+    #     print_arrow "Completed installing only nix, cloning repo and nix-darwin"
+    #     print_arrow "To proceed, open a new terminal and execute:"
+    #     print_arrow "   cd \"$gitfolder\""
+    #     print_arrow "   zsh -l nixsys-setup $NEWCMDARGS"
+    #     exit
+    # fi
 fi
 
-print_arrow "Starting a new sub-shell to configure apps"
-zsh -l scripts/apps-configure
 
