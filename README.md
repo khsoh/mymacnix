@@ -162,10 +162,10 @@ I created auto-install scripts to install `Nix` and `nix-darwin` with minimal us
 These tools can now be installed by executing this command in the Terminal window:
 
 ```
-sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly|darwin] [--branch=<git-feature-branch>]
+sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly] [--branch=<git-feature-branch>]
 ```
 
 The `--branch` option can be use to test feature branches.  The `--install` option can
-be used to stop to auto-install process at specific points in the installation.
+be used to stop to auto-install process at a Nix-only install
 
 [ vim: set textwidth=80: ]: #

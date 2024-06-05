@@ -21,6 +21,13 @@ function print_arrow () {
     printf "> $*${ESC}\n"
 }
 
+function usage () {
+    print_arrow "Usage: "
+    print_arrow "  zsh -l nixsys-setup [--install=nixonly] [--branch=<feature-branch>]"
+    print_arrow "    The default feature-branch is 'main' if it is not specified"
+    exit 1
+}
+
 function get_gitfolder () {
     [[ ! -n "${gitfolder+1}" ]] || return
     local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
@@ -48,7 +55,7 @@ BRANCH="main"
 CMDARGS=( "$@" )
 while test $# -gt 0; do
     case "$1" in
-        --install=*)
+        --install=nixonly)
             OPTINSTALL="${1##--install=}";;
         --branch=*)
             BRANCH="${1##--branch=}";;
@@ -86,6 +93,11 @@ if [[ ! $(darwin-version --version 2>/dev/null) ]]; then
             DARWININSTALLED=0
         fi
     fi
+fi
+
+if [[ $DARWININSTALLED -eq 1 ]]; then
+    printf "${BOLD}${RED}nix-darwin already installed${ESC}\n"
+    exit
 fi
 
 # Added code to install Xcode command line tools
@@ -132,20 +144,8 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
     exit
 fi
 
-if [[ DARWININSTALLED -eq 1 ]]; then
-    printf "${BOLD}${RED}nix-darwin already installed - skipping installation of nix-darwin${ESC}\n"
-else
-    print_arrow "Installing nix-darwin"
-    cd "$gitfolder"
-    zsh -l scripts/darwin-autoinstall
-
-    # if [[ $OPTINSTALL == "darwin" ]]; then
-    #     print_arrow "Completed installing only nix, cloning repo and nix-darwin"
-    #     print_arrow "To proceed, open a new terminal and execute:"
-    #     print_arrow "   cd \"$gitfolder\""
-    #     print_arrow "   zsh -l nixsys-setup $NEWCMDARGS"
-    #     exit
-    # fi
-fi
+print_arrow "Installing nix-darwin"
+cd "$gitfolder"
+zsh -l scripts/darwin-autoinstall
 
 
