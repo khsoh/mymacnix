@@ -26,7 +26,12 @@ tmux () {
 }
 
 delagent () {
-    launchctl disable user/$UID/$1
+    if [ -z $1 ]; then
+        echo "Usage: delagent <service-target>" >&2
+        return 1
+    fi
+    launchctl print gui/$UID/$1 >/dev/null || return $?
+    launchctl disable gui/$UID/$1 || return $?
     sudo /usr/libexec/PlistBuddy -c "Delete $1" /var/db/com.apple.xpc.launchd/disabled.$UID.plist
 }
 
