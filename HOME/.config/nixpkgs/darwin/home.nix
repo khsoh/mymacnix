@@ -21,8 +21,9 @@ in {
         ProgramArguments = [ "${SYSPATH}/zsh"
           "-c"
           "[ -d ${HOME}/.tmux/plugins/tpm ] || ${SYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${HOME}/.tmux/plugins/tpm ;
-           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bindings/install_plugins\"
-           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/scripts/update_plugin.sh all\"
+           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/install_plugins\"
+           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/update_plugin all\"
+           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
