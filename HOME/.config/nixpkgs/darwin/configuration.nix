@@ -51,6 +51,7 @@ in {
       rectangle
       _1password
       stow
+      mupdf
       exiftool
 # The following packages are to support neovim-related builds
       go
