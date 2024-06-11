@@ -5,6 +5,7 @@ let
   HOME = usersys.HOME;
   SYSPATH = usersys.NIXSYSPATH;
   gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
+  ssh_user_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
 in {
   ## Need to install nerdfonts here instead of nix-darwin's users.users
   ## because nix-darwin did not link the fonts to ~/Library/Fonts folder
@@ -16,6 +17,8 @@ in {
   ### Enable git configuration
   programs.git = {
     enable = true;
+    userName = "K H Soh";
+
     aliases = {
       co = "checkout";
       ci = "commit";
@@ -61,6 +64,18 @@ in {
     #    required = true
 
     extraConfig = {
+      ### The following are needed because home-manager's gpg/signing module
+      #  does not support ssh
+      user = { signingkey = ssh_user_pubkey; };
+      gpg = {
+        format = "ssh";
+        ssh = {
+          program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+        };
+      };
+      commit = { gpgsign = true; };
+      tag = { gpgsign = true; };
+
       rerere = { enabled = true; };
       rebase = { updateRefs = true; };
     };
