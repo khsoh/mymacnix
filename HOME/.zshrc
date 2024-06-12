@@ -15,11 +15,17 @@ export EDITOR=vim
 tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
     if [[ -z "$1" ]]; then
+        nsparam="-A"
         if [[ $(command tmux list-session 2>&/dev/null) ]]; then
-            osascript -e 'tell app "Terminal" to do script "tmux new-session"'
-        else
-            command tmux new-session -A
+            nsparam=""
         fi
+        osascript -e '
+        tell app "Terminal"
+            if not application "Terminal" is running then launch
+            do script "tmux new-session ${nsparam}"
+            activate
+        end tell
+        '
     else
         command tmux $@
     fi
