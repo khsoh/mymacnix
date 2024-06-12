@@ -35,6 +35,7 @@ new machine - especially in terms of setting up non-Microsoft tools.
 * Add relevant tools or script that I believe would help create reproducible
 macOS setup
 
+
 ## Phase 1: Experimenting on MacOS VMs 
 
 Before I started messing with my actual MacOS setup, I first setup MacOS VMs to
@@ -158,14 +159,45 @@ system approach to macOS".
 
 ## Phase 4: Creating my own install tools
 
-I created auto-install scripts to install `Nix` and `nix-darwin` with minimal user intervention.
-These tools can now be installed by executing this command in the Terminal window:
+I created auto-install scripts to install `Nix` and `nix-darwin` with minimal 
+user intervention.  These tools can now be installed by executing this command 
+in the Terminal window:
 
 ```
 sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly] [--branch=<git-feature-branch>]
 ```
 
-The `--branch` option can be use to test feature branches.  The `--install` option can
-be used to stop to auto-install process at a Nix-only install
+The `--branch` option can be use to test feature branches.  The `--install` 
+option can be used to stop to auto-install process at a Nix-only install
+
+## INTERLUDE AND UPDATE ON 12 JUN 2024
+
+An important update on the learning journey.  I discovered this important site
+[nix.dev](https://nix.dev) by the [Nix documentation team](https://nixos.org/community/teams/documentation) to guide newbies in their Nix journey.  It would have been good if I had started
+on my journey with this resource.  But I believe my future learning would be
+best spent on this site.
+
+As of today, I have managed to get installation to the point of setting up the
+most important tools and configurations for them:
+
+- home-manager
+- neovim
+- tmux
+- git
+- 1Password (CLI)
+
+The only non-automated step I think I need to do now is to install 1Password GUI
+on the MAC because `nix-darwin` installs this in the `/Applications/Nix Apps/`
+folder.  But 1Password does not execute because it was not installed inside of
+`/Applications/` folder (reference: [1Password doesn't work on Darwin/macOS
+#254944](https://github.com/NixOS/nixpkgs/issues/254944)
+
+### Next steps
+
+Next steps are:
+
+- Further investigation of 1Password
+- Investigate how to use agenix package for secrets management
+- Studying [nix.dev](https://nix.dev) to understand Nix better
 
 [ vim: set textwidth=80: ]: #
