@@ -121,6 +121,7 @@ if [ $? -ne 0 ]; then
 
     mkdir -p ~/.config/nixpkgs/darwin
     mkdir -p ~/.config/nixpkgs/secrets
+    mkdir -p ~/.config/git
 
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
