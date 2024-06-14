@@ -125,8 +125,7 @@ if [ $? -ne 0 ]; then
 
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
-    sudo nix-env -iA nixpkgs.git
-    nix-shell -p git stow --command '
+    nix-shell -p stow --command '
     git clone --branch ${BRANCH} --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
     source "$gitfolder/dostow.sh"
