@@ -62,7 +62,7 @@ in {
   environment.systemPackages = with pkgs;
     [ vim
       neovim
-      (callPackage <agenix/pkgs/agenix> {})
+      (callPackage <agenix/pkgs/agenix.nix> {})
 
       ### The following are for kickstart.nvim
       ripgrep
