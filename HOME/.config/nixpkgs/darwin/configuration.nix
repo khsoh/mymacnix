@@ -5,8 +5,37 @@ let
   USER = usersys.USER;
   HOME = usersys.HOME;
   SYSPATH = usersys.NIXSYSPATH;
+  AGEIDFILE = "${HOME}/.ssh/nixid_ed25519";
+
 in {
-  imports = [ <home-manager/nix-darwin> ];
+  imports = [ 
+    <home-manager/nix-darwin> 
+    <agenix/modules/age.nix>
+    ];
+
+  ##### agenix configurations
+  age.identityPaths = [ "${AGEIDFILE}" ];
+  age.secrets.config-private = {
+# file should be a path expression, not a string expression (in quotes)
+    file = ~/.config/nixpkgs/secrets/config-private.age;
+
+# path should be a string expression (in quotes), not a path expression
+# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
+# you ever
+    path = "${HOME}/.config/git/config-private";
+
+# The default is true if not specified.  We want to make sure that
+# the "file" (decrypted secret) is symlinked and not generated directly into
+# that location
+    symlink = true;
+
+# The following are needed to ensure the decrypted secret has the correct
+# owner and permission
+    mode = "600";
+    owner = "${USER}";
+    group = "staff";
+  };
+  ##### End agenix configurations
 
   users.users.${USER} = {
     name = "${USER}";
@@ -33,6 +62,7 @@ in {
   environment.systemPackages = with pkgs;
     [ vim
       neovim
+      (callPackage <agenix/pkgs/agenix> {})
 
       ### The following are for kickstart.nvim
       ripgrep
@@ -50,6 +80,14 @@ in {
       dhall-json
       rectangle
       _1password
+### Sample demo to use overrideAttrs to embed a postPhase in the installation
+      # (_1password-gui.overrideAttrs {
+      #   postPhases = [ "mypostrun" ];
+      #   mypostrun = ''
+      #   echo "Hello World!!!!!"
+      #   echo "This is a postPhase that is executed after installation"
+      #   '';
+      # })
       stow
       mupdf
       exiftool
@@ -61,6 +99,14 @@ in {
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
   environment.darwinConfig = "$HOME/.config/nixpkgs/darwin/configuration.nix";
+
+  # Setup aliases
+  environment.interactiveShellInit = ''
+  alias nds="nix --extra-experimental-features nix-command derivation show"
+  alias agnvx="EIDTOR=nvim agenix -i ${AGEIDFILE}"
+  alias agvx="agenix -i ${AGEIDFILE}"
+  alias cdsec="cd ~/.config/nixpkgs/secrets"
+  '';
 
   # Auto upgrade nix package and the daemon service.
   services.nix-daemon.enable = true;
@@ -79,6 +125,15 @@ in {
   programs.bash.interactiveShellInit = ''
   [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
+
+##### Sample code for system.activationScripts.*.text - this is undocumented
+###     stuff from nix-darwin
+  # system.activationScripts.preActivation.text = ''
+  #   echo "I am in PreActivation"
+  #   '';
+  # system.activationScripts.postActivation.text = lib.mkAfter ''
+  #   echo "I am in PreActivation"
+  #   '';
 
 # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
