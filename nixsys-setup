@@ -96,7 +96,8 @@ if [[ ! $(darwin-version --version 2>/dev/null) ]]; then
 fi
 
 if [[ $DARWININSTALLED -eq 1 ]]; then
-    printf "${BOLD}${RED}nix-darwin already installed${ESC}\n"
+    printf "${BOLD}${RED}nix-darwin already installed - re-running darwin-rebuild switch${ESC}\n"
+    darwin-rebuild switch
     exit
 fi
 
