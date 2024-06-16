@@ -1,9 +1,10 @@
-{ config, pkgs, ... }: 
+{ config, pkgs, lib, ... }: 
 let
   usersys = import ./usersys.nix;
   USER = usersys.USER;
   HOME = usersys.HOME;
   SYSPATH = usersys.NIXSYSPATH;
+  DOTFILEPATH = ../dotfiles;
   gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
   ssh_user_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
 in {
@@ -13,6 +14,13 @@ in {
   [ 
     (nerdfonts.override { fonts = [ "FiraMono" ]; })
   ];
+
+  ### Generate the home.file for the dotfiles
+  home.file = home.file // builtins.mapAttrs (name: value:
+    { enable = true;
+      source = lib.path.append DOTFILEPATH name;
+      target = name;
+    }) (builtins.readDir DOTFILEPATH);
 
   ### Enable git configuration
   programs.git = {
