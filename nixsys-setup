@@ -120,7 +120,6 @@ if [ $? -ne 0 ]; then
     ## Script folder is not a git folder
     get_gitfolder
 
-    mkdir -p ~/.config/nixpkgs
     mkdir -p ~/.config/git
 
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
