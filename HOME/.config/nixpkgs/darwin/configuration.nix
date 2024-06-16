@@ -103,6 +103,7 @@ in {
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
+  alias nie="nix-instantiate --eval"
   alias nvmx="EIDTOR=nvim agenix -i ${AGEIDFILE}"
   alias vmx="agenix -i ${AGEIDFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
