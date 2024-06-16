@@ -16,7 +16,7 @@ in {
   ];
 
   ### Generate the home.file for the dotfiles
-  home.file = home.file // builtins.mapAttrs (name: value:
+  home.file = builtins.mapAttrs (name: value:
     { enable = true;
       source = lib.path.append DOTFILEPATH name;
       target = name;
