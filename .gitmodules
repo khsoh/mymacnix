@@ -1,6 +1,6 @@
-[submodule "HOME/.config/tmux"]
+[submodule "dot-config/tmux"]
 	path = dot-config/tmux
 	url = https://github.com/khsoh/tmuxconf.git
-[submodule "HOME/.config/nvim"]
+[submodule "dot-config/nvim"]
 	path = dot-config/nvim
 	url = https://github.com/khsoh/kickstart.nvim.git
