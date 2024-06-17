@@ -100,9 +100,9 @@ in {
           "-l"
           "-c"
           "[ -d ${HOME}/.tmux/plugins/tpm ] || ${SYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${HOME}/.tmux/plugins/tpm 
-           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/install_plugins\"
-           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
-           ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
+           &gt;&amp;2 ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/install_plugins\"
+           &gt;&amp;2 ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
+           &gt;&amp;2 ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
            &gt;&amp;2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
