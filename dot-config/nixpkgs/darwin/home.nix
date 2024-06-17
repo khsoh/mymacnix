@@ -7,6 +7,13 @@ let
   DOTFILEPATH = ../dotfiles;
   gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
   ssh_user_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
+
+  # Function to generate home.file.* from path "zpath"
+  gen_hf = (zpath: builtins.mapAttrs ((name: value:
+    { enable = true;
+      source = lib.path.append zpath name;
+      target = name;
+    })) (builtins.readDir zpath));
 in {
   ## Need to install nerdfonts here instead of nix-darwin's users.users
   ## because nix-darwin did not link the fonts to ~/Library/Fonts folder
@@ -16,11 +23,7 @@ in {
   ];
 
   ### Generate the home.file for the dotfiles
-  home.file = builtins.mapAttrs (name: value:
-    { enable = true;
-      source = lib.path.append DOTFILEPATH name;
-      target = name;
-    }) (builtins.readDir DOTFILEPATH);
+  home.file = gen_hf DOTFILEPATH;
 
   ### Enable git configuration
   programs.git = {
