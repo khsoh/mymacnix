@@ -5,11 +5,11 @@ let
   HOME = usersys.HOME;
   SYSPATH = usersys.NIXSYSPATH;
   DOTFILEPATH = ../dotfiles;
-  gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
+  gh_noreply_email = usersys.gh_noreply_email;
+  ssh_user_pubkey = usersys.ssh_user_pubkey;
+  nixid_pubkey = usersys.nixid_pubkey;
 
-  ssh_user_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
-  nixid_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEQt2ge9t4hjB+S06TUFIFjkaAdqRSx6gitM9rjCSBjl";
-
+  # Test if environment has installed 1Password - this affects SSH-related setup
   has_1password = builtins.pathExists "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
 
   # Function to the functionality of GNU Stow by generating
