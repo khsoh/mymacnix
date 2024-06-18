@@ -6,7 +6,11 @@ let
   SYSPATH = usersys.NIXSYSPATH;
   DOTFILEPATH = ../dotfiles;
   gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
+
   ssh_user_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
+  nixid_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEQt2ge9t4hjB+S06TUFIFjkaAdqRSx6gitM9rjCSBjl";
+
+  has_1password = builtins.pathExists "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
 
   # Function to the functionality of GNU Stow by generating
   #   links suitable for home.file .  The target are 
@@ -85,12 +89,12 @@ in {
     extraConfig = {
       ### The following are needed because home-manager's gpg/signing module
       #  does not support ssh
-      user = { signingkey = ssh_user_pubkey; };
+      user = { signingkey = if has_1password then ssh_user_pubkey else nixid_pubkey; };
       gpg = {
         format = "ssh";
-        ssh = {
+        ssh = if has_1password then {
           program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-        };
+        } else {} ;
       };
       commit = { gpgsign = true; };
       tag = { gpgsign = true; };
