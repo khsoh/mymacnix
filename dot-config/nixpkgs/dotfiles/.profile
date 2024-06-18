@@ -5,7 +5,7 @@ export XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 export XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
 
 if [[ ! -e /Applications/1Password.app/Contents/MacOS/op-ssh-sign && -n $SSH_AUTH_SOCK ]]; then
-    if ! ssh-add -l; then
+    if ! ssh-add -l 2>&1 >/dev/null; then
         [ -f ~/.ssh/nixid_ed25519 ] && ssh-add ~/.ssh/nixid_ed25519
     fi
 fi
