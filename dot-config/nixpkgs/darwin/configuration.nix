@@ -5,7 +5,10 @@ let
   USER = usersys.USER;
   HOME = usersys.HOME;
   SYSPATH = usersys.NIXSYSPATH;
-  AGEIDFILE = "${HOME}/.ssh/nixid_ed25519";
+  _NIXIDFILE = "${HOME}/.ssh/nixid_ed25519";
+  AGEIDFILE = (lib.trivial.throwIfNot (builtins.pathExists _NIXIDFILE) ''
+  ${_NIXIDFILE} ssh key file absent
+  '') _NIXIDFILE;
 
 in {
   imports = [ 

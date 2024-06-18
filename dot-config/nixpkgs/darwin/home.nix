@@ -10,7 +10,14 @@ let
   nixid_pubkey = usersys.nixid_pubkey;
 
   # Test if environment has installed 1Password - this affects SSH-related setup
-  has_1password = builtins.pathExists "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+  SSHSIGN_PROGRAM = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+  _has_1password_ = builtins.pathExists SSHSIGN_PROGRAM;
+
+  has_1password = lib.trivial.warnIfNot _has_1password_
+    ''
+      Best to install 1Password App first before deploying the Nix configuration.
+      Will use nixid_ed25519 as the user SSH key for GIT signing
+    '' _has_1password_;
 
   # Function to the functionality of GNU Stow by generating
   #   links suitable for home.file .  The target are 
@@ -93,7 +100,7 @@ in {
       gpg = {
         format = "ssh";
         ssh = if has_1password then {
-          program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+          program = SSHSIGN_PROGRAM;
         } else {} ;
       };
       commit = { gpgsign = true; };
