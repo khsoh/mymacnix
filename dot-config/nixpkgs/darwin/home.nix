@@ -3,17 +3,26 @@ let
   usersys = import ./usersys.nix;
   USER = usersys.USER;
   HOME = usersys.HOME;
+  HOMEPATH = /. + builtins.toPath HOME;   # We need this as a path variable for stow_hf
   SYSPATH = usersys.NIXSYSPATH;
   DOTFILEPATH = ../dotfiles;
   gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
   ssh_user_pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
 
-  # Function to generate home.file.* from path "zpath"
-  gen_hf = (zpath: builtins.mapAttrs ((name: value:
-    { enable = true;
-      source = lib.path.append zpath name;
+  # Function to the functionality of GNU Stow by generating
+  #   links suitable for home.file .  The target are 
+  #   linked to files in the /nix/store
+  # Both srcpath and targetpath must be path variables
+  # The files in srcpath are copied into /nix/store before the link is generated 
+  #   - hence the targets are immutable
+  stow_hf = (srcpath: targetpath:
+    builtins.mapAttrs (name: value: {
+      enable = true;
+      source = lib.path.append targetpath name;
       target = name;
-    })) (builtins.readDir zpath));
+    }) (builtins.readDir srcpath)
+  );
+
 in {
   ## Need to install nerdfonts here instead of nix-darwin's users.users
   ## because nix-darwin did not link the fonts to ~/Library/Fonts folder
@@ -23,7 +32,7 @@ in {
   ];
 
   ### Generate the home.file for the dotfiles
-  home.file = gen_hf DOTFILEPATH;
+  home.file = stow_hf DOTFILEPATH HOMEPATH;
 
   ### Enable git configuration
   programs.git = {
