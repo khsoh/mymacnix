@@ -3,7 +3,6 @@ let
   usersys = import ./usersys.nix;
   USER = usersys.USER;
   HOME = usersys.HOME;
-  HOMEPATH = /. + builtins.toPath HOME;   # We need this as a path variable for stow_hf
   SYSPATH = usersys.NIXSYSPATH;
   DOTFILEPATH = ../dotfiles;
   gh_noreply_email = "2169449+khsoh@users.noreply.github.com";
@@ -15,11 +14,11 @@ let
   # Both srcpath and targetpath must be path variables
   # The files in srcpath are copied into /nix/store before the link is generated 
   #   - hence the targets are immutable
-  stow_hf = (srcpath: targetpath:
+  stow_hf = (srcpath: targetpathstr:
     builtins.mapAttrs (name: value: {
       enable = true;
-      source = lib.path.append targetpath name;
-      target = name;
+      source = lib.path.append srcpath name;
+      target = targetpathstr + "/" + name;
     }) (builtins.readDir srcpath)
   );
 
@@ -32,7 +31,7 @@ in {
   ];
 
   ### Generate the home.file for the dotfiles
-  home.file = stow_hf DOTFILEPATH HOMEPATH;
+  home.file = stow_hf DOTFILEPATH ".";
 
   ### Enable git configuration
   programs.git = {
