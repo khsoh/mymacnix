@@ -89,6 +89,7 @@ in {
       #   '';
       # })
       stow
+      cargo
       mupdf
       exiftool
 # The following packages are to support neovim-related builds
