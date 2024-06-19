@@ -1,9 +1,5 @@
-{ config, pkgs, lib, ... }: 
+{ pkgs, lib, usersys, ... }: 
 let
-  usersys = import ./usersys.nix;
-  USER = usersys.USER;
-  HOME = usersys.HOME;
-  SYSPATH = usersys.NIXSYSPATH;
   DOTFILEPATH = ../dotfiles;
   gh_noreply_email = usersys.gh_noreply_email;
   ssh_user_pubkey = usersys.ssh_user_pubkey;
@@ -118,34 +114,34 @@ in {
       enable = true;
       config = {
         Label = "updateTmuxPlugins";
-        ProgramArguments = [ "${SYSPATH}/bash"
+        ProgramArguments = [ "${usersys.NIXSYSPATH}/bash"
           "-l"
           "-c"
-          "[ -d ${HOME}/.tmux/plugins/tpm ] || ${SYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${HOME}/.tmux/plugins/tpm 
-           &gt;&amp;2 ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/install_plugins\"
-           &gt;&amp;2 ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
-           &gt;&amp;2 ${SYSPATH}/tmux -c \"${HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
+          "[ -d ${usersys.HOME}/.tmux/plugins/tpm ] || ${usersys.NIXSYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${usersys.HOME}/.tmux/plugins/tpm 
+           &gt;&amp;2 ${usersys.NIXSYSPATH}/tmux -c \"${usersys.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
+           &gt;&amp;2 ${usersys.NIXSYSPATH}/tmux -c \"${usersys.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
+           &gt;&amp;2 ${usersys.NIXSYSPATH}/tmux -c \"${usersys.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
            &gt;&amp;2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${HOME}/log/tmuxupdate.log";
-        StandardErrorPath = "${HOME}/log/tmuxupdateError.log";
+        StandardOutputPath = "${usersys.HOME}/log/tmuxupdate.log";
+        StandardErrorPath = "${usersys.HOME}/log/tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
       enable = true;
       config = {
         Label = "updateNvimPlugins";
-        ProgramArguments = [ "${SYSPATH}/bash"
+        ProgramArguments = [ "${usersys.NIXSYSPATH}/bash"
           "-l"
           "-c"
-          "${SYSPATH}/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
+          "${usersys.NIXSYSPATH}/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${HOME}/log/nvimupdate.log";
-        StandardErrorPath = "${HOME}/log/nvimupdateError.log";
+        StandardOutputPath = "${usersys.HOME}/log/nvimupdate.log";
+        StandardErrorPath = "${usersys.HOME}/log/nvimupdateError.log";
       };
     };
 
