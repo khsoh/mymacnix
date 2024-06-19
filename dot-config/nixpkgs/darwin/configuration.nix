@@ -100,11 +100,6 @@ in {
       nodejs_22
     ];
 
-  environment.shells = with pkgs; [
-    bashInteractive
-    zsh
-  ];
-
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
   environment.darwinConfig = "${usersys.HOME}/.config/nixpkgs/darwin/configuration.nix";
