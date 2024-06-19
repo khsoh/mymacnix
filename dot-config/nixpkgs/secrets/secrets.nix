@@ -1,6 +1,11 @@
 let
-  rxdev = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEQt2ge9t4hjB+S06TUFIFjkaAdqRSx6gitM9rjCSBjl";
-  users = [ rxdev ];
+  pkgs = import <nixpkgs> {};
+  lib = pkgs.lib;
+  usersys = import ../darwin/usersys.nix { inherit lib; };
+
+  user = usersys.ssh_user_pubkey;
+  rxdev = usersys.nixid_pubkey;
+  users = [ user rxdev ];
 in {
   "config-private.age".publicKeys = users;
 }

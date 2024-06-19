@@ -10,7 +10,10 @@ in {
     ];
 
   ##### agenix configurations
-  age.identityPaths = [ "${usersys.NIXIDFILE}" ];
+  age.identityPaths = [ 
+    "${usersys.NIXIDPKFILE}" 
+    "${usersys.USERPKFILE}" 
+    ];
 
 # config-private stores the git config user.email - this is the private email
 # that is encrypted before checking into git
@@ -104,8 +107,8 @@ in {
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias nvmx="EIDTOR=nvim agenix -i ${usersys.NIXIDFILE}"
-  alias vmx="agenix -i ${usersys.NIXIDFILE}"
+  alias nvmx="EDITOR=nvim agenix -i ${usersys.NIXIDPKFILE}"
+  alias vmx="agenix -i ${usersys.NIXIDPKFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
   '';
 
