@@ -80,7 +80,7 @@ in {
       git-repo
       gh
       tree
-      dhall-json
+      # dhall-json  ## Remove this because the nds alias can be used instead
       rectangle
       _1password
 ### Sample demo to use overrideAttrs to embed a postPhase in the installation
@@ -108,6 +108,7 @@ in {
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
+  alias drs="darwin-rebuild switch"
   alias nvmx="EDITOR=nvim agenix -i ${pkfile}"
   alias vmx="agenix -i ${pkfile}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
