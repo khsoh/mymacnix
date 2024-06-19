@@ -41,8 +41,10 @@ rec {
   # SSH public keys - nixid_pubkey is used for testing in my VM environment
   #   - this is useful for testing in case we accidentally leak SSH key from test environment
   ssh_user_pubkey = builtins.concatStringsSep " " 
-      (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e)) (builtins.split "[[:space:]\n]+" USERPUBFILE)));
+      (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e)) 
+        (builtins.split "[[:space:]\n]+" (builtins.readFile USERPUBFILE))));
   nixid_pubkey = builtins.concatStringsSep " " 
-      (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e)) (builtins.split "[[:space:]\n]+" NIXIDPUBFILE)));
+      (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e)) 
+        (builtins.split "[[:space:]\n]+" (builtins.readFile NIXIDPUBFILE))));
   ##### End of SSH related stuff #####
 }
