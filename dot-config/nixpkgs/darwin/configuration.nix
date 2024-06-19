@@ -1,14 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, lib, ... }:
 
 let
-  usersys = import ./usersys.nix;
-  USER = usersys.USER;
-  HOME = usersys.HOME;
-  SYSPATH = usersys.NIXSYSPATH;
-  _NIXIDFILE = "${HOME}/.ssh/nixid_ed25519";
-  AGEIDFILE = (lib.trivial.throwIfNot (builtins.pathExists _NIXIDFILE) ''
-  ${_NIXIDFILE} ssh key file absent
-  '') _NIXIDFILE;
+  usersys = import ./usersys.nix { inherit lib; };
 
 in {
   imports = [ 
@@ -17,7 +10,10 @@ in {
     ];
 
   ##### agenix configurations
-  age.identityPaths = [ "${AGEIDFILE}" ];
+  age.identityPaths = [ "${usersys.NIXIDFILE}" ];
+
+# config-private stores the git config user.email - this is the private email
+# that is encrypted before checking into git
   age.secrets.config-private = {
 # file should be a path expression, not a string expression (in quotes)
     file = ~/.config/nixpkgs/secrets/config-private.age;
@@ -25,7 +21,7 @@ in {
 # path should be a string expression (in quotes), not a path expression
 # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
 # you ever
-    path = "${HOME}/.config/git/config-private";
+    path = "${usersys.HOME}/.config/git/config-private";
 
 # The default is true if not specified.  We want to make sure that
 # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -35,14 +31,14 @@ in {
 # The following are needed to ensure the decrypted secret has the correct
 # owner and permission
     mode = "600";
-    owner = "${USER}";
+    owner = "${usersys.USER}";
     group = "staff";
   };
   ##### End agenix configurations
 
-  users.users.${USER} = {
-    name = "${USER}";
-    home = "${HOME}";
+  users.users.${usersys.USER} = {
+    name = "${usersys.USER}";
+    home = "${usersys.HOME}";
 
     # packages = with pkgs;
     # [
@@ -54,7 +50,7 @@ in {
 
   ## We use home-manager because this nix-darwin does not seem
   #  to handle the installation of nerdfonts correctly
-  home-manager.users.${USER} = if builtins.pathExists ./home.nix then import ./home.nix else {};
+  home-manager.users.${usersys.USER} = import usersys.HOMENIX { inherit pkgs lib usersys; };
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
@@ -102,14 +98,14 @@ in {
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
-  environment.darwinConfig = "$HOME/.config/nixpkgs/darwin/configuration.nix";
+  environment.darwinConfig = "${usersys.HOME}/.config/nixpkgs/darwin/configuration.nix";
 
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias nvmx="EIDTOR=nvim agenix -i ${AGEIDFILE}"
-  alias vmx="agenix -i ${AGEIDFILE}"
+  alias nvmx="EIDTOR=nvim agenix -i ${usersys.NIXIDFILE}"
+  alias vmx="agenix -i ${usersys.NIXIDFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
   '';
 
