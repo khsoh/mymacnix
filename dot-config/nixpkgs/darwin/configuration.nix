@@ -2,7 +2,6 @@
 
 let
   usersys = import ./usersys.nix { inherit lib; };
-  pkfile = if usersys.have_userpkfile then usersys.USERPKFILE else usersys.NIXIDPKFILE;
 
 in {
   imports = [ 
@@ -109,8 +108,8 @@ in {
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
   alias drs="darwin-rebuild switch"
-  alias nvmx="EDITOR=nvim agenix -i ${pkfile}"
-  alias vmx="agenix -i ${pkfile}"
+  alias nvmx="EDITOR=nvim agenix -i ${usersys.DEFAULT_PKFILE}"
+  alias vmx="agenix -i ${usersys.DEFAULT_PKFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
   '';
 
