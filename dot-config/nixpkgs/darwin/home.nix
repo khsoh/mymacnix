@@ -1,9 +1,10 @@
-{ pkgs, lib, usersys, ... }: 
+{ osConfig, pkgs, lib, ... }:
 let
+  syscfg = osConfig.syscfg;
+  mod_gh = osConfig.mod_gh;
+  sshcfg = osConfig.mod_sshkeys;
   DOTFILEPATH = ../dotfiles;
-  gh_noreply_email = usersys.gh_noreply_email;
-  ssh_user_pubkey = usersys.ssh_user_pubkey;
-  nixid_pubkey = usersys.nixid_pubkey;
+
 
   # Test if environment has installed 1Password - this affects SSH-related setup
   SSHSIGN_PROGRAM = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
@@ -64,19 +65,19 @@ in {
       {
         condition = "hasconfig:remote.*.url:git@github.com:*/**";
         contents = {
-          user = { email = gh_noreply_email; };
+          user = { email = mod_gh.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://github.com/**";
         contents = {
-          user = { email = gh_noreply_email; };
+          user = { email = mod_gh.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://*@github.com/**";
         contents = {
-          user = { email = gh_noreply_email; };
+          user = { email = mod_gh.noreply_email; };
         };
       }
     ];
@@ -92,7 +93,7 @@ in {
     extraConfig = {
       ### The following are needed because home-manager's gpg/signing module
       #  does not support ssh
-      user = { signingkey = if has_1password then ssh_user_pubkey else nixid_pubkey; };
+      user = { signingkey = if has_1password then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey; };
       gpg = {
         format = "ssh";
         ssh = if has_1password then {
@@ -114,34 +115,34 @@ in {
       enable = true;
       config = {
         Label = "updateTmuxPlugins";
-        ProgramArguments = [ "${usersys.NIXSYSPATH}/bash"
+        ProgramArguments = [ "${syscfg.NIXSYSPATH}/bash"
           "-l"
           "-c"
-          "[ -d ${usersys.HOME}/.tmux/plugins/tpm ] || ${usersys.NIXSYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${usersys.HOME}/.tmux/plugins/tpm 
-           &gt;&amp;2 ${usersys.NIXSYSPATH}/tmux -c \"${usersys.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
-           &gt;&amp;2 ${usersys.NIXSYSPATH}/tmux -c \"${usersys.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
-           &gt;&amp;2 ${usersys.NIXSYSPATH}/tmux -c \"${usersys.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
+          "[ -d ${syscfg.HOME}/.tmux/plugins/tpm ] || ${syscfg.NIXSYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${syscfg.HOME}/.tmux/plugins/tpm
+           &gt;&amp;2 ${syscfg.NIXSYSPATH}/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
+           &gt;&amp;2 ${syscfg.NIXSYSPATH}/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
+           &gt;&amp;2 ${syscfg.NIXSYSPATH}/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
            &gt;&amp;2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${usersys.HOME}/log/tmuxupdate.log";
-        StandardErrorPath = "${usersys.HOME}/log/tmuxupdateError.log";
+        StandardOutputPath = "${syscfg.HOME}/log/tmuxupdate.log";
+        StandardErrorPath = "${syscfg.HOME}/log/tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
       enable = true;
       config = {
         Label = "updateNvimPlugins";
-        ProgramArguments = [ "${usersys.NIXSYSPATH}/bash"
+        ProgramArguments = [ "${syscfg.NIXSYSPATH}/bash"
           "-l"
           "-c"
-          "${usersys.NIXSYSPATH}/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
+          "${syscfg.NIXSYSPATH}/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${usersys.HOME}/log/nvimupdate.log";
-        StandardErrorPath = "${usersys.HOME}/log/nvimupdateError.log";
+        StandardOutputPath = "${syscfg.HOME}/log/nvimupdate.log";
+        StandardErrorPath = "${syscfg.HOME}/log/nvimupdateError.log";
       };
     };
 
