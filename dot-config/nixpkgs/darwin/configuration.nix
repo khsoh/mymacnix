@@ -1,18 +1,47 @@
-{ pkgs, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 let
-  usersys = import ./usersys.nix { inherit lib; };
+  _HOMENIX = ./home.nix;
+  syscfg = config.syscfg;
+  sshcfg = config.mod_sshkeys;
+
+  #### Test the presence of SSH key files
+  ## The configuration only builds if the following files exist:
+  # - nixid SSH private key file
+  # - nixid SSH public key file
+  # - user SSH public key file
+  DEFAULT_PKFILE = (lib.trivial.throwIfNot sshcfg.nixidpkfile_present ''
+    The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build
+    '')
+    (lib.trivial.throwIfNot sshcfg.nixidpubfile_present ''
+    The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build
+    '')
+    (lib.trivial.throwIfNot sshcfg.userpubfile_present ''
+    The user ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build
+    '')
+    (if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE);
 
 in {
   imports = [ 
     <home-manager/nix-darwin> 
     <agenix/modules/age.nix>
+    ./syscfg
     ];
+
+  ####  Configuration section ######
+  mod_gh.noreply_email = "2169449+khsoh@users.noreply.github.com";
+
+  ## Validate the file exists before assinging it to HOMENIX
+  syscfg.HOMENIX = (lib.trivial.throwIfNot (builtins.pathExists _HOMENIX) ''
+  ${_HOMENIX} file must be present to build the configuration
+  '') _HOMENIX;
+
+  ####  End configuration section ######
 
   ##### agenix configurations
   age.identityPaths = [ 
-    "${usersys.NIXIDPKFILE}" 
-    "${usersys.USERPKFILE}" 
+    "${sshcfg.NIXIDPKFILE}"
+    "${sshcfg.USERPKFILE}"
     ];
 
 # config-private stores the git config user.email - this is the private email
@@ -24,7 +53,7 @@ in {
 # path should be a string expression (in quotes), not a path expression
 # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
 # you ever
-    path = "${usersys.HOME}/.config/git/config-private";
+    path = "${syscfg.HOME}/.config/git/config-private";
 
 # The default is true if not specified.  We want to make sure that
 # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -34,14 +63,14 @@ in {
 # The following are needed to ensure the decrypted secret has the correct
 # owner and permission
     mode = "600";
-    owner = "${usersys.USER}";
+    owner = "${syscfg.USER}";
     group = "staff";
   };
   ##### End agenix configurations
 
-  users.users.${usersys.USER} = {
-    name = "${usersys.USER}";
-    home = "${usersys.HOME}";
+  users.users.${syscfg.USER} = {
+    name = "${syscfg.USER}";
+    home = "${syscfg.HOME}";
 
     # packages = with pkgs;
     # [
@@ -53,7 +82,8 @@ in {
 
   ## We use home-manager because this nix-darwin does not seem
   #  to handle the installation of nerdfonts correctly
-  home-manager.users.${usersys.USER} = import usersys.HOMENIX { inherit pkgs lib usersys; };
+  #  Note that a function (not attribute) is to be bound to home-manager.users.<name>
+  home-manager.users.${syscfg.USER} = import syscfg.HOMENIX;
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
@@ -101,15 +131,15 @@ in {
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
-  environment.darwinConfig = "${usersys.HOME}/.config/nixpkgs/darwin/configuration.nix";
+  environment.darwinConfig = "${syscfg.HOME}/.config/nixpkgs/darwin/configuration.nix";
 
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
   alias drs="darwin-rebuild switch"
-  alias nvmx="EDITOR=nvim agenix -i ${usersys.DEFAULT_PKFILE}"
-  alias vmx="agenix -i ${usersys.DEFAULT_PKFILE}"
+  alias nvmx="EDITOR=nvim agenix -i ${DEFAULT_PKFILE}"
+  alias vmx="agenix -i ${DEFAULT_PKFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
   '';
 
