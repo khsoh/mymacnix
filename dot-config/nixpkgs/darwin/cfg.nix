@@ -1,5 +1,8 @@
 { config, ... }:
 {
+  imports = [
+    ./sysopt
+  ];
   ####  Configuration section ######
   ## Note that the commented out segments are the defaults - so these are not assigned
   # sysopt.USER = builtins.getEnv "USER";
