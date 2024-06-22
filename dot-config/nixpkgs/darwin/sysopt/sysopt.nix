@@ -1,6 +1,8 @@
-{ lib, ... }:
-{
-  options.syscfg = {
+{ config, lib, ... }:
+let
+  syscfg = config.sysopt;
+in {
+  options.sysopt = {
     USER = lib.mkOption {
       type = lib.types.str;
       description = "username of the current user account";
@@ -15,10 +17,6 @@
       type = lib.types.str;
       description = "The Nix system executable path";
       default = "/run/current-system/sw/bin";
-    };
-    HOMENIX = lib.mkOption {
-      type = lib.types.path;
-      description = "Current user's home.nix path";
     };
   };
 

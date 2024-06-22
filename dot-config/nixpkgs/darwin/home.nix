@@ -1,7 +1,7 @@
 { osConfig, pkgs, lib, ... }:
 let
-  syscfg = osConfig.syscfg;
-  mod_gh = osConfig.mod_gh;
+  syscfg = osConfig.sysopt;
+  ghcfg = osConfig.mod_gh;
   sshcfg = osConfig.mod_sshkeys;
   DOTFILEPATH = ../dotfiles;
 
@@ -65,19 +65,19 @@ in {
       {
         condition = "hasconfig:remote.*.url:git@github.com:*/**";
         contents = {
-          user = { email = mod_gh.noreply_email; };
+          user = { email = ghcfg.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://github.com/**";
         contents = {
-          user = { email = mod_gh.noreply_email; };
+          user = { email = ghcfg.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://*@github.com/**";
         contents = {
-          user = { email = mod_gh.noreply_email; };
+          user = { email = ghcfg.noreply_email; };
         };
       }
     ];

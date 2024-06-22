@@ -1,41 +1,42 @@
 { config, pkgs, lib, ... }:
-
 let
-  _HOMENIX = ./home.nix;
-  syscfg = config.syscfg;
+  syscfg = config.sysopt;
   sshcfg = config.mod_sshkeys;
 
-  #### Test the presence of SSH key files
-  ## The configuration only builds if the following files exist:
-  # - nixid SSH private key file
-  # - nixid SSH public key file
-  # - user SSH public key file
-  DEFAULT_PKFILE = (lib.trivial.throwIfNot sshcfg.nixidpkfile_present ''
-    The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build
-    '')
-    (lib.trivial.throwIfNot sshcfg.nixidpubfile_present ''
-    The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build
-    '')
-    (lib.trivial.throwIfNot sshcfg.userpubfile_present ''
-    The user ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build
-    '')
-    (if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE);
+  # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
+  DEFAULT_PKFILE = if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE;
 
 in {
   imports = [ 
     <home-manager/nix-darwin> 
     <agenix/modules/age.nix>
-    ./syscfg
+    ./sysopt
     ];
 
   ####  Configuration section ######
+  ## Note that the commented out segments are the defaults - so these are not assigned
+  # sysopt.USER = builtins.getEnv "USER";
+  # sysopt.HOME = builtins.getEnv "HOME";
+  # sysopt.NIXSYSPATH = "/run/current-system/sw/bin";
+
+  # mod_gh.enable = true;
   mod_gh.noreply_email = "2169449+khsoh@users.noreply.github.com";
 
-  ## Validate the file exists before assinging it to HOMENIX
-  syscfg.HOMENIX = (lib.trivial.throwIfNot (builtins.pathExists _HOMENIX) ''
-  ${_HOMENIX} file must be present to build the configuration
-  '') _HOMENIX;
+  ## The locations of the SSH private and public key files
+  # mod_sshkeys.USERPKFILE = "${syscfg.HOME}/.ssh/id_ed25519";
+  # mod_sshkeys.USERPUBFILE = "${syscfg.HOME}/.ssh/id_ed25519.pub";
+  # mod_sshkeys.NIXIDPKFILE = "${syscfg.HOME}/.ssh/nixid_ed25519";
+  # mod_sshkeys.NIXIDPUBFILE = "${syscfg.HOME}/.ssh/nixid_ed25519.pub";
 
+  #### Test the presence of SSH key files
+  ### The configuration only builds if the following files exist:
+  ## - nixid SSH private key file
+  ## - nixid SSH public key file
+  ## - user SSH public key file
+  mod_sshkeys.check_userpkfile = false;
+  # mod_sshkeys.check_userpubfile = true;
+  # mod_sshkeys.check_nixidpkfile = true;
+  # mod_sshkeys.check_nixidpubfile = true;
   ####  End configuration section ######
 
   ##### agenix configurations
@@ -83,7 +84,7 @@ in {
   ## We use home-manager because this nix-darwin does not seem
   #  to handle the installation of nerdfonts correctly
   #  Note that a function (not attribute) is to be bound to home-manager.users.<name>
-  home-manager.users.${syscfg.USER} = import syscfg.HOMENIX;
+  home-manager.users.${syscfg.USER} = import ./home.nix;
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"

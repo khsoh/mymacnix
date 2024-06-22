@@ -1,7 +1,7 @@
 { lib, ... }:
 {
   imports = [
-    ./syscfg.nix
+    ./sysopt.nix
     ./mod_gh.nix
     ./mod_sshkeys.nix
   ];
