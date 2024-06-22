@@ -1,10 +1,14 @@
 let
   pkgs = import <nixpkgs> {};
-  lib = pkgs.lib;
-  usersys = import ../darwin/usersys.nix { inherit lib; };
+  sshcfg = (pkgs.lib.evalModules {
+    modules = [
+      ./../darwin/sysopt
+      ./../darwin/cfg.nix
+    ];
+  }).config.mod_sshkeys;
 
-  user = usersys.ssh_user_pubkey;
-  rxdev = usersys.nixid_pubkey;
+  user = sshcfg.userssh_pubkey;
+  rxdev = sshcfg.nixidssh_pubkey;
   users = [ user rxdev ];
 in {
   "config-private.age".publicKeys = users;
