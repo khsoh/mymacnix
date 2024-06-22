@@ -1,5 +1,11 @@
-{ config, ... }:
+{ ... }:
 {
+#### The configuration of the system is setup in a separate file
+#### from nix-darwin because we want both nix-darwin and agenix
+#### to use the same configuration - hence it is
+#### best to set the configuration in a file that can be imported by
+#### both configuration.nix (for nix-darwin) and secrets.nix (for agenix).
+
   imports = [
     ./sysopt
   ];
