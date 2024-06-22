@@ -10,7 +10,6 @@ in {
   imports = [ 
     <home-manager/nix-darwin> 
     <agenix/modules/age.nix>
-    ./sysopt
     ./cfg.nix  # Setup the config for this particular system
     ];
 
