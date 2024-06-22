@@ -60,7 +60,9 @@ in {
         #   information (like email) that they may not want to place in a public repo
         path = "~/.config/git/config-private";
       }
-
+    ]
+    ++ lib.lists.optionals ghcfg.enable
+    [
       #### The following specify noreply email for github repos
       {
         condition = "hasconfig:remote.*.url:git@github.com:*/**";
