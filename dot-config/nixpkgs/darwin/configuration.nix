@@ -112,7 +112,9 @@ in {
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
+  alias drb="darwin-rebuild build"
   alias drs="darwin-rebuild switch"
+  alias drlg="darwin-rebuild --list-generations"
   alias nvmx="EDITOR=nvim agenix -i ${DEFAULT_PKFILE}"
   alias vmx="agenix -i ${DEFAULT_PKFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
