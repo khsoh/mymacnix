@@ -84,6 +84,7 @@ in {
       git-repo
       gh
       tree
+      jq
       # dhall-json  ## Remove this because the nds alias can be used instead
       rectangle
       _1password
