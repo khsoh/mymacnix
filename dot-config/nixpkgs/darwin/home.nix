@@ -3,18 +3,9 @@ let
   syscfg = osConfig.sysopt;
   ghcfg = osConfig.mod_gh;
   sshcfg = osConfig.mod_sshkeys;
+  onepasscfg = osConfig.mod_1password;
   DOTFILEPATH = ../dotfiles;
 
-
-  # Test if environment has installed 1Password - this affects SSH-related setup
-  SSHSIGN_PROGRAM = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-  _has_1password_ = builtins.pathExists SSHSIGN_PROGRAM;
-
-  has_1password = lib.trivial.warnIfNot _has_1password_
-    ''
-      Best to install 1Password App first before deploying the Nix configuration.
-      Will use nixid_ed25519 as the user SSH key for GIT signing
-    '' _has_1password_;
 
   # Function to the functionality of GNU Stow by generating
   #   links suitable for home.file .  The target are 
@@ -95,11 +86,11 @@ in {
     extraConfig = {
       ### The following are needed because home-manager's gpg/signing module
       #  does not support ssh
-      user = { signingkey = if has_1password then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey; };
+      user = { signingkey = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey; };
       gpg = {
         format = "ssh";
-        ssh = if has_1password then {
-          program = SSHSIGN_PROGRAM;
+        ssh = if onepasscfg.sshsign_pgm_present then {
+          program = onepasscfg.SSHSIGN_PROGRAM;
         } else {} ;
       };
       commit = { gpgsign = true; };

@@ -1,7 +1,5 @@
-{ config, lib, ... }:
-let
-  syscfg = config.sysopt;
-in {
+{ lib, ... }:
+{
   options.sysopt = {
     USER = lib.mkOption {
       type = lib.types.str;
