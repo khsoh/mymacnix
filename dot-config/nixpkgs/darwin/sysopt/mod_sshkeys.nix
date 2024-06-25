@@ -3,15 +3,25 @@ let
   syscfg = config.sysopt;
   sshcfg = config.mod_sshkeys;
 
-  file_presence = (errcheck: errmsg: cond: trueresult: falseresult: 
-    lib.mkMerge [ (lib.mkIf cond trueresult)
-      (lib.mkIf (!cond) ((lib.trivial.throwIf errcheck errmsg) falseresult))
-      ]);
   read_pubkey = (filepresent: pubkeyfile: lib.mkMerge [ (lib.mkIf filepresent (builtins.concatStringsSep " "
       (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e))
         (builtins.split "[[:space:]\n]+" (builtins.readFile pubkeyfile))))))
     (lib.mkIf (!filepresent) "")]);
 in {
+  config.assertions = [
+    { assertion = (!sshcfg.check_userpkfile) || (builtins.pathExists sshcfg.USERPKFILE);
+      message = "The user ssh private key file ${sshcfg.USERPKFILE} is absent - this file must be present to build";
+    }
+    { assertion = (!sshcfg.check_userpubfile) || (builtins.pathExists sshcfg.USERPUBFILE);
+      message = "The user ssh public key file ${sshcfg.USERPUBFILE} is absent - this file must be present to build";
+    }
+    { assertion = (!sshcfg.check_nixidpkfile) || (builtins.pathExists sshcfg.NIXIDPKFILE);
+      message = "The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build";
+    }
+    { assertion = (!sshcfg.check_nixidpubfile) || (builtins.pathExists sshcfg.NIXIDPUBFILE);
+      message = "The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build";
+    }
+  ];
 
   ## SSH private and public keys for the user and Nix
   # It is possible to build system without a user private keyfile.
@@ -94,26 +104,10 @@ in {
 
 
   config.mod_sshkeys = {
-    userpkfile_present = file_presence sshcfg.check_userpkfile ''
-      The user ssh private key file ${sshcfg.USERPKFILE} is absent - this file must be present to build
-      '' 
-      (builtins.pathExists sshcfg.USERPKFILE) true false;
-
-    userpubfile_present = file_presence sshcfg.check_userpubfile ''
-      The user ssh public key file ${sshcfg.USERPUBFILE} is absent - this file must be present to build
-      '' 
-      (builtins.pathExists sshcfg.USERPUBFILE) true false;
-
-    nixidpkfile_present = file_presence sshcfg.check_nixidpkfile ''
-      The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build
-      '' 
-      (builtins.pathExists sshcfg.NIXIDPKFILE) true false;
-
-    nixidpubfile_present = file_presence sshcfg.check_nixidpubfile ''
-      The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build
-      '' 
-      (builtins.pathExists sshcfg.NIXIDPUBFILE) true false;
-
+    userpkfile_present = builtins.pathExists sshcfg.USERPKFILE;
+    userpubfile_present = builtins.pathExists sshcfg.USERPUBFILE;
+    nixidpkfile_present = builtins.pathExists sshcfg.NIXIDPKFILE;
+    nixidpubfile_present = builtins.pathExists sshcfg.NIXIDPUBFILE;
 
     userssh_pubkey = read_pubkey sshcfg.userpubfile_present sshcfg.USERPUBFILE;
     nixidssh_pubkey = read_pubkey sshcfg.nixidpubfile_present sshcfg.NIXIDPUBFILE;

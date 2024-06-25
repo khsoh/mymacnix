@@ -1,5 +1,7 @@
-{ ... }:
-{
+{ config, ... }:
+let
+  syscfg = config.sysopt;
+in {
 #### The configuration of the system is setup in a separate file
 #### from nix-darwin because we want both nix-darwin and agenix
 #### to use the same configuration - hence it is
