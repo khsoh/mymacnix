@@ -104,6 +104,14 @@ in {
 
   launchd.enable = true;
   launchd.agents = {
+    LoginStartTmux = {
+      enable = true;
+      config = {
+        Label = "LoginStartTmux";
+        ProgramArguments = [ "${syscfg.HOME}/.config/tmux/osx_tmux_terminal_startup.sh" ];
+        RunAtLoad = true;
+      };
+    };
     updateTmuxPlugins = {
       enable = true;
       config = {
