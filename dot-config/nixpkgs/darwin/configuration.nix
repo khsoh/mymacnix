@@ -10,10 +10,11 @@ in {
   imports = [ 
     <home-manager/nix-darwin> 
     <agenix/modules/age.nix>
-    ./cfg.nix  # Setup the config for this particular system
+    ./cfg.nix  # Setup submodules to configure for this particular system
     ];
 
-  ##### agenix configurations
+  ######### Configuration of modules #########
+  ##### agenix configuration
   age.identityPaths = [ 
     "${sshcfg.NIXIDPKFILE}"
     "${sshcfg.USERPKFILE}"
@@ -41,7 +42,18 @@ in {
     owner = "${syscfg.USER}";
     group = "staff";
   };
-  ##### End agenix configurations
+  ##### End agenix module configuration
+
+  ##### home-manager configuration
+  ## We use home-manager because this nix-darwin does not seem
+  #  to handle the installation of nerdfonts correctly
+  #  Note that a function (not attribute) is to be bound to home-manager.users.<name>
+  #  Also, it seems that this is a better way to perform user-specific configuration
+  home-manager.users.${syscfg.USER} = import ./home.nix;
+  ##### end home-manager configuration
+
+  ######### End configuration of modules #########
+
 
   users.users.${syscfg.USER} = {
     name = "${syscfg.USER}";
@@ -54,11 +66,6 @@ in {
     #   ##(nerdfonts.override { fonts = [ "FiraMono" ]; })
     # ];
   };
-
-  ## We use home-manager because this nix-darwin does not seem
-  #  to handle the installation of nerdfonts correctly
-  #  Note that a function (not attribute) is to be bound to home-manager.users.<name>
-  home-manager.users.${syscfg.USER} = import ./home.nix;
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
