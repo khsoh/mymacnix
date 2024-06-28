@@ -8,38 +8,27 @@ let
         (builtins.split "[[:space:]\n]+" (builtins.readFile pubkeyfile))))))
     (lib.mkIf (!filepresent) "")]);
 in {
-  config.assertions = [
-    { assertion = (!sshcfg.check_userpkfile) || (builtins.pathExists sshcfg.USERPKFILE);
-      message = "The user ssh private key file ${sshcfg.USERPKFILE} is absent - this file must be present to build";
-    }
-    { assertion = (!sshcfg.check_userpubfile) || (builtins.pathExists sshcfg.USERPUBFILE);
-      message = "The user ssh public key file ${sshcfg.USERPUBFILE} is absent - this file must be present to build";
-    }
-    { assertion = (!sshcfg.check_nixidpkfile) || (builtins.pathExists sshcfg.NIXIDPKFILE);
-      message = "The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build";
-    }
-    { assertion = (!sshcfg.check_nixidpubfile) || (builtins.pathExists sshcfg.NIXIDPUBFILE);
-      message = "The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build";
-    }
-  ];
-
   ## SSH private and public keys for the user and Nix
   # It is possible to build system without a user private keyfile.
   # This is to build for systems running on a VM - so that the
   # chance of leaking the user private key is minimized
   # So, when running in VM, the USERPKFILE need not be present
 
-  ## Important - we must not use lib.types.path - otherwise the file
-  # may be copied to /nix/store
-  # Paths are relative to HOME folder
+  ## Important - we must not use type lib.types.path in the options to
+  # avoid the accidental copying of the secret key file to /nix/store
+  # The paths to the SSH key files are specified as strings as absolute
+  # paths
   #
-  # The options *_present are readOnly flags to indicate whether
-  # the specified files are present.
+  # The options <*>file_present are readOnly flags to indicate whether
+  # the specified key files are present.
+  # The options check_<*>file are user flags to indicate whether
+  # the specified key files must be present for the system to build 
+  # successfully.
   options.mod_sshkeys = {
 
     USERPKFILE = lib.mkOption {
       type = lib.types.str;
-      description = "Relative path to current user's secret key file";
+      description = "Absolute path to current user's secret key file";
       default = "${syscfg.HOME}/.ssh/id_ed25519";
     };
     check_userpkfile = lib.mkOption {
@@ -112,4 +101,21 @@ in {
     userssh_pubkey = read_pubkey sshcfg.userpubfile_present sshcfg.USERPUBFILE;
     nixidssh_pubkey = read_pubkey sshcfg.nixidpubfile_present sshcfg.NIXIDPUBFILE;
   };
+
+  ## Setup checks and asserts for the SSH private and public key files based on
+  ## user configuration
+  config.assertions = [
+    { assertion = (!sshcfg.check_userpkfile) || (builtins.pathExists sshcfg.USERPKFILE);
+      message = "The user ssh private key file ${sshcfg.USERPKFILE} is absent - this file must be present to build";
+    }
+    { assertion = (!sshcfg.check_userpubfile) || (builtins.pathExists sshcfg.USERPUBFILE);
+      message = "The user ssh public key file ${sshcfg.USERPUBFILE} is absent - this file must be present to build";
+    }
+    { assertion = (!sshcfg.check_nixidpkfile) || (builtins.pathExists sshcfg.NIXIDPKFILE);
+      message = "The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build";
+    }
+    { assertion = (!sshcfg.check_nixidpubfile) || (builtins.pathExists sshcfg.NIXIDPUBFILE);
+      message = "The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build";
+    }
+  ];
 }

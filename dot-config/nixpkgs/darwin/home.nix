@@ -8,11 +8,12 @@ let
 
 
   # Function to the functionality of GNU Stow by generating
-  #   links suitable for home.file .  The target are 
+  #   links suitable for home.file.* .  The target are 
   #   linked to files in the /nix/store
-  # Both srcpath and targetpath must be path variables
-  # The files in srcpath are copied into /nix/store before the link is generated 
-  #   - hence the targets are immutable
+  # Both srcpath must be a path variable, while targetpathstr is a string variable
+  # representing the relative path to the user HOME directory.
+  # The files in srcpath are copied into /nix/store before the link is generated.
+  # Thus, the targets are symlinks whose source path would be immutable
   stow_hf = (srcpath: targetpathstr:
     builtins.mapAttrs (name: value: {
       enable = true;
@@ -102,6 +103,7 @@ in {
 
   };
 
+  ### Setup the user-specific launch agents
   launchd.enable = true;
   launchd.agents = {
     LoginStartTmux = {
@@ -146,7 +148,6 @@ in {
         StandardErrorPath = "${syscfg.HOME}/log/nvimupdateError.log";
       };
     };
-
   };
 
   # The state version is required and should stay at the version you
