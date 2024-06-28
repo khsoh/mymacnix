@@ -23,13 +23,6 @@ let
   );
 
 in {
-  ## Need to install nerdfonts here instead of nix-darwin's users.users
-  ## because nix-darwin did not link the fonts to ~/Library/Fonts folder
-  home.packages = with pkgs;
-  [ 
-    (nerdfonts.override { fonts = [ "FiraMono" ]; })
-  ];
-
   ### Generate the home.file for the dotfiles
   home.file = stow_hf DOTFILEPATH ".";
 

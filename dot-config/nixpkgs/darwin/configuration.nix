@@ -58,14 +58,12 @@ in {
   users.users.${syscfg.USER} = {
     name = "${syscfg.USER}";
     home = "${syscfg.HOME}";
-
-    # packages = with pkgs;
-    # [
-    #   ## Commented out because nix-darwin does not put the symlinks in ~/Library/Fonts
-    #   ## - will move nerdfonts from home-manager back to here when nix-darwin sort out this issue
-    #   ##(nerdfonts.override { fonts = [ "FiraMono" ]; })
-    # ];
   };
+
+  fonts.packages = with pkgs;
+  [
+    (nerdfonts.override { fonts = [ "FiraMono" ]; })
+  ];
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
