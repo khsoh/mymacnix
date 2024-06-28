@@ -16,10 +16,10 @@ export EDITOR=vim
 tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
     if [[ -z $1 ]]; then
-        command /run/current-system/sw/bin/tmux new-session -A
         resize_terminal
+        /run/current-system/sw/bin/tmux new-session -A
     else
-        command /run/current-system/sw/bin/tmux $@
+        /run/current-system/sw/bin/tmux $@
     fi
 }
 
