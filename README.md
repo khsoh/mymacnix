@@ -192,12 +192,39 @@ folder.  But 1Password does not execute because it was not installed inside of
 `/Applications/` folder (reference: [1Password doesn't work on Darwin/macOS
 #254944](https://github.com/NixOS/nixpkgs/issues/254944)
 
+## UPDATE ON 29 JUN 2024
+
+Agenix has been successfully installed to setup `~/.config/git/config-private`
+because this file contains private email address that we do not wish to reveal
+in a public github repository.
+
+Nerdfonts has been successfully installed on `nix-darwin` instead of
+`home-manager` after fixes to install fonts correctly on a `nix-darwin` system
+through `fonts.packages`.
+
+### Pinning to stable version
+
+After some experimentation, I found that it was possible to pin to stable
+version with the following command:
+
+```
+darwin-rebuild switch -I nixpkgs=https://github.com/nixos/nixpkgs/archive/release-24.05.tar.gz -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
+```
+
+Installing specific git commit release can be performed via:
+
+```
+darwin-rebuild switch -I nixpkgs=https://github.com/nixos/nixpkgs/archive/<specific-git-commit>.tar.gz -I home-manager=https://github.com/nix-community/home-manager/archive/<specific-hm-git-commit>.tar.gz
+```
+
+But it is important to select a home-manager commit that is compatible to the
+nixpkgs version that is going to be installed
+
 ### Next steps
 
 Next steps are:
 
 - Further investigation of 1Password
-- Investigate how to use agenix package for secrets management
 - Studying [nix.dev](https://nix.dev) to understand Nix better
 
 [ vim: set textwidth=80: ]: #
