@@ -46,12 +46,19 @@ resize_terminal() {
 		TOPLEFTY=0
 
 		osascript <<-EOF
+        use framework "Foundation"
+        use framework "AppKit"
+        use scripting additions
+
+        set theMenuBarHeight to current application's NSMenu's menuBarHeight() as integer
 		tell application "Terminal"
 			set winID to id of window 1
+            set toplefty to (theMenuBarHeight + 1 + $TOPLEFTY) as integer
 			set botrx to ($BOTRIGHTX * $XFRACTION) as integer
 			set botry to ($BOTRIGHTY * $YFRACTION) as integer
-			set bounds of window id winID to {$TOPLEFTX, $TOPLEFTY, botrx, botry}
+			set bounds of window id winID to {$TOPLEFTX, toplefty, botrx, botry}
 		end tell
+        return
 		EOF
 	else
 		## The following code is needed for VM installation because
@@ -66,6 +73,7 @@ resize_terminal() {
 			set item 4 of terminalSize to (item 4 of terminalSize * $YFRACTION) as integer
 			set bounds of window id winID to terminalSize
 		end tell
+		return
 		EOF
 	fi
 }
