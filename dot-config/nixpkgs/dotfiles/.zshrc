@@ -29,53 +29,53 @@ tmux () {
 # Otherwise, the 2 arguments are the fractional width and height of the main
 # display.
 resize_terminal() {
-	XFRACTION=${1:-0.5}
-	YFRACTION=${2:-1}
+    XFRACTION=${1:-0.5}
+    YFRACTION=${2:-1}
 
-	## Get the main display resolution
-	NIXRUNPATH=/run/current-system/sw/bin
-	JQ=$NIXRUNPATH/jq
-	SED=$NIXRUNPATH/sed
-	DISPJS=$(system_profiler SPDisplaysDataType -json|$JQ '.SPDisplaysDataType')
-	if [[ $(echo $DISPJS|$JQ 'length') -gt 0 ]]; then
-		eval $(echo $DISPJS | $JQ '.[0].spdisplays_ndrvs.[] | select (.spdisplays_main == "spdisplays_yes") | ._spdisplays_resolution' | $SED -rn 's/"([0-9]+)\s*x\s*([0-9]+).*$/BOTRIGHTX=\1;BOTRIGHTY=\2/p')
+    ## Get the main display resolution
+    NIXRUNPATH=/run/current-system/sw/bin
+    JQ=$NIXRUNPATH/jq
+    SED=$NIXRUNPATH/sed
+    DISPJS=$(system_profiler SPDisplaysDataType -json|$JQ '.SPDisplaysDataType')
+    if [[ $(echo $DISPJS|$JQ 'length') -gt 0 ]]; then
+        eval $(echo $DISPJS | $JQ '.[0].spdisplays_ndrvs.[] | select (.spdisplays_main == "spdisplays_yes") | ._spdisplays_resolution' | $SED -rn 's/"([0-9]+)\s*x\s*([0-9]+).*$/BOTRIGHTX=\1;BOTRIGHTY=\2/p')
 
-		## Compute the coordinates to position the terminal window in the main display.
-		## So, this works properly even in a multi-monitor setup.
-		TOPLEFTX=0
-		TOPLEFTY=0
+        ## Compute the coordinates to position the terminal window in the main display.
+        ## So, this works properly even in a multi-monitor setup.
+        TOPLEFTX=0
+        TOPLEFTY=0
 
-		osascript <<-EOF
+        osascript <<-EOF
         use framework "Foundation"
         use framework "AppKit"
         use scripting additions
 
         set theMenuBarHeight to current application's NSMenu's menuBarHeight() as integer
-		tell application "Terminal"
-			set winID to id of window 1
+        tell application "Terminal"
+            set winID to id of window 1
             set toplefty to (theMenuBarHeight + 1 + $TOPLEFTY) as integer
-			set botrx to ($BOTRIGHTX * $XFRACTION) as integer
-			set botry to ($BOTRIGHTY * $YFRACTION) as integer
-			set bounds of window id winID to {$TOPLEFTX, toplefty, botrx, botry}
-		end tell
+            set botrx to ($BOTRIGHTX * $XFRACTION) as integer
+            set botry to ($BOTRIGHTY * $YFRACTION) as integer
+            set bounds of window id winID to {$TOPLEFTX, toplefty, botrx, botry}
+        end tell
         return
-		EOF
-	else
-		## The following code is needed for VM installation because
-		## SPDisplaysDataType is absent from system_profiler for VMs
-		osascript <<-EOF
-		tell application "Terminal"
-			set winID to id of window 1
-			tell application "Finder"
-				set terminalSize to bounds of window of desktop
-			end tell
-			set item 3 of terminalSize to (item 3 of terminalSize * $XFRACTION) as integer
-			set item 4 of terminalSize to (item 4 of terminalSize * $YFRACTION) as integer
-			set bounds of window id winID to terminalSize
-		end tell
-		return
-		EOF
-	fi
+EOF
+    else
+        ## The following code is needed for VM installation because
+        ## SPDisplaysDataType is absent from system_profiler for VMs
+        osascript <<-EOF
+        tell application "Terminal"
+            set winID to id of window 1
+            tell application "Finder"
+                    set terminalSize to bounds of window of desktop
+            end tell
+            set item 3 of terminalSize to (item 3 of terminalSize * $XFRACTION) as integer
+            set item 4 of terminalSize to (item 4 of terminalSize * $YFRACTION) as integer
+            set bounds of window id winID to terminalSize
+        end tell
+        return
+EOF
+    fi
 }
 
 delagent () {
@@ -97,16 +97,16 @@ KEYTIMEOUT=5
 
 # Change cursor shape for different vi modes.
 function zle-keymap-select {
-  if [[ ${KEYMAP} == vicmd ]] ||
-     [[ $1 = 'block' ]]; then
-    echo -ne '\e[1 q'
+    if [[ ${KEYMAP} == vicmd ]] ||
+       [[ $1 = 'block' ]]; then
+        echo -ne '\e[1 q'
 
-  elif [[ ${KEYMAP} == main ]] ||
-       [[ ${KEYMAP} == viins ]] ||
-       [[ ${KEYMAP} = '' ]] ||
-       [[ $1 = 'beam' ]]; then
-    echo -ne '\e[5 q'
-  fi
+    elif [[ ${KEYMAP} == main ]] ||
+         [[ ${KEYMAP} == viins ]] ||
+         [[ ${KEYMAP} = '' ]] ||
+         [[ $1 = 'beam' ]]; then
+      echo -ne '\e[5 q'
+    fi
 }
 zle -N zle-keymap-select
 
@@ -115,11 +115,11 @@ echo -ne '\e[5 q'
 
 # Use beam shape cursor for each new prompt.
 preexec() {
-   echo -ne '\e[5 q'
+    echo -ne '\e[5 q'
 }
 
 _fix_cursor() {
-   echo -ne '\e[5 q'
+    echo -ne '\e[5 q'
 }
 
 precmd_functions+=(_fix_cursor)
