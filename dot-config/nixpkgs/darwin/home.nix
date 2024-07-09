@@ -99,6 +99,30 @@ in {
   ### Setup the user-specific launch agents
   launchd.enable = true;
   launchd.agents = {
+    checkNixpkgs = {
+      enable = true;
+      config = {
+        Label = "checkNixpkgs";
+        ProgramArguments = [
+          "${syscfg.NIXSYSPATH}/bash"
+          "-l"
+          "-c"
+          "
+          NIXDARWIN_VERSION=\$(${syscfg.NIXSYSPATH}/darwin-version --darwin-label)
+          REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${syscfg.NIXSYSPATH}/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${syscfg.NIXSYSPATH}/sed -e 's/\"//g')
+          LOCAL_VERSION=\${NIXDARWIN_VERSION//+?*/}
+
+          [[ \"$LOCAL_VERSION\" == \"$REMOTE_VERSION\" ]] &amp;&amp; exit 0
+
+          osascript -e \"display notification \\\"Local version: $LOCAL_VERSION\\nRemote version: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
+          "
+          ];
+        RunAtLoad = true;
+        StartInterval = 3600;
+        StandardOutputPath = "${syscfg.HOME}/log/checknixpkgsOutput.log";
+        StandardErrorPath = "${syscfg.HOME}/log/checknixpkgsError.log";
+      };
+    };
     LoginStartTmux = {
       enable = true;
       config = {
