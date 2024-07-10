@@ -69,6 +69,16 @@ in {
     "1password-cli"
   ];
 
+  # Setup user specific logfile rotation
+  environment.etc."newsyslog.d/${syscfg.USER}.conf" = {
+    #### Commented out items are the default
+    # enable = true;
+    # copy = false;
+    text = ''
+      ${syscfg.HOME}/log/*.log      644  5  1024  *  NJ
+    '';
+  };
+
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs;

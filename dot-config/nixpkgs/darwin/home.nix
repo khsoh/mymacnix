@@ -153,7 +153,9 @@ in {
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "[ -d ${syscfg.HOME}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${syscfg.HOME}/.tmux/plugins/tpm
+          "
+          &gt;&amp;2 date
+          [ -d ${syscfg.HOME}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${syscfg.HOME}/.tmux/plugins/tpm
            &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
            &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
            &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
@@ -173,7 +175,11 @@ in {
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "${pkgs.neovim}/bin/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
+          "
+          &gt;&amp;2 date
+          ${pkgs.neovim}/bin/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" 
+          &gt;&amp;2 echo \"\"
+          "
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
