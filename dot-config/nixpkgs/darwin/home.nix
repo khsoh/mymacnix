@@ -104,17 +104,20 @@ in {
       config = {
         Label = "checkNixpkgs";
         ProgramArguments = [
-          "${syscfg.NIXSYSPATH}/bash"
+          "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
           "
           NIXDARWIN_VERSION=\$(${syscfg.NIXSYSPATH}/darwin-version --darwin-label)
-          REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${syscfg.NIXSYSPATH}/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${syscfg.NIXSYSPATH}/sed -e 's/\"//g')
-          LOCAL_VERSION=\${NIXDARWIN_VERSION//+?*/}
+          REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
+          LOCAL_VERSION=\${NIXDARWIN_VERSION%%+?*}
+          &gt;&amp;2 date
+          &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
+          &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
 
-          [[ \"$LOCAL_VERSION\" == \"$REMOTE_VERSION\" ]] &amp;&amp; exit 0
-
-          osascript -e \"display notification \\\"Local version: $LOCAL_VERSION\\nRemote version: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
+          if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
+            osascript -e \"display notification \\\"Local version: $LOCAL_VERSION\\nRemote version: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
+          fi
           "
           ];
         RunAtLoad = true;
@@ -146,13 +149,14 @@ in {
       enable = true;
       config = {
         Label = "updateTmuxPlugins";
-        ProgramArguments = [ "${syscfg.NIXSYSPATH}/bash"
+        ProgramArguments = [
+          "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "[ -d ${syscfg.HOME}/.tmux/plugins/tpm ] || ${syscfg.NIXSYSPATH}/git clone https://github.com/tmux-plugins/tpm.git ${syscfg.HOME}/.tmux/plugins/tpm
-           &gt;&amp;2 ${syscfg.NIXSYSPATH}/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
-           &gt;&amp;2 ${syscfg.NIXSYSPATH}/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
-           &gt;&amp;2 ${syscfg.NIXSYSPATH}/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
+          "[ -d ${syscfg.HOME}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${syscfg.HOME}/.tmux/plugins/tpm
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
            &gt;&amp;2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
@@ -165,10 +169,11 @@ in {
       enable = true;
       config = {
         Label = "updateNvimPlugins";
-        ProgramArguments = [ "${syscfg.NIXSYSPATH}/bash"
+        ProgramArguments = [
+          "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "${syscfg.NIXSYSPATH}/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
+          "${pkgs.neovim}/bin/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" "
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
