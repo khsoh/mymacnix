@@ -1,0 +1,28 @@
+#!/bin/zsh
+
+
+
+set -u
+set -o pipefail
+
+readonly ESC="$(tput sgr0)"
+readonly BOLD="$(tput bold)"
+readonly GREEN="$(tput setaf 2)"
+readonly RED="$(tput setaf 1)"
+
+sudo -i printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
+printf "${BOLD}${RED}Starting to update channels:\n$(sudo -i nix-channel --list)${ESC}\n"
+sudo -i nix-channel --update --verbose
+printf "${BOLD}${GREEN}Completed updating channels:\n$(sudo -i nix-channel --list)${ESC}\n\n\n"
+sleep 3
+
+printf "${BOLD}${RED}Starting to update channels:\n$(nix-channel --list)${ESC}\n"
+nix-channel --update --verbose
+printf "${BOLD}${GREEN}Completed updating channels:\n$(nix-channel --list)${ESC}\n\n\n"
+sleep 3
+
+printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
+darwin-rebuild switch --verbose
+printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
+
+
