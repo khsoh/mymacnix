@@ -111,12 +111,19 @@ in {
           NIXDARWIN_VERSION=\$(${syscfg.NIXSYSPATH}/darwin-version --darwin-label)
           REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
           LOCAL_VERSION=\${NIXDARWIN_VERSION%%+?*}
+          LAST_LOCAL_VERSION=\$(tail ~/log/checknixpkgsError.log | ${pkgs.gnused}/bin/sed -n -e 's/LOCAL_VERSION::\s\+//p'|tail -1)
 
-          if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
+          if [[ \"$LAST_LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
             &gt;&amp;2 date
-            &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
-            &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
-            osascript -e \"display notification \\\"Local version: $LOCAL_VERSION\\nRemote version: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
+            
+            if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
+              &gt;&amp;2 echo \"Checking for updates for nixpkgs\"
+              &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
+              &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
+              osascript -e \"display notification \\\"Local::  $LOCAL_VERSION\\nRemote:: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
+            else
+              &gt;&amp;2 echo \"No update detected for nixpkgs version $LOCAL_VERSION\"
+            fi
           fi
           "
           ];
