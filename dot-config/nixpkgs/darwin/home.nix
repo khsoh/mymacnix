@@ -122,7 +122,8 @@ in {
               &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
               osascript -e \"display notification \\\"Local::  $LOCAL_VERSION\\nRemote:: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
             else
-              &gt;&amp;2 echo \"No update detected for nixpkgs version $LOCAL_VERSION\"
+              &gt;&amp;2 echo \"No update detected for nixpkgs\"
+              &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
             fi
           fi
           "
