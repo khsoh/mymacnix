@@ -118,6 +118,14 @@ in {
 # The following packages are to support neovim-related builds
       go
       nodejs_22
+
+      utm
+
+# The following packages that could not be installed because these are marked as broken
+      # handbrake
+
+# The following packages that could not be installed because these cannot be executed
+      # _1password-gui
     ];
 
   # Use a custom configuration.nix location.
