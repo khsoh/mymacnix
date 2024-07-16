@@ -38,6 +38,7 @@ in {
       st = "status";
       unstage = "reset HEAD --";
       last = "log -1 HEAD";
+      glog = "log --graph --all";
     };
 
     includes = [
