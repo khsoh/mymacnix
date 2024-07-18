@@ -90,6 +90,17 @@ in {
     initExtra = builtins.readFile ./zsh/zshrc-initExtra;
   };
 
+  ### Enable readline configuration
+  programs.readline = {
+    enable = true;
+    includeSystemConfig = false;
+    variables = {
+      show-mode-in-prompt = true;
+      vi-cmd-mode-string = "\"\\1\\e[2 q\\2\"";
+      vi-ins-mode-string = "\"\\1\\e[6 q\\2\"";
+    };
+  };
+
   ### Enable git configuration
   programs.git = {
     enable = true;
