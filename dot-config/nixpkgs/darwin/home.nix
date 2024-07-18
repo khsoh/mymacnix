@@ -5,30 +5,11 @@ let
   sshcfg = osConfig.mod_sshkeys;
   onepasscfg = osConfig.mod_1password;
   self = osConfig.home-manager.users.${syscfg.USER};
-  DOTFILEPATH = ../dotfiles;
 
   # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
   DEFAULT_PKFILE = if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE;
 
-  # Function to the functionality of GNU Stow by generating
-  #   links suitable for home.file.* .  The target are 
-  #   linked to files in the /nix/store
-  # Both srcpath must be a path variable, while targetpathstr is a string variable
-  # representing the relative path to the user HOME directory.
-  # The files in srcpath are copied into /nix/store before the link is generated.
-  # Thus, the targets are symlinks whose source path would be immutable
-  stow_hf = (srcpath: targetpathstr:
-    builtins.mapAttrs (name: value: {
-      enable = true;
-      source = lib.path.append srcpath name;
-      target = targetpathstr + "/" + name;
-    }) (builtins.readDir srcpath)
-  );
-
 in {
-  ### Generate the home.file for the dotfiles
-  home.file = stow_hf DOTFILEPATH ".";
-
   home.shellAliases = {
     agnx = "EDITOR=$(([ -z $TMUX ] && echo $EDITOR) || echo nvim) agenix -i ${DEFAULT_PKFILE}";
   };
@@ -68,6 +49,30 @@ in {
   };
 
   ##### End agenix module configuration
+
+  ### Enable bash configuration
+  programs.bash = {
+    enable = true;
+    enableCompletion = false;
+
+    # Written at start of .bashrc
+    bashrcExtra = builtins.readFile ./bash/bashrcExtra;
+
+    # Written at end of .bashrc
+    initExtra = "";
+
+    sessionVariables = {
+      LC_ALL = "en_US.UTF-8";
+      LANG = "en_US.UTF-8";
+      TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
+      XDG_CONFIG_HOME = "\${XDG_CONFIG_HOME:-$HOME/.config}";
+      XDG_DATA_HOME = "\${XDG_DATA_HOME:-$HOME/.local/share}";
+      EDITOR = "vim";
+    };  # Written to start of .profile
+
+    # Written to end of .profile
+    profileExtra = builtins.readFile ./bash/profile-extra;
+  };
 
   ### Enable zsh configuration
   programs.zsh = {
