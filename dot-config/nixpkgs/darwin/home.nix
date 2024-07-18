@@ -7,6 +7,9 @@ let
   self = osConfig.home-manager.users.${syscfg.USER};
   DOTFILEPATH = ../dotfiles;
 
+  # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
+  DEFAULT_PKFILE = if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE;
+
   # Function to the functionality of GNU Stow by generating
   #   links suitable for home.file.* .  The target are 
   #   linked to files in the /nix/store
@@ -25,6 +28,10 @@ let
 in {
   ### Generate the home.file for the dotfiles
   home.file = stow_hf DOTFILEPATH ".";
+
+  home.shellAliases = {
+    agnx = "EDITOR=$(([ -z $TMUX ] && echo $EDITOR) || echo nvim) agenix -i ${DEFAULT_PKFILE}";
+  };
 
   imports = [
     <agenix/modules/age-home.nix>
@@ -61,6 +68,28 @@ in {
   };
 
   ##### End agenix module configuration
+
+  ### Enable zsh configuration
+  programs.zsh = {
+    enable = true;
+    dotDir = ".config/zsh";
+
+    autocd = true;
+    defaultKeymap = "viins";
+    completionInit = "";
+    sessionVariables = {
+      LANG = "en_US.UTF-8";
+      LC_ALL = "en_US.UTF-8";
+      TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
+      XDG_CONFIG_HOME = "\${XDG_CONFIG_HOME:-$HOME/.config}";
+      XDG_DATA_HOME = "\${XDG_DATA_HOME:-$HOME/.local/share}";
+      EDITOR = "vim";
+    };
+
+    profileExtra = builtins.readFile ./zsh/zprofile-extra;
+    initExtra = builtins.readFile ./zsh/zshrc-initExtra;
+  };
+
   ### Enable git configuration
   programs.git = {
     enable = true;

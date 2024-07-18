@@ -1,17 +1,5 @@
-
-if [ -z "${TERMINFO_DIRS}" ]; then
-    export TERMINFO_DIRS=/usr/share/terminfo
-fi
-export TERMINFO_DIRS=$TERMINFO_DIRS:$HOME/.local/share/terminfo
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
-
-export XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
-export XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
-
-
-# Use vi mode for editing commandline
-export EDITOR=vim
+# Reduce mode switching delay.
+KEYTIMEOUT=5
 
 tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
@@ -85,15 +73,6 @@ delagent () {
     fi
     launchctl bootout gui/$UID/$1
 }
-
-# vim mode config
-# ---------------
-
-# Activate vim mode.
-bindkey -v
-
-# Remove mode switching delay.
-KEYTIMEOUT=5
 
 # Change cursor shape for different vi modes.
 function zle-keymap-select {
