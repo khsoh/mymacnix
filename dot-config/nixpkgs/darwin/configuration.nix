@@ -9,52 +9,26 @@ let
 in {
   imports = [ 
     <home-manager/nix-darwin> 
-    <agenix/modules/age.nix>
     ./cfg.nix  # Setup submodules to configure for this particular system
     ];
 
   ######### Configuration of modules #########
-  ##### agenix configuration
-  age.identityPaths = [ 
-    "${sshcfg.NIXIDPKFILE}"
-    "${sshcfg.USERPKFILE}"
-    ];
-
-# config-private stores the git config user.email - this is the private email
-# that is encrypted before checking into git
-  age.secrets.config-private = {
-# file should be a path expression, not a string expression (in quotes)
-    file = ~/.config/nixpkgs/secrets/config-private.age;
-
-# path should be a string expression (in quotes), not a path expression
-# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
-# you ever
-    path = "${syscfg.HOME}/.config/git/config-private";
-
-# The default is true if not specified.  We want to make sure that
-# the "file" (decrypted secret) is symlinked and not generated directly into
-# that location
-    symlink = true;
-
-# The following are needed to ensure the decrypted secret has the correct
-# owner and permission
-    mode = "600";
-    owner = "${syscfg.USER}";
-    group = "staff";
-  };
-  ##### End agenix module configuration
 
   ##### home-manager configuration
   ## We use home-manager because this nix-darwin does not seem
   #  to handle the installation of nerdfonts correctly
   #  Note that a function (not attribute) is to be bound to home-manager.users.<name>
   #  Also, it seems that this is a better way to perform user-specific configuration
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
   home-manager.users.${syscfg.USER} = import ./home.nix;
   ##### end home-manager configuration
 
   ######### End configuration of modules #########
 
 
+  ## The following is needed by home-manager to set the
+  ##  home.username and home.homeDirectory attributes
   users.users.${syscfg.USER} = {
     name = "${syscfg.USER}";
     home = "${syscfg.HOME}";
