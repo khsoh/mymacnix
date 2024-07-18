@@ -3,9 +3,6 @@ let
   syscfg = config.sysopt;
   sshcfg = config.mod_sshkeys;
 
-  # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
-  DEFAULT_PKFILE = if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE;
-
 in {
   imports = [ 
     <home-manager/nix-darwin> 
@@ -113,7 +110,6 @@ in {
   alias drb="darwin-rebuild build"
   alias drs="darwin-rebuild switch"
   alias drlg="darwin-rebuild --list-generations"
-  alias agnx="EDITOR=$(([ -z $TMUX ] && echo $EDITOR) || echo nvim) agenix -i ${DEFAULT_PKFILE}"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
   '';
 
