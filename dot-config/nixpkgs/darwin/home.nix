@@ -40,7 +40,7 @@ in {
 # that is encrypted before checking into git
   age.secrets.config-private = {
 # file should be a path expression, not a string expression (in quotes)
-    file = ~/.config/nixpkgs/secrets/config-private.age;
+    file = /. + "${self.home.homeDirectory}/.config/nixpkgs/secrets/config-private.age";
 
 # path should be a string expression (in quotes), not a path expression
 # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
