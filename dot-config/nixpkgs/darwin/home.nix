@@ -4,8 +4,8 @@ let
   ghcfg = osConfig.mod_gh;
   sshcfg = osConfig.mod_sshkeys;
   onepasscfg = osConfig.mod_1password;
+  self = osConfig.home-manager.users.${syscfg.USER};
   DOTFILEPATH = ../dotfiles;
-
 
   # Function to the functionality of GNU Stow by generating
   #   links suitable for home.file.* .  The target are 
@@ -26,6 +26,41 @@ in {
   ### Generate the home.file for the dotfiles
   home.file = stow_hf DOTFILEPATH ".";
 
+  imports = [
+    <agenix/modules/age-home.nix>
+  ];
+
+  ##### agenix configuration
+  age.identityPaths = [
+    "${sshcfg.NIXIDPKFILE}"
+    "${sshcfg.USERPKFILE}"
+    ];
+
+# config-private stores the git config user.email - this is the private email
+# that is encrypted before checking into git
+  age.secrets.config-private = {
+# file should be a path expression, not a string expression (in quotes)
+    file = ~/.config/nixpkgs/secrets/config-private.age;
+
+# path should be a string expression (in quotes), not a path expression
+# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
+# you ever
+    path = "${self.home.homeDirectory}/.config/git/config-private";
+
+# The default is true if not specified.  We want to make sure that
+# the "file" (decrypted secret) is symlinked and not generated directly into
+# that location
+    symlink = true;
+
+# The following are needed to ensure the decrypted secret has the correct permission
+    mode = "600";
+
+# Note that the owner and group attribute are absent from home-manager module
+    #owner = "${syscfg.USER}";
+    #group = "staff";
+  };
+
+  ##### End agenix module configuration
   ### Enable git configuration
   programs.git = {
     enable = true;
@@ -131,8 +166,8 @@ in {
           ];
         RunAtLoad = true;
         StartInterval = 3600;
-        StandardOutputPath = "${syscfg.HOME}/log/checknixpkgsOutput.log";
-        StandardErrorPath = "${syscfg.HOME}/log/checknixpkgsError.log";
+        StandardOutputPath = "${self.home.homeDirectory}/log/checknixpkgsOutput.log";
+        StandardErrorPath = "${self.home.homeDirectory}/log/checknixpkgsError.log";
       };
     };
     LoginStartTmux = {
@@ -164,16 +199,16 @@ in {
           "-c"
           "
           &gt;&amp;2 date
-          [ -d ${syscfg.HOME}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${syscfg.HOME}/.tmux/plugins/tpm
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/install_plugins\"
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/update_plugins all\"
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${syscfg.HOME}/.tmux/plugins/tpm/bin/clean_plugins\"
+          [ -d ${self.home.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${self.home.homeDirectory}/.tmux/plugins/tpm
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${self.home.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins\"
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${self.home.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${self.home.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
            &gt;&amp;2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${syscfg.HOME}/log/tmuxupdate.log";
-        StandardErrorPath = "${syscfg.HOME}/log/tmuxupdateError.log";
+        StandardOutputPath = "${self.home.homeDirectory}/log/tmuxupdate.log";
+        StandardErrorPath = "${self.home.homeDirectory}/log/tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
@@ -192,8 +227,8 @@ in {
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${syscfg.HOME}/log/nvimupdate.log";
-        StandardErrorPath = "${syscfg.HOME}/log/nvimupdateError.log";
+        StandardOutputPath = "${self.home.homeDirectory}/log/nvimupdate.log";
+        StandardErrorPath = "${self.home.homeDirectory}/log/nvimupdateError.log";
       };
     };
   };
