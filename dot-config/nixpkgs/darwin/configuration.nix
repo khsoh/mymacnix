@@ -38,7 +38,6 @@ in {
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
-    "whatsapp-for-mac"
   ];
 
   # Setup user specific logfile rotation
@@ -93,7 +92,6 @@ in {
 
       utm
       vlc-bin
-      whatsapp-for-mac
 
 # The following packages that could not be installed because these are marked as broken
       # handbrake
