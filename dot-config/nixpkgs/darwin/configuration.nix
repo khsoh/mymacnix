@@ -1,7 +1,6 @@
 { config, pkgs, lib, ... }:
 let
   syscfg = config.sysopt;
-  sshcfg = config.mod_sshkeys;
 
 in {
   imports = [ 
