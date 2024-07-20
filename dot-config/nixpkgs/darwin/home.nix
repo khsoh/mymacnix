@@ -1,9 +1,9 @@
 { username }:
 { osConfig, pkgs, lib, ... }:
 let
-  sshcfg = osConfig.mod_sshkeys;
-  onepasscfg = osConfig.mod_1password;
   self = osConfig.home-manager.users.${username};
+  onepasscfg = self.onepassword;
+  sshcfg = self.sshkeys;
 
   NIXSYSPATH = "/run/current-system/sw/bin";
 
@@ -20,9 +20,6 @@ in {
     <agenix/modules/age-home.nix>
   ];
 
-  ##### github configuration
-  # github.enable = true;   # Default
-  github.noreply_email = "2169449+khsoh@users.noreply.github.com";
 
   ##### agenix configuration
   age.identityPaths = [
@@ -52,6 +49,21 @@ in {
 # Note that the owner and group attribute are absent from home-manager module
     #owner = "${username}";
     #group = "staff";
+  };
+
+  ## Generate list of public keys file in pubkeys.nix
+  home.file."pubkeys.nix" = {
+    ## The defaults are commented out
+    # enable = true;
+
+    target = ".config/nixpkgs/secrets/pubkeys.nix";
+    text = ''
+      [
+        "${sshcfg.userssh_pubkey}"
+        "${sshcfg.nixidssh_pubkey}"
+      ]
+      '';
+
   };
 
   ##### End agenix module configuration

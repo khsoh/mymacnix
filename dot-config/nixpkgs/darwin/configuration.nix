@@ -1,7 +1,5 @@
 { config, pkgs, lib, ... }:
 let
-  syscfg = config.sysopt;
-
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
@@ -15,7 +13,6 @@ let
 in {
   imports = [ 
     <home-manager/nix-darwin> 
-    ./cfg.nix  # Setup submodules to configure for this particular system
     ];
 
   ######### Configuration of modules #########
@@ -53,15 +50,15 @@ in {
     "1password-cli"
   ];
 
-  # Setup user specific logfile rotation
-  environment.etc."newsyslog.d/${syscfg.USER}.conf" = {
-    #### Commented out items are the default
-    # enable = true;
-    # copy = false;
-    text = ''
-      ${syscfg.HOME}/log/*.log      644  5  1024  *  NJ
-    '';
-  };
+  # Setup user specific logfile rotation for all users
+  environment.etc = builtins.listToAttrs
+    (builtins.map ({name, home}@value: { 
+      name = "newsyslog.d/${name}.conf";
+      value = {
+        text = ''
+          ${home}/log/*.log      644  5  1024  *  NJ
+          '';
+      }; }) hmUsers);
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
@@ -115,7 +112,7 @@ in {
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
-  environment.darwinConfig = "${syscfg.HOME}/.config/nixpkgs/darwin/configuration.nix";
+  environment.darwinConfig = "$HOME/.config/nixpkgs/darwin/configuration.nix";
 
   # Setup aliases
   environment.interactiveShellInit = ''
