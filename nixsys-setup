@@ -132,7 +132,6 @@ if [ $? -ne 0 ]; then
 
     ## Install agenix channel
     sudo nix-channel --add https://github.com/ryantm/agenix/archive/main.tar.gz agenix
-    sudo nix-channel --update
 
     print_arrow "Completed cloning the repository"
 else
@@ -147,6 +146,9 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
     print_arrow "   zsh -l nixsys-setup $NEWCMDARGS"
     exit
 fi
+
+## Update the nix channels
+sudo nix-channel --update
 
 print_arrow "Installing nix-darwin"
 cd "$gitfolder"
