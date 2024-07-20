@@ -1,7 +1,6 @@
 { osConfig, pkgs, lib, ... }:
 let
   syscfg = osConfig.sysopt;
-  ghcfg = osConfig.mod_gh;
   sshcfg = osConfig.mod_sshkeys;
   onepasscfg = osConfig.mod_1password;
   self = osConfig.home-manager.users.${syscfg.USER};
@@ -15,8 +14,13 @@ in {
   };
 
   imports = [
+    ./usermod
     <agenix/modules/age-home.nix>
   ];
+
+  ##### github configuration
+  # github.enable = true;   # Default
+  github.noreply_email = "2169449+khsoh@users.noreply.github.com";
 
   ##### agenix configuration
   age.identityPaths = [
@@ -127,25 +131,25 @@ in {
         path = self.age.secrets.config-private.path;
       }
     ]
-    ++ lib.lists.optionals ghcfg.enable
+    ++ lib.lists.optionals self.github.enable
     [
       #### The following specify noreply email for github repos
       {
         condition = "hasconfig:remote.*.url:git@github.com:*/**";
         contents = {
-          user = { email = ghcfg.noreply_email; };
+          user = { email = self.github.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://github.com/**";
         contents = {
-          user = { email = ghcfg.noreply_email; };
+          user = { email = self.github.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://*@github.com/**";
         contents = {
-          user = { email = ghcfg.noreply_email; };
+          user = { email = self.github.noreply_email; };
         };
       }
     ];
