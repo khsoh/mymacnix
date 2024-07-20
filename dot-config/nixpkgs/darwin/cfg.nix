@@ -15,7 +15,6 @@ in {
   ## Note that the commented out segments are the defaults - so these are not assigned
   # sysopt.USER = builtins.getEnv "USER";
   # sysopt.HOME = builtins.getEnv "HOME";
-  # sysopt.NIXSYSPATH = "/run/current-system/sw/bin";
 
   ## The locations of the SSH private and public key files
   # mod_sshkeys.USERPKFILE = "${syscfg.HOME}/.ssh/id_ed25519";

@@ -11,11 +11,6 @@
       description = "The current user's home directory";
       default = builtins.getEnv "HOME";
     };
-    NIXSYSPATH = lib.mkOption {
-      type = lib.types.str;
-      description = "The Nix system executable path";
-      default = "/run/current-system/sw/bin";
-    };
   };
 
 }

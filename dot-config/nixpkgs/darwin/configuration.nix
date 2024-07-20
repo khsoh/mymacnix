@@ -2,6 +2,16 @@
 let
   syscfg = config.sysopt;
 
+  ## List of users to apply home-manager configuration on
+  # Specified as a list of attribute sets that is same
+  # as users.users.<name> element
+  hmUsers = [
+    {
+      name = builtins.getEnv "USER";
+      home = builtins.getEnv "HOME";
+    }
+  ];
+
 in {
   imports = [ 
     <home-manager/nix-darwin> 
@@ -11,13 +21,19 @@ in {
   ######### Configuration of modules #########
 
   ##### home-manager configuration
+
   ## We use home-manager because this nix-darwin does not seem
   #  to handle the installation of nerdfonts correctly
   #  Note that a function (not attribute) is to be bound to home-manager.users.<name>
   #  Also, it seems that this is a better way to perform user-specific configuration
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.${syscfg.USER} = import ./home.nix;
+
+  ## Apply home-manager configuration for all users
+  home-manager.users = lib.attrsets.genAttrs
+    (builtins.map ({name, home}: name) hmUsers)
+    (username: import ./home.nix { inherit username; });
+
   ##### end home-manager configuration
 
   ######### End configuration of modules #########
@@ -25,10 +41,8 @@ in {
 
   ## The following is needed by home-manager to set the
   ##  home.username and home.homeDirectory attributes
-  users.users.${syscfg.USER} = {
-    name = "${syscfg.USER}";
-    home = "${syscfg.HOME}";
-  };
+  users.users = builtins.listToAttrs
+    (builtins.map ({name, home}@value: { inherit name; value = value; }) hmUsers);
 
   fonts.packages = with pkgs;
   [

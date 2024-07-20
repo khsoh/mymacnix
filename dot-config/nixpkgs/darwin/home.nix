@@ -1,9 +1,11 @@
+{ username }:
 { osConfig, pkgs, lib, ... }:
 let
-  syscfg = osConfig.sysopt;
   sshcfg = osConfig.mod_sshkeys;
   onepasscfg = osConfig.mod_1password;
-  self = osConfig.home-manager.users.${syscfg.USER};
+  self = osConfig.home-manager.users.${username};
+
+  NIXSYSPATH = "/run/current-system/sw/bin";
 
   # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
   DEFAULT_PKFILE = if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE;
@@ -48,7 +50,7 @@ in {
     mode = "600";
 
 # Note that the owner and group attribute are absent from home-manager module
-    #owner = "${syscfg.USER}";
+    #owner = "${username}";
     #group = "staff";
   };
 
@@ -193,7 +195,7 @@ in {
           "-l"
           "-c"
           "
-          NIXDARWIN_VERSION=\$(${syscfg.NIXSYSPATH}/darwin-version --darwin-label)
+          NIXDARWIN_VERSION=\$(${NIXSYSPATH}/darwin-version --darwin-label)
           REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
           LOCAL_VERSION=\${NIXDARWIN_VERSION%%+?*}
           LAST_LOCAL_VERSION=\$(tail ~/log/checknixpkgsError.log | ${pkgs.gnused}/bin/sed -n -e 's/LOCAL_VERSION::\s\+//p'|tail -1)
