@@ -1,6 +1,6 @@
 { lib, ... }:
 {
-  options.mod_gh = {
+  options.github = {
     enable = lib.mkEnableOption "Enables github module";
     noreply_email = lib.mkOption {
       type = lib.types.str;
@@ -9,4 +9,7 @@
     };
   };
 
+  config.github = {
+    enable = lib.mkDefault true;
+  };
 }
