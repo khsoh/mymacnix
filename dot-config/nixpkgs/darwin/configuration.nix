@@ -122,6 +122,7 @@ in {
   alias drs="darwin-rebuild switch"
   alias drlg="darwin-rebuild --list-generations"
   alias cdsec="cd ~/.config/nixpkgs/secrets"
+  alias ..="cd .."
   '';
 
   # Auto upgrade nix package and the daemon service.
