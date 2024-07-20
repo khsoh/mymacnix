@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
-  onepasscfg = config.mod_1password;
-  sshcfg = config.mod_sshkeys;
+  onepasscfg = config.onepassword;
+  sshcfg = config.sshkeys;
 in {
 
   config.warnings = lib.mkIf (!onepasscfg.sshsign_pgm_present) [
@@ -10,7 +10,7 @@ in {
       Will use ${sshcfg.NIXIDPKFILE} as the user SSH key for GIT signing
     ''
   ];
-  options.mod_1password = {
+  options.onepassword = {
     SSHSIGN_PROGRAM = lib.mkOption {
       type = lib.types.str;
       description = "Relative path to current user's secret key file";
@@ -25,7 +25,7 @@ in {
   };
 
 
-  config.mod_1password = {
+  config.onepassword = {
     sshsign_pgm_present = builtins.pathExists onepasscfg.SSHSIGN_PROGRAM;
   };
 }

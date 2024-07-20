@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
-  syscfg = config.sysopt;
-  sshcfg = config.mod_sshkeys;
+  homeDir = config.home.homeDirectory;
+  sshcfg = config.sshkeys;
 
   read_pubkey = (filepresent: pubkeyfile: lib.mkMerge [ (lib.mkIf filepresent (builtins.concatStringsSep " "
       (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e))
@@ -24,12 +24,12 @@ in {
   # The options check_<*>file are user flags to indicate whether
   # the specified key files must be present for the system to build 
   # successfully.
-  options.mod_sshkeys = {
+  options.sshkeys = {
 
     USERPKFILE = lib.mkOption {
       type = lib.types.str;
       description = "Absolute path to current user's secret key file";
-      default = "${syscfg.HOME}/.ssh/id_ed25519";
+      default = "${homeDir}/.ssh/id_ed25519";
     };
     check_userpkfile = lib.mkOption {
       type = lib.types.bool;
@@ -43,7 +43,7 @@ in {
     USERPUBFILE = lib.mkOption {
       type = lib.types.path;
       description = "Relative path to current user's public key file";
-      default = "${syscfg.HOME}/.ssh/id_ed25519.pub";
+      default = "${homeDir}/.ssh/id_ed25519.pub";
     };
     check_userpubfile = lib.mkOption {
       type = lib.types.bool;
@@ -61,7 +61,7 @@ in {
     NIXIDPKFILE = lib.mkOption {
       type = lib.types.str;
       description = "Relative path to Nix system's secret key file";
-      default = "${syscfg.HOME}/.ssh/nixid_ed25519";
+      default = "${homeDir}/.ssh/nixid_ed25519";
     };
     check_nixidpkfile = lib.mkOption {
       type = lib.types.bool;
@@ -75,7 +75,7 @@ in {
     NIXIDPUBFILE = lib.mkOption {
       type = lib.types.path;
       description = "Relative path to Nix system's public key file";
-      default = "${syscfg.HOME}/.ssh/nixid_ed25519.pub";
+      default = "${homeDir}/.ssh/nixid_ed25519.pub";
     };
     check_nixidpubfile = lib.mkOption {
       type = lib.types.bool;
@@ -92,7 +92,7 @@ in {
   };
 
 
-  config.mod_sshkeys = {
+  config.sshkeys = {
     userpkfile_present = builtins.pathExists sshcfg.USERPKFILE;
     userpubfile_present = builtins.pathExists sshcfg.USERPUBFILE;
     nixidpkfile_present = builtins.pathExists sshcfg.NIXIDPKFILE;
