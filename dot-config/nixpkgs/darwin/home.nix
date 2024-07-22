@@ -1,9 +1,10 @@
-{ username }:
-{ osConfig, pkgs, lib, ... }:
+{ config, osConfig, pkgs, lib, ... }:
 let
-  self = osConfig.home-manager.users.${username};
-  onepasscfg = self.onepassword;
-  sshcfg = self.sshkeys;
+  homecfg = config.home;
+  onepasscfg = config.onepassword;
+  sshcfg = config.sshkeys;
+  agecfg = config.age;
+  ghcfg = config.github;
 
   NIXSYSPATH = "/run/current-system/sw/bin";
 
@@ -31,12 +32,12 @@ in {
 # that is encrypted before checking into git
   age.secrets.config-private = {
 # file should be a path expression, not a string expression (in quotes)
-    file = /. + "${self.home.homeDirectory}/.config/nixpkgs/secrets/config-private.age";
+    file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/config-private.age";
 
 # path should be a string expression (in quotes), not a path expression
 # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
 # you ever
-    path = "${self.home.homeDirectory}/.config/git/config-private";
+    path = "${homecfg.homeDirectory}/.config/git/config-private";
 
 # The default is true if not specified.  We want to make sure that
 # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -142,28 +143,28 @@ in {
     includes = [
       { ### The following allows user to specify their config file that contains private
         #   information (like email) that they may not want to place in a public repo
-        path = self.age.secrets.config-private.path;
+        path = agecfg.secrets.config-private.path;
       }
     ]
-    ++ lib.lists.optionals self.github.enable
+    ++ lib.lists.optionals ghcfg.enable
     [
       #### The following specify noreply email for github repos
       {
         condition = "hasconfig:remote.*.url:git@github.com:*/**";
         contents = {
-          user = { email = self.github.noreply_email; };
+          user = { email = ghcfg.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://github.com/**";
         contents = {
-          user = { email = self.github.noreply_email; };
+          user = { email = ghcfg.noreply_email; };
         };
       }
       {
         condition = "hasconfig:remote.*.url:https://*@github.com/**";
         contents = {
-          user = { email = self.github.noreply_email; };
+          user = { email = ghcfg.noreply_email; };
         };
       }
     ];
@@ -229,8 +230,8 @@ in {
           ];
         RunAtLoad = true;
         StartInterval = 3600;
-        StandardOutputPath = "${self.home.homeDirectory}/log/checknixpkgsOutput.log";
-        StandardErrorPath = "${self.home.homeDirectory}/log/checknixpkgsError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/checknixpkgsOutput.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/checknixpkgsError.log";
       };
     };
     LoginStartTmux = {
@@ -262,16 +263,16 @@ in {
           "-c"
           "
           &gt;&amp;2 date
-          [ -d ${self.home.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${self.home.homeDirectory}/.tmux/plugins/tpm
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${self.home.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins\"
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${self.home.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${self.home.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
+          [ -d ${homecfg.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins\"
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
+           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
            &gt;&amp;2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${self.home.homeDirectory}/log/tmuxupdate.log";
-        StandardErrorPath = "${self.home.homeDirectory}/log/tmuxupdateError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/tmuxupdate.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
@@ -290,8 +291,8 @@ in {
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${self.home.homeDirectory}/log/nvimupdate.log";
-        StandardErrorPath = "${self.home.homeDirectory}/log/nvimupdateError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/nvimupdate.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/nvimupdateError.log";
       };
     };
   };
