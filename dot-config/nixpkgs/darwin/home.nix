@@ -67,6 +67,24 @@ in {
 
   };
 
+  home.file.tmux = {
+    ## The defaults are commented out
+    # enable = true;
+
+    target = ".config/tmux";
+    source = ../tmux;
+    recursive = true;
+  };
+
+  home.file.nvim = {
+    ## The defaults are commented out
+    # enable = true;
+
+    target = ".config/nvim";
+    source = ../nvim;
+    recursive = true;
+  };
+
   ##### End agenix module configuration
 
   ### Enable bash configuration
