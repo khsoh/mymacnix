@@ -29,7 +29,7 @@ in {
   ## Apply home-manager configuration for all users
   home-manager.users = lib.attrsets.genAttrs
     (builtins.map ({name, home}: name) hmUsers)
-    (username: import ./home.nix { inherit username; });
+    (_: import ./home.nix );
 
   ##### end home-manager configuration
 
