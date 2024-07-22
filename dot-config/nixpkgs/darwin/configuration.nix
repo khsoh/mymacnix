@@ -100,7 +100,6 @@ in {
       go
       nodejs_22
 
-      utm
       vlc-bin
 
 # The following packages that could not be installed because these are marked as broken
