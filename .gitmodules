@@ -1,6 +1,0 @@
-[submodule "dot-config/tmux"]
-	path = dot-config/nixpkgs/tmux
-	url = https://github.com/khsoh/tmuxconf.git
-[submodule "dot-config/nvim"]
-	path = dot-config/nixpkgs/nvim
-	url = https://github.com/khsoh/kickstart.nvim.git

@@ -72,7 +72,14 @@ in {
     # enable = true;
 
     target = ".config/tmux";
-    source = ../tmux;
+    #source = ../tmux;
+    source = pkgs.fetchFromGitHub {
+      owner = "khsoh";
+      repo = "tmuxconf";
+      rev = "5f47826d42e139ac1884d207410bfdb1287572d5";
+      #sha256 = lib.fakeSha256;
+      sha256 = "sha256-fx/RGkSGZI7mpARTybDEBxnu8aYyx+cqKvOp3AjUYg8=";
+    };
     recursive = true;
   };
 
@@ -81,7 +88,14 @@ in {
     # enable = true;
 
     target = ".config/nvim";
-    source = ../nvim;
+    #source = ../nvim;
+    source = pkgs.fetchFromGitHub {
+      owner = "khsoh";
+      repo = "kickstart.nvim";
+      rev = "e528c4143b89bf84518f068bb3e8f453bb1e3797";
+      #sha256 = lib.fakeSha256;
+      sha256 = "sha256-WEdsyX6imDnzxItmcjzTovGq6cnkjST5ZlQiuTWFKeM=";
+    };
     recursive = true;
   };
 
