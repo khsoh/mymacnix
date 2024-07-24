@@ -243,20 +243,19 @@ in {
           NIXDARWIN_VERSION=\$(${NIXSYSPATH}/darwin-version --darwin-label)
           REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
           LOCAL_VERSION=\${NIXDARWIN_VERSION%%+?*}
-          LAST_LOCAL_VERSION=\$(tail ~/log/checknixpkgsError.log | ${pkgs.gnused}/bin/sed -n -e 's/LOCAL_VERSION::\\s\\+//p'|tail -1)
+          LAST_REMOTE_VERSION=\$(tail ~/log/checknixpkgsError.log | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p'|tail -1)
 
-          if [[ \"$LAST_LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
-            &gt;&amp;2 date
-            
-            if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
-              &gt;&amp;2 echo \"Checking for updates for nixpkgs\"
-              &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
-              &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
-              osascript -e \"display notification \\\"Local::  $LOCAL_VERSION\\nRemote:: $REMOTE_VERSION\\\" with title \\\"New remote nixpkgs version detected\\\"\"
-            else
-              &gt;&amp;2 echo \"No update detected for nixpkgs\"
-              &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
+          &gt;&amp;2 date
+          if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
+            &gt;&amp;2 echo \"New nixpkgs version detected for update on nixpkgs-unstable channel\"
+            &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
+            &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
+            if [[ \"$REMOTE_VERSION\" != \"$LAST_REMOTE_VERSION\" ]]; then
+              osascript -e \"display notification \\\"Local::  $LOCAL_VERSION\\nRemote:: $REMOTE_VERSION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
             fi
+          else
+            &gt;&amp;2 echo \"Local nixpkgs version is up-to-date with nixpkgs-unstable channel\"
+            &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
           fi
           "
           ];
