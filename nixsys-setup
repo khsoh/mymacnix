@@ -132,6 +132,7 @@ if [ $? -ne 0 ]; then
 
     ## Install agenix channel
     sudo nix-channel --add https://github.com/ryantm/agenix/archive/main.tar.gz agenix
+    nix-channel --add https://github.com/ryantm/agenix/archive/main.tar.gz agenix
 
     print_arrow "Completed cloning the repository"
 else
