@@ -243,7 +243,7 @@ in {
           NIXDARWIN_VERSION=\$(${NIXSYSPATH}/darwin-version --darwin-label)
           REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
           LOCAL_VERSION=\${NIXDARWIN_VERSION%%+?*}
-          LAST_REMOTE_VERSION=\$(tail ~/log/checknixpkgsError.log | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p'|tail -1)
+          LAST_REMOTE_VERSION=\$(/usr/bin/grep \"^REMOTE_VERSION::\\s\\+\" ~/log/checknixpkgsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p')
 
           &gt;&amp;2 date
           if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
