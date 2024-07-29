@@ -265,6 +265,55 @@ in {
         StandardErrorPath = "${homecfg.homeDirectory}/log/checknixpkgsError.log";
       };
     };
+    checkNixchannels = {
+      enable = true;
+      config = {
+        Label = "checkNixchannels";
+        ProgramArguments = [
+          "${pkgs.bashInteractive}/bin/bash"
+          "-l"
+          "-c"
+          "
+          IFS=':' read -r -a nixpaths &lt;&lt;&lt; \"$NIX_PATH\"
+
+          declare -A NIXCHANNELS
+          NIXCHANNELS['agenix']=\"https://github.com/ryantm/agenix/archive/main.tar.gz\"
+
+          eval \"\$(nix-channel --list|awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$1,\"]=\",$2 }')\"
+
+          &gt;&amp;2 date
+          for pkg in \"\${!NIXCHANNELS[@]}\"; do
+              pkgpath=\$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"&lt;\${pkg}&gt;\")
+              if [[ ! -z $pkgpath ]]; then
+                  pkgurl=\${NIXCHANNELS[$pkg]}
+
+                  lastrhash=\$(/usr/bin/grep \"^\${pkg}_remote_hash:\\s\\+\" ~/log/checknixchannelsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^\${pkg}_remote_hash:\\s\\+//p')
+                  lhash=\$(nix-hash --base32 --type sha256 $pkgpath/)
+                  rhash=\$(nix-prefetch-url --unpack --type sha256 $pkgurl 2&gt; /dev/null)
+
+                  if [[ \"$lhash\" != \"$rhash\" ]]; then
+                    &gt;&amp;2 echo \"New package detected for update on $pkg channel:\"
+                    &gt;&amp;2 echo \"\${pkg}_local_hash:  $lhash\"
+                    &gt;&amp;2 echo \"\${pkg}_remote_hash: $rhash\"
+                    if [[ \"$rhash\" != \"$lastrhash\" ]]; then
+                      osascript -e \"display notification \\\"\${pkg}_local_hash:  $lhash\\n\${pkg}_remote_hash: $rhash\\\" with title \\\"New package detected for update on $pkg channel\\\"\"
+                    fi
+                  else
+                    &gt;&amp;2 echo \"Local package is up-to-date with $pkg channel\"
+                    &gt;&amp;2 echo \"\${pkg}_local_hash:  $lhash\"
+                  fi
+              else
+                osascript -e \"display notification \\\"Cannot find local installed package for channel $pkg\\\" with title \\\"Channel $pkg error\\\"\"
+              fi
+          done
+          "
+          ];
+        RunAtLoad = true;
+        StartInterval = 3600;
+        StandardOutputPath = "${homecfg.homeDirectory}/log/checknixchannelsOutput.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/checknixchannelsError.log";
+      };
+    };
     LoginStartTmux = {
       enable = true;
       config = {
