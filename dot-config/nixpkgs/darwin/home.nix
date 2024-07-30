@@ -92,9 +92,9 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = "khsoh";
       repo = "kickstart.nvim";
-      rev = "0176aca52520b30f0f7d5cb81178a2f5c8b12a06";
+      rev = "79f72aa9a8323961dcdf6cd92fd5750c3fde34d5";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-7MSw5+Q4SSLc/jYVhmh4PXFjrku1Qvw5ObyvrM6SlQs=";
+      sha256 = "sha256-F/VzO442SExHEAGV0KPt/n398nm8hgXbkptMSRHSlNM=";
     };
     recursive = true;
   };
