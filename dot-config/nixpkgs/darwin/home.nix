@@ -247,7 +247,7 @@ in {
 
           &gt;&amp;2 date
           if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
-            &gt;&amp;2 echo \"New nixpkgs version detected for update on nixpkgs-unstable channel\"
+            &gt;&amp;2 echo \"***New nixpkgs version detected for update on nixpkgs-unstable channel\"
             &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
             &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
             if [[ \"$REMOTE_VERSION\" != \"$LAST_REMOTE_VERSION\" ]]; then
@@ -292,7 +292,7 @@ in {
                   rhash=\$(nix-prefetch-url --unpack --type sha256 $pkgurl 2&gt; /dev/null)
 
                   if [[ \"$lhash\" != \"$rhash\" ]]; then
-                    &gt;&amp;2 echo \"New package detected for update on $pkg channel:\"
+                    &gt;&amp;2 echo \"***New package detected for update on $pkg channel:\"
                     &gt;&amp;2 echo \"\${pkg}_local_hash:  $lhash\"
                     &gt;&amp;2 echo \"\${pkg}_remote_hash: $rhash\"
                     if [[ \"$rhash\" != \"$lastrhash\" ]]; then
