@@ -274,8 +274,6 @@ in {
           "-l"
           "-c"
           "
-          IFS=':' read -r -a nixpaths &lt;&lt;&lt; \"$NIX_PATH\"
-
           declare -A NIXCHANNELS
           NIXCHANNELS['agenix']=\"https://github.com/ryantm/agenix/archive/main.tar.gz\"
 
@@ -303,6 +301,7 @@ in {
                     &gt;&amp;2 echo \"\${pkg}_local_hash:  $lhash\"
                   fi
               else
+                &gt;&amp;2 echo \"!!!Cannot find local installed package detected for channel $pkg\"
                 osascript -e \"display notification \\\"Cannot find local installed package for channel $pkg\\\" with title \\\"Channel $pkg error\\\"\"
               fi
           done
