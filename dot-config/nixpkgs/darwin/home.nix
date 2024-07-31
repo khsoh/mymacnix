@@ -74,7 +74,7 @@ in {
     target = ".config/tmux";
     #source = ../tmux;
     source = pkgs.fetchFromGitHub {
-      owner = "khsoh";
+      owner = ghcfg.username;
       repo = "tmuxconf";
       rev = "5f47826d42e139ac1884d207410bfdb1287572d5";
       #sha256 = lib.fakeSha256;
@@ -90,7 +90,7 @@ in {
     target = ".config/nvim";
     #source = ../nvim;
     source = pkgs.fetchFromGitHub {
-      owner = "khsoh";
+      owner = ghcfg.username;
       repo = "kickstart.nvim";
       rev = "79f72aa9a8323961dcdf6cd92fd5750c3fde34d5";
       #sha256 = lib.fakeSha256;

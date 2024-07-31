@@ -7,9 +7,14 @@
       description = "No reply email of your github account";
       default = "none";
     };
+    username = lib.mkOption {
+      type = lib.types.str;
+      description = "Username of github account";
+    };
   };
 
   config.github = {
     enable = lib.mkDefault true;
+    username = "khsoh";
   };
 }
