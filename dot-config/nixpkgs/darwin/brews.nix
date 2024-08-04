@@ -1,6 +1,7 @@
 { config, pkgs, lib, ... }:
 let
   HOMEDIR = builtins.getEnv "HOME";
+  masAppsNix = "${HOMEDIR}/.config/masapps.nix";
   CASKROOM = /opt/homebrew/Caskroom;
   ## List of user casks that follows the nix-darwin format for
   ##  each element of homebrew.casks attribute set entry
@@ -25,7 +26,13 @@ in {
   ### Homebrew setup.  Default it to false
   homebrew.enable = true;
 
+  homebrew.brews = [
+    "mas"
+  ];
+
   homebrew.casks = BrewCask USERCASKS;
+
+  homebrew.masApps = if builtins.pathExists masAppsNix then import masAppsNix else {};
 
   ## The following allows Nix to uninstall stuff absent from cask list
   homebrew.onActivation.cleanup = "zap";
