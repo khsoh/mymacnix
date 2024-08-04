@@ -219,6 +219,16 @@ darwin-rebuild switch -I nixpkgs=channel:nixpkgs-24.05-darwin -I home-manager=ht
 The other possible pinning syntax can be found [here](https://nix.dev/reference/pinning-nixpkgs#possible-url-values)
 
 
+### Homebrew installation
+
+Not all Mac Applications can be installed via Nix (e.g. Microsoft Office).  So,
+homebrew has been added to support the installation.
+
+Note that both "Terminal" and "bash" applications must be given full disk
+access
+to support installation and uninstallation of apps.  This can be enabled via
+System Settings->Privacy & Security->Full Disk Access.
+
 ### Next steps
 
 Next steps are:
