@@ -13,6 +13,7 @@ let
 in {
   imports = [ 
     <home-manager/nix-darwin> 
+    ./brews.nix
     ];
 
   ######### Configuration of modules #########
@@ -144,11 +145,14 @@ in {
 
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
-  # system.activationScripts.preActivation.text = ''
-  #   echo "I am in PreActivation"
-  #   '';
+  system.activationScripts.preUserActivation.text = ''
+    if ! /opt/homebrew/bin/brew --version 2>&1 > /dev/null; then
+      echo "Installing Homebrew"
+      NONINTERACTIVE=1 ${pkgs.bashInteractive}/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+    '';
   # system.activationScripts.postActivation.text = lib.mkAfter ''
-  #   echo "I am in PreActivation"
+  #   echo "I am in PostActivation"
   #   '';
 
 # Used for backwards compatibility, please read the changelog before changing.
