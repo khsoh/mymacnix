@@ -1,11 +1,14 @@
 { config, pkgs, lib, ... }:
 let
   HOMEDIR = builtins.getEnv "HOME";
-  CaskMasDir = "${HOMEDIR}/.config/CaskMasApps";
-  casksnix = CaskMasDir + "/casks.nix";
-  commoncasksnix = CaskMasDir + "/common-casks.nix";
-  masappsnix = CaskMasDir + "/masapps.nix";
-  commonmasappsnix = CaskMasDir + "/common-masapps.nix";
+  CaskMasDir = "${HOMEDIR}/.config/CaskMasApps/";
+  casksnix = CaskMasDir + "casks.nix";
+  commoncasksnix = CaskMasDir + "common-casks.nix";
+  masappsnix = CaskMasDir + "masapps.nix";
+  commonmasappsnix = CaskMasDir + "common-masapps.nix";
+
+  defaultcasksnix = ./default-casks.nix;
+  defaultmasappsnix = ./default-masapps.nix;
 
   CASKROOM = /opt/homebrew/Caskroom;
   ## List of user casks that follows the nix-darwin format for
@@ -23,10 +26,10 @@ let
   ## Casks are machine dependent
   USERCASKS = if builtins.pathExists casksnix then
     import casksnix ++ import commoncasksnix
-    else import (./. + "/casks.nix");
+    else import defaultcasksnix;
   MASAPPS = if builtins.pathExists masappsnix then
     lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
-    else import (./. + "/masapps.nix");
+    else import defaultmasappsnix;
 
   caskOptions = [ "name" "args" "greedy" ];
   BrewCask = (casks:
