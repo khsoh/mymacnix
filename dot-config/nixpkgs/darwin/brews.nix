@@ -36,6 +36,18 @@ let
     builtins.map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e)
     (builtins.filter (e: (!AppExists e.appname) || (CaskInstalled e.name)) casks));
 in {
+
+  warnings = lib.mkIf (!builtins.pathExists casksnix) [
+    ''
+    Using default-casks.nix and default-masapps.nix for 
+    Homebrew casks and masapps.
+
+    To build Homebrew casks and masapps specifically for
+    ths machine, create and configure casks.nix and masapps.nix 
+    in ${CaskMasDir}.
+    ''
+  ];
+
   ### Homebrew setup.  Default it to false
   homebrew.enable = true;
 
