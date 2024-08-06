@@ -55,6 +55,9 @@ in {
     "mas"
   ];
 
+  # update dependencies when executing brew bundle command
+  homebrew.global.brewfile = true;
+
   homebrew.casks = BrewCask USERCASKS;
 
   homebrew.masApps = MASAPPS;
