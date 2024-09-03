@@ -6,7 +6,7 @@ set -o pipefail
 
 ## Choice of repository host "github" or "gitlab"
 
-REPOHOST=${1:-gitlab}
+REPOHOST=gitlab
 
 readonly ESC="$(tput sgr0)"
 readonly BOLD="$(tput bold)"
@@ -27,8 +27,9 @@ function print_arrow () {
 
 function usage () {
     print_arrow "Usage: "
-    print_arrow "  zsh -l nixsys-setup [--install=nixonly] [--branch=<feature-branch>]"
+    print_arrow "  zsh -l nixsys-setup [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github)]"
     print_arrow "    The default feature-branch is 'main' if it is not specified"
+    print_arrow "    The default repohost is 'gitlab' if it is not specified"
     exit 1
 }
 

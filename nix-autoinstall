@@ -4,7 +4,7 @@
 set -u
 set -o pipefail
 
-REPOHOST=${1:-gitlab}
+REPOHOST=gitlab
 
 readonly ESC="$(tput sgr0)"
 readonly BOLD="$(tput bold)"
@@ -35,8 +35,9 @@ function makerepo () {
 
 function usage () {
     print_arrow "Usage: "
-    print_arrow "  sh <(curl -L $(makerepo ${REPOHOST} "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>]"
+    print_arrow "  sh <(curl -L $(makerepo ${REPOHOST} "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github)]"
     print_arrow "    The default feature-branch is 'main' if it is not specified"
+    print_arrow "    The default repohost is 'gitlab' if it is not specified"
     exit 1
 }
 
@@ -86,6 +87,8 @@ while test $# -gt 0; do
             OPTINSTALL="${1##--install=}";;
         --branch=*)
             BRANCH="${1##--branch=}";;
+        --repohost=*)
+            REPOHOST="${1##--repohost=}";;
         *)
             echo "Invalid option $1"
             usage;;
