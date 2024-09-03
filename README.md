@@ -170,7 +170,7 @@ sh <(curl -L https://gitlab.com/khsoh/mymacnix/-/raw/main/nix-autoinstall) [--in
 or if using the github repo (which is a mirror of the gitlab version):
 
 ```
-sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly] [--branch=<git-feature-branch>]
+sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly] [--branch=<git-feature-branch>] --repohost=github
 ```
 
 
