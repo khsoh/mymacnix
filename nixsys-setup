@@ -64,6 +64,8 @@ while test $# -gt 0; do
             OPTINSTALL="${1##--install=}";;
         --branch=*)
             BRANCH="${1##--branch=}";;
+        --repohost=*)
+            REPOHOST="${1##--repohost=}";;
         *)
             echo "Invalid option $1"
             usage;;
