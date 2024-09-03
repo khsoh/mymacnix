@@ -4,6 +4,10 @@
 set -u
 set -o pipefail
 
+## Choice of repository host "github" or "gitlab"
+
+REPOHOST=${1:-gitlab}
+
 readonly ESC="$(tput sgr0)"
 readonly BOLD="$(tput bold)"
 readonly GREEN="$(tput setaf 2)"
@@ -125,7 +129,7 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     nix-shell -p stow --command '
-    git clone --branch ${BRANCH} --recurse-submodules https://github.com/khsoh/mymacnix.git "$gitfolder"
+    git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
     source "$gitfolder/dostow.sh"
     '

@@ -4,6 +4,8 @@
 set -u
 set -o pipefail
 
+REPOHOST=${1:-gitlab}
+
 readonly ESC="$(tput sgr0)"
 readonly BOLD="$(tput bold)"
 readonly GREEN="$(tput setaf 2)"
@@ -20,9 +22,20 @@ function print_arrow () {
     printf "> $*${ESC}\n"
 }
 
+function makerepo () {
+    if [[ "$1" == "github" ]]; then
+        echo "https://raw.githubusercontent.com/khsoh/mymacnix/$2/$3"
+    elif [[ "$1" == "gitlab" ]]; then
+        echo "https://gitlab.com/khsoh/mymacnix/-/raw/$2/$3"
+    else
+        echo "Improper host $1 specified.  Repo host must be github or gitlab"
+        exit 1
+    fi
+}
+
 function usage () {
     print_arrow "Usage: "
-    print_arrow "  sh <(curl -L https://raw.githubusercontent.com/khsoh/mymacnix/main/nix-autoinstall) [--install=nixonly] [--branch=<feature-branch>]"
+    print_arrow "  sh <(curl -L $(makerepo ${REPOHOST} "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>]"
     print_arrow "    The default feature-branch is 'main' if it is not specified"
     exit 1
 }
@@ -100,7 +113,7 @@ $(curl -L https://nixos.org/nix/install)
 EOF
 
 print_arrow "Downloading and executing nixsys-setup from ${BRANCH} branch of mymacnix repo"
-curl -L https://raw.githubusercontent.com/khsoh/mymacnix/${BRANCH}/nixsys-setup -o ${nixtmpDir}/nixsys-setup
+curl -L $(makerepo ${REPOHOST} "${BRANCH}" "nixsys-setup") -o ${nixtmpDir}/nixsys-setup
 zsh -l ${nixtmpDir}/nixsys-setup ${CMDARGS[@]}
 
 } # End of wrapping
