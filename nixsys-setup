@@ -133,6 +133,8 @@ if [ $? -ne 0 ]; then
     nix-shell -p stow --command '
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
+    cd $gitfolder
+    ./git-remote-init.sh
     source "$gitfolder/dostow.sh"
     '
 
