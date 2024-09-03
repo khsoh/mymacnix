@@ -129,6 +129,7 @@ if [ $? -ne 0 ]; then
 
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
+    export REPOHOST
     nix-shell -p stow --command '
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
