@@ -2,6 +2,7 @@
 {
   imports = [
     ./github.nix
+    ./gitlab.nix
     ./onepassword.nix
     ./sshkeys.nix
   ];
@@ -22,9 +23,14 @@
   # sshkeys.check_userpubfile = true;
   # sshkeys.check_nixidpkfile = true;
   # sshkeys.check_nixidpubfile = true;
+
   ##### github configuration
   # github.enable = true;   # Default
 
   github.noreply_email = "2169449+khsoh@users.noreply.github.com";
 
+  ##### gitlab configuration
+  # gitlab.enable = true;   # Default
+
+  gitlab.noreply_email = "22681633-khsoh@users.noreply.gitlab.com";
 }

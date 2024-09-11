@@ -5,6 +5,7 @@ let
   sshcfg = config.sshkeys;
   agecfg = config.age;
   ghcfg = config.github;
+  glcfg = config.gitlab;
 
   NIXSYSPATH = "/run/current-system/sw/bin";
 
@@ -197,6 +198,28 @@ in {
         condition = "hasconfig:remote.*.url:https://*@github.com/**";
         contents = {
           user = { email = ghcfg.noreply_email; };
+        };
+      }
+    ]
+    ++ lib.lists.optionals glcfg.enable
+    [
+      #### The following specify noreply email for gitlab repos
+      {
+        condition = "hasconfig:remote.*.url:git@gitlab.com:*/**";
+        contents = {
+          user = { email = glcfg.noreply_email; };
+        };
+      }
+      {
+        condition = "hasconfig:remote.*.url:https://gitlab.com/**";
+        contents = {
+          user = { email = glcfg.noreply_email; };
+        };
+      }
+      {
+        condition = "hasconfig:remote.*.url:https://*@gitlab.com/**";
+        contents = {
+          user = { email = glcfg.noreply_email; };
         };
       }
     ];
