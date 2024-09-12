@@ -14,7 +14,7 @@
   };
 
   config.gitlab = {
-    enable = lib.mkDefault true;
+    enable = lib.mkDefault false;
     username = "khsoh";
   };
 }
