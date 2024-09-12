@@ -138,6 +138,9 @@ if [ $? -ne 0 ]; then
     cd $gitfolder
     ./git-remote-init.sh
     source "$gitfolder/dostow.sh"
+    cd ..
+    git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
+    ./dostow.sh
     '
 
     ## Install agenix channel
