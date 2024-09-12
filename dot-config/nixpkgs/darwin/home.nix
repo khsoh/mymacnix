@@ -7,6 +7,9 @@ let
   ghcfg = config.github;
   glcfg = config.gitlab;
 
+  ## Default git noreply email - will be available to public
+  git_noreply_email = "hju37823@outlook.com";
+
   NIXSYSPATH = "/run/current-system/sw/bin";
 
   # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
@@ -66,6 +69,17 @@ in {
       ]
       '';
 
+  };
+
+  home.file.gitAllowedSigners = {
+    ## Generate the allowed signers file
+    # enable = true;
+
+    target = ".ssh/allowed_signers";
+    text = ''
+      ${git_noreply_email} ${sshcfg.userssh_pubkey}
+      ${git_noreply_email} ${sshcfg.nixidssh_pubkey}
+      '';
   };
 
   home.file.tmux = {
@@ -162,6 +176,7 @@ in {
   programs.git = {
     enable = true;
     userName = "K H Soh";
+    userEmail = git_noreply_email;
 
     aliases = {
       co = "checkout";
@@ -174,10 +189,10 @@ in {
     };
 
     includes = [
-      { ### The following allows user to specify their config file that contains private
-        #   information (like email) that they may not want to place in a public repo
-        path = agecfg.secrets.config-private.path;
-      }
+      # { ### The following allows user to specify their config file that contains private
+      #   #   information (like email) that they may not want to place in a public repo
+      #   path = agecfg.secrets.config-private.path;
+      # }
     ]
     ++ lib.lists.optionals ghcfg.enable
     [
@@ -240,7 +255,10 @@ in {
         format = "ssh";
         ssh = if onepasscfg.sshsign_pgm_present then {
           program = onepasscfg.SSHSIGN_PROGRAM;
-        } else {} ;
+          allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
+        } else {
+          allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
+        };
       };
       commit = { gpgsign = true; };
       tag = { gpgsign = true; };
