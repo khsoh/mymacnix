@@ -268,17 +268,18 @@ in {
           LOCAL_VERSION=\${NIXDARWIN_VERSION%%+?*}
           LAST_REMOTE_VERSION=\$(/usr/bin/grep \"^REMOTE_VERSION::\\s\\+\" ~/log/checknixpkgsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p')
 
+          &gt;&amp;2 echo \"\"
           &gt;&amp;2 date
           if [[ \"$LOCAL_VERSION\" != \"$REMOTE_VERSION\" ]]; then
             &gt;&amp;2 echo \"***New nixpkgs version detected for update on nixpkgs-unstable channel\"
-            &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
-            &gt;&amp;2 echo \"REMOTE_VERSION:: $REMOTE_VERSION\"
+            &gt;&amp;2 echo \"  LOCAL_VERSION::  $LOCAL_VERSION\"
+            &gt;&amp;2 echo \"  REMOTE_VERSION:: $REMOTE_VERSION\"
             if [[ \"$REMOTE_VERSION\" != \"$LAST_REMOTE_VERSION\" ]]; then
               osascript -e \"display notification \\\"Local::  $LOCAL_VERSION\\nRemote:: $REMOTE_VERSION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
             fi
           else
             &gt;&amp;2 echo \"Local nixpkgs version is up-to-date with nixpkgs-unstable channel\"
-            &gt;&amp;2 echo \"LOCAL_VERSION::  $LOCAL_VERSION\"
+            &gt;&amp;2 echo \"  LOCAL_VERSION::  $LOCAL_VERSION\"
           fi
           "
           ];
