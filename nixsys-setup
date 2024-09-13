@@ -140,6 +140,7 @@ if [ $? -ne 0 ]; then
     source "$gitfolder/dostow.sh"
     cd ..
     git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
+    cd caskmasapps
     ./dostow.sh
     '
 
