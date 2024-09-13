@@ -126,6 +126,7 @@ in {
       '';
     } else {
       enable = true;
+      addKeysToAgent = "yes";
       extraConfig = ''
         IdentityFile = ${sshcfg.NIXIDPKFILE};
       '';
