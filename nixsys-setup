@@ -132,14 +132,32 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     export REPOHOST
-    nix-shell -p stow --command '
+    nix-shell -p stow openssh --command '
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
     cd $gitfolder
     ./git-remote-init.sh
     source "$gitfolder/dostow.sh"
     cd ..
+
+    killall ssh-agent
+    if [ -e ~/.ssh/nixid_ed25519 ]; then
+        eval $(ssh-agent)
+        ssh-add ~/.ssh/nixid_ed25519
+    elif [ -e ~/.ssh/id_ed25519 ]; then
+        eval $(ssh-agent)
+        ssh-add ~/.ssh/id_ed25519
+    elif [ ! -e ~/.ssh/id_ed25519_sk ]; then
+        read -n 1 -s -r -p "Plug on your Yubikey then press any key to continue..."
+        ssh-keygen -K > getpkfname
+        PKNAME=$(cat getpkfname | sed -n "s/Saved .* key ssh:.* to \(.*\)/\1/p")
+        rm getpkfname
+        mkdir -p ~/.ssh
+        mv $PKNAME ~/.ssh/id_ed25519_sk
+        mv $PKNAME.pub ~/.ssh/id_ed25519_sk.pub
+    fi
     git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
+
     cd caskmasapps
     ./dostow.sh
     '
