@@ -127,7 +127,7 @@ in {
     } else {
       enable = true;
       extraConfig = ''
-        IdentityFile = sshcfg.NIXIDPKFILE;
+        IdentityFile = ${sshcfg.NIXIDPKFILE};
       '';
     };
 
