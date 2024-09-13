@@ -116,6 +116,24 @@ in {
     };
   };
 
+  ### Enable ssh configuration
+  programs.ssh = {
+    enable = true;
+    addKeysToAgent = if onepasscfg.sshsign_pgm_present then "no" else "yes";
+
+    matchBlocks = {
+      #user = { signingkey = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey; };
+      "*" = if onepasscfg.sshsign_pgm_present then {
+              extraOptions = {
+                  IdentityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+                };
+              }
+            else {
+              identityFile = sshcfg.NIXIDPKFILE;
+            };
+    };
+  };
+
   ### Enable git configuration
   programs.git = {
     enable = true;
