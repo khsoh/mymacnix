@@ -3,7 +3,6 @@ let
   homecfg = config.home;
   onepasscfg = config.onepassword;
   sshcfg = config.sshkeys;
-  agecfg = config.age;
   ghcfg = config.github;
   glcfg = config.gitlab;
 
@@ -12,64 +11,11 @@ let
 
   NIXSYSPATH = "/run/current-system/sw/bin";
 
-  # Default SSH private key file to use in alias for agenix - depends on presence of the private key file
-  DEFAULT_PKFILE = if sshcfg.userpkfile_present then sshcfg.USERPKFILE else sshcfg.NIXIDPKFILE;
-
 in {
-  home.shellAliases = {
-    agnx = "EDITOR=$(([ -z $TMUX ] && echo $EDITOR) || echo nvim) agenix -i ${DEFAULT_PKFILE}";
-  };
-
   imports = [
     ./usermod
-    <agenix/modules/age-home.nix>
   ];
 
-
-  ##### agenix configuration
-  age.identityPaths = [
-    "${sshcfg.NIXIDPKFILE}"
-    "${sshcfg.USERPKFILE}"
-    ];
-
-# config-private stores the git config user.email - this is the private email
-# that is encrypted before checking into git
-  age.secrets.config-private = {
-# file should be a path expression, not a string expression (in quotes)
-    file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/config-private.age";
-
-# path should be a string expression (in quotes), not a path expression
-# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path if
-# you ever
-    path = "${homecfg.homeDirectory}/.config/git/config-private";
-
-# The default is true if not specified.  We want to make sure that
-# the "file" (decrypted secret) is symlinked and not generated directly into
-# that location
-    symlink = true;
-
-# The following are needed to ensure the decrypted secret has the correct permission
-    mode = "600";
-
-# Note that the owner and group attribute are absent from home-manager module
-    #owner = "${username}";
-    #group = "staff";
-  };
-
-  ## Generate list of public keys file in pubkeys.nix
-  home.file."pubkeys.nix" = {
-    ## The defaults are commented out
-    # enable = true;
-
-    target = ".config/nixpkgs/secrets/pubkeys.nix";
-    text = ''
-      [
-        "${sshcfg.userssh_pubkey}"
-        "${sshcfg.nixidssh_pubkey}"
-      ]
-      '';
-
-  };
 
   home.file.gitAllowedSigners = {
     ## Generate the allowed signers file
@@ -107,14 +53,12 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev = "a9f9f8e552acf35a690e6dec245801960e8d3444";
+      rev = "87402ffd9333719bc4645c04c8c7383def82ea21";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-Lj5xwf4ILi9nF3sZji/uQ/UNaI3afr96CZHyDVEwS+w=";
+      sha256 = "sha256-ViTCrKDdkcDUvn4RhrACNBSHACnBoCbT8g8u7Mf687o=";
     };
     recursive = true;
   };
-
-  ##### End agenix module configuration
 
   ### Enable bash configuration
   programs.bash = {
@@ -317,7 +261,6 @@ in {
           "-c"
           "
           declare -A NIXCHANNELS
-          NIXCHANNELS['agenix']=\"https://github.com/ryantm/agenix/archive/main.tar.gz\"
 
           eval \"\$(nix-channel --list|awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$1,\"]=\",$2 }')\"
 

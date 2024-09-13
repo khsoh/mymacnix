@@ -67,7 +67,6 @@ in {
     [ vim
       neovim
       python3
-      (callPackage <agenix/pkgs/agenix.nix> {})
 
       ### The following are for kickstart.nvim
       ripgrep
