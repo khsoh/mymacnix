@@ -133,10 +133,6 @@ in {
     };
 
     includes = [
-      # { ### The following allows user to specify their config file that contains private
-      #   #   information (like email) that they may not want to place in a public repo
-      #   path = agecfg.secrets.config-private.path;
-      # }
     ]
     ++ lib.lists.optionals ghcfg.enable
     [

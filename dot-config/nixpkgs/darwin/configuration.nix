@@ -126,7 +126,6 @@ in {
   alias drb="darwin-rebuild build"
   alias drs="darwin-rebuild switch"
   alias drlg="darwin-rebuild --list-generations"
-  alias cdsec="cd ~/.config/nixpkgs/secrets"
   alias ..="cd .."
   '';
 
