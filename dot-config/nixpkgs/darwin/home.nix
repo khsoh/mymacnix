@@ -23,8 +23,8 @@ in {
 
     target = ".ssh/allowed_signers";
     text = ''
-      ${git_noreply_email} ${sshcfg.userssh_pubkey}
-      ${git_noreply_email} ${sshcfg.nixidssh_pubkey}
+      ${git_noreply_email} namespaces="git" ${sshcfg.userssh_pubkey}
+      ${git_noreply_email} namespaces="git" ${sshcfg.nixidssh_pubkey}
       '';
   };
 
