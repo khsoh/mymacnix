@@ -122,13 +122,13 @@ in {
       enable = true;
       addKeysToAgent = "no";
       extraConfig = ''
-        IdentityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+        IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
       '';
     } else {
       enable = true;
       addKeysToAgent = "yes";
       extraConfig = ''
-        IdentityFile = ${sshcfg.NIXIDPKFILE};
+        IdentityFile ${sshcfg.NIXIDPKFILE};
       '';
     };
 
