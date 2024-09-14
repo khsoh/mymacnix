@@ -33,7 +33,7 @@ function __build_prompt {
     # Generate current working directory string
     local PSPATH=${PWD/#${HOME}/\~}
 
-    if [[ -z "$IN_NIX_SHELL" ]]; then
+    if [[ -z ${IN_NIX_SHELL+x} ]]; then
       # this is the default prompt for non-Nix setup
       PS1="\u # "
     else

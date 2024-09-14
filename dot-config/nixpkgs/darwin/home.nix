@@ -280,7 +280,7 @@ in {
           &gt;&amp;2 date
           for pkg in \"\${!NIXCHANNELS[@]}\"; do
               pkgpath=\$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"&lt;\${pkg}&gt;\")
-              if [[ ! -z $pkgpath ]]; then
+              if [[ ! -z \${pkgpath+x} ]]; then
                   pkgurl=\${NIXCHANNELS[$pkg]}
 
                   lastrhash=\$(/usr/bin/grep \"^\${pkg}_remote_hash:\\s\\+\" ~/log/checknixchannelsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^\${pkg}_remote_hash:\\s\\+//p')

@@ -10,7 +10,7 @@ eval "$(nix-channel --list|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",
 
 for pkg in "${!NIXCHANNELS[@]}"; do
   pkgpath=$(nix-instantiate --eval --expr "<${pkg}>")
-  if [[ ! -z $pkgpath ]]; then
+  if [[ ! -z ${pkgpath+x} ]]; then
       pkgurl=${NIXCHANNELS[$pkg]}
 
       lastrhash=$(/usr/bin/grep "^${pkg}_remote_hash:\s\+" ~/log/checknixchannelsError.log | tail -1 | sed -n -e 's/^${pkg}_remote_hash:\s\+//p')

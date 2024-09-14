@@ -3,7 +3,7 @@ set -o vi
 
 tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
-    if [[ -z $1 ]]; then
+    if [[ -z ${1+x} ]]; then
         resize_terminal
         /run/current-system/sw/bin/tmux new-session -A
     else
