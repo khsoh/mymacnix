@@ -147,16 +147,21 @@ if [ $? -ne 0 ]; then
     elif [ -e ~/.ssh/id_ed25519 ]; then
         eval $(ssh-agent)
         ssh-add ~/.ssh/id_ed25519
-    elif [ ! -e ~/.ssh/id_ed25519_sk ]; then
-        read -n 1 -s -r -p "Plug on your Yubikey then press any key to continue..."
-        ssh-keygen -K > getpkfname
-        PKNAME=$(cat getpkfname | sed -n "s/Saved .* key ssh:.* to \(.*\)/\1/p")
-        rm getpkfname
-        mkdir -p ~/.ssh
-        mv $PKNAME ~/.ssh/id_ed25519_sk
-        mv $PKNAME.pub ~/.ssh/id_ed25519_sk.pub
+    else
+        echo "=================================="
+        echo "Preparing to use hardware security token to clone a private repo from ${REPOHOST}.com"
+        echo "=================================="
+        aptmpdir="$(mktemp -d -t aptmpdir.XXXXXX)"
+        read -n 1 -s -r -p "Plug in your security token then press any key to continue..."
+        git clone https://github.com/theseal/ssh-askpass.git "$aptmpdir"
+        export SSH_ASKPASS=$aptmpdir/ssh-askpass
+        eval $(ssh-agent)
+        ssh-add -K
     fi
     git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
+    if [ ! -z ${aptmpdir+x} ]; then
+        rm -rf $aptmpdir
+    fi
 
     cd caskmasapps
     ./dostow.sh
