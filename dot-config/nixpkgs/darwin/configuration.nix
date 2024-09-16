@@ -107,6 +107,7 @@ in {
 
       vlc-bin
       audacity
+      ttyplot
 
 # The following packages that could not be installed because these are marked as broken
       # handbrake
