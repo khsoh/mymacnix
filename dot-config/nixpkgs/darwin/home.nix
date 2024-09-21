@@ -279,7 +279,7 @@ in {
           &gt;&amp;2 echo \"\"
           &gt;&amp;2 date
           for pkg in \"\${!NIXCHANNELS[@]}\"; do
-              pkgpath=\$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"&lt;\${pkg}&gt;\")
+              pkgpath=\$(/usr/bin/readlink -f \$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"&lt;\${pkg}&gt;\"))
               if [[ ! -z \${pkgpath+x} ]]; then
                   pkgurl=\${NIXCHANNELS[$pkg]}
 
