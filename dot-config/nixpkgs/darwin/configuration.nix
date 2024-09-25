@@ -16,6 +16,9 @@ in {
     ./brews.nix
     ];
 
+  ### Enable sudo authentication with Touch ID
+  security.pam.enableSudoTouchIdAuth = true;
+
   ######### Configuration of modules #########
 
   ##### home-manager configuration
