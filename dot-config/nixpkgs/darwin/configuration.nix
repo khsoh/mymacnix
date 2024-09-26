@@ -79,7 +79,6 @@ in {
       tmux
       gnused
       git
-      git-credential-manager
       git-lfs
       git-repo
       git-filter-repo
