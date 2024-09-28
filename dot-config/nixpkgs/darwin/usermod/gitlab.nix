@@ -5,7 +5,7 @@
     noreply_email = lib.mkOption {
       type = lib.types.str;
       description = "No reply email of your gitlab account";
-      default = "none";
+      default = "";
     };
     username = lib.mkOption {
       type = lib.types.str;
@@ -14,7 +14,7 @@
   };
 
   config.gitlab = {
-    enable = lib.mkDefault false;
+    enable = lib.mkDefault true;
     username = "khsoh";
   };
 }

@@ -150,7 +150,9 @@ in {
 
     includes = [
     ]
-    ++ lib.lists.optionals ghcfg.enable
+    ++ lib.lists.optionals (ghcfg.enable && 
+        builtins.stringLength ghcfg.noreply_email > 0 &&
+        ghcfg.noreply_email != config.programs.git.userEmail)
     [
       #### The following specify noreply email for github repos
       {
@@ -172,7 +174,9 @@ in {
         };
       }
     ]
-    ++ lib.lists.optionals glcfg.enable
+    ++ lib.lists.optionals (glcfg.enable && 
+        builtins.stringLength glcfg.noreply_email > 0 &&
+        glcfg.noreply_email != config.programs.git.userEmail)
     [
       #### The following specify noreply email for gitlab repos
       {
@@ -209,18 +213,29 @@ in {
       user = { signingkey = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey; };
       gpg = {
         format = "ssh";
-        ssh = if onepasscfg.sshsign_pgm_present then {
-          program = onepasscfg.SSHSIGN_PROGRAM;
+        ssh = {
           allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
-        } else {
-          allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
-        };
+        } // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
+            program = onepasscfg.SSHSIGN_PROGRAM;
+          };
       };
       commit = { gpgsign = true; };
       tag = { gpgsign = true; };
 
       rerere = { enabled = true; };
       rebase = { updateRefs = true; };
+
+      credential = {} // 
+        lib.optionalAttrs ghcfg.enable {
+          "https://github.com" = {
+            username = ghcfg.username;
+          };
+        } // 
+        lib.optionalAttrs glcfg.enable {
+          "https://gitlab.com" = {
+            username = glcfg.username;
+          };
+        };
     };
 
   };

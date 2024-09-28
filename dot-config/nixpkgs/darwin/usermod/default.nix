@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 {
   imports = [
     ./github.nix
@@ -26,11 +26,9 @@
 
   ##### github configuration
   # github.enable = true;   # Default
-  # github.noreply_email = "2169449+khsoh@users.noreply.github.com";
-  github.noreply_email = "hju37823@outlook.com";
+  # github.noreply_email is assigned to global config email if not specified
 
   ##### gitlab configuration
   # gitlab.enable = true;   # Default
-  # gitlab.noreply_email = "22681633-khsoh@users.noreply.gitlab.com";
-  gitlab.noreply_email = "hju37823@outlook.com";
+  # gitlab.noreply_email is assigned to global config email if not specified
 }
