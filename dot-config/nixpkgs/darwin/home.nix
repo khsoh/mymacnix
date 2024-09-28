@@ -6,8 +6,8 @@ let
   ghcfg = config.github;
   glcfg = config.gitlab;
 
-  ## Default git noreply email - will be available to public
-  git_noreply_email = "hju37823@outlook.com";
+  ## Default git email - will be available to public
+  default_git_email = "hju37823@outlook.com";
 
   NIXSYSPATH = "/run/current-system/sw/bin";
 
@@ -23,8 +23,8 @@ in {
 
     target = ".ssh/allowed_signers";
     text = ''
-      ${git_noreply_email} namespaces="git" ${sshcfg.userssh_pubkey}
-      ${git_noreply_email} namespaces="git" ${sshcfg.nixidssh_pubkey}
+      ${default_git_email} namespaces="git" ${sshcfg.userssh_pubkey}
+      ${default_git_email} namespaces="git" ${sshcfg.nixidssh_pubkey}
       '';
   };
 
@@ -136,7 +136,7 @@ in {
   programs.git = {
     enable = true;
     userName = "K H Soh";
-    userEmail = git_noreply_email;
+    userEmail = default_git_email;
 
     aliases = {
       co = "checkout";
