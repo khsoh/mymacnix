@@ -29,6 +29,8 @@ for pkg in "${!NIXCHANNELS[@]}"; do
 
     if [[ "$lhash" != "$rhash" ]]; then
       echo "***New package detected for update on $pkg channel:"
+      echo "  ${pkg}_local_hash:  $lhash"
+      echo "  ${pkg}_remote_hash: $rhash"
     else
       echo "Local package is up-to-date with $pkg channel"
       echo "  ${pkg}_local_hash:  $lhash"
