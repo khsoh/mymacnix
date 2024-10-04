@@ -42,7 +42,7 @@ let
   caskOptions = [ "name" "args" "greedy" ];
   BrewCask = (casks:
     builtins.map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e)
-    (builtins.filter (e: (!AppExists e.appname) || (CaskInstalled e.name)) casks));
+    (builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks));
 in {
 
   warnings = lib.mkIf (!builtins.pathExists casksnix) [
