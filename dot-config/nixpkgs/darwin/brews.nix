@@ -65,7 +65,7 @@ in {
   ### Setup for updates via Nix
   homebrew.global.autoUpdate = false;
   homebrew.onActivation.upgrade = true;
-  homebrew.onActivation.autoUpdate = false;
+  homebrew.onActivation.autoUpdate = true;
   ### End Setup for updates via Nix
 
   homebrew.brews = FORMULAE;
