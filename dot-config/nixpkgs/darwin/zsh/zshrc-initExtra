@@ -11,21 +11,22 @@ nixclean () {
 tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
     if [[ -z ${1+x} ]]; then
-        resize_terminal
+        resize_app
         /run/current-system/sw/bin/tmux new-session -A
     else
         /run/current-system/sw/bin/tmux $@
     fi
 }
 
-## Resizes the terminal window
-# By default, if no arguments given, it resizes terminal in main display 
+## Resizes the app window
+# By default, if no arguments given, it resizes app "Terminal" in main display 
 # to half-width and full-height
-# Otherwise, the 2 arguments are the fractional width and height of the main
+# Otherwise, the 3 arguments are the app name, fractional width and height of the main
 # display.
-resize_terminal() {
-    XFRACTION=${1:-0.5}
-    YFRACTION=${2:-1}
+resize_app() {
+    APP=${1:-"Terminal"}
+    XFRACTION=${2:-0.5}
+    YFRACTION=${3:-1}
 
     ## Get the main display resolution
     NIXRUNPATH=/run/current-system/sw/bin
@@ -46,7 +47,7 @@ resize_terminal() {
         use scripting additions
 
         set theMenuBarHeight to current application's NSMenu's menuBarHeight() as integer
-        tell application "Terminal"
+        tell application "$APP"
             set winID to id of window 1
             set toplefty to (theMenuBarHeight + 1 + $TOPLEFTY) as integer
             set botrx to ($BOTRIGHTX * $XFRACTION) as integer
@@ -59,7 +60,7 @@ EOF
         ## The following code is needed for VM installation because
         ## SPDisplaysDataType is absent from system_profiler for VMs
         osascript <<-EOF
-        tell application "Terminal"
+        tell application "$APP"
             set winID to id of window 1
             tell application "Finder"
                     set terminalSize to bounds of window of desktop
