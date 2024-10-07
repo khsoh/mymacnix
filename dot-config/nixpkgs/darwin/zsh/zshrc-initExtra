@@ -19,7 +19,7 @@ tmux () {
 }
 
 ## Resizes the app window
-# By default, if no arguments given, it resizes app "Terminal" in main display 
+# By default, if no arguments given, it resizes app "Terminal" in main display
 # to half-width and full-height
 # Otherwise, the 3 arguments are the app name, fractional width and height of the main
 # display.
@@ -42,34 +42,59 @@ resize_app() {
         TOPLEFTY=0
 
         osascript <<-EOF
-        use framework "Foundation"
-        use framework "AppKit"
-        use scripting additions
+            use framework "Foundation"
+            use framework "AppKit"
+            use scripting additions
 
-        set theMenuBarHeight to current application's NSMenu's menuBarHeight() as integer
-        tell application "$APP"
-            set winID to id of window 1
-            set toplefty to (theMenuBarHeight + 1 + $TOPLEFTY) as integer
-            set botrx to ($BOTRIGHTX * $XFRACTION) as integer
-            set botry to ($BOTRIGHTY * $YFRACTION) as integer
-            set bounds of window id winID to {$TOPLEFTX, toplefty, botrx, botry}
-        end tell
-        return
+            set theMenuBarHeight to current application's NSMenu's menuBarHeight() as integer
+            tell application "System Events"
+                set found to false
+                repeat with theProcess in (processes where name is "$APP")
+                    set theProcess to theProcess
+                    set found to true
+                    exit repeat
+                end repeat
+                if not found then
+                    return
+                end if
+
+                tell theProcess to set theWindow to first item of windows
+                set toplefty to (theMenuBarHeight + 1 + $TOPLEFTY) as integer
+                set botrx to ($BOTRIGHTX * $XFRACTION) as integer
+                set botry to ($BOTRIGHTY * $YFRACTION) as integer
+                set position of theWindow to { $TOPLEFTX, toplefty }
+                set size of theWindow to { botrx, botry }
+
+            end tell
+            return
 EOF
     else
         ## The following code is needed for VM installation because
         ## SPDisplaysDataType is absent from system_profiler for VMs
         osascript <<-EOF
-        tell application "$APP"
-            set winID to id of window 1
-            tell application "Finder"
-                    set terminalSize to bounds of window of desktop
+            tell application "Finder" to set terminalSize to bounds of window of desktop
+
+            tell application "System Events"
+                set found to false
+                repeat with theProcess in (processes where name is "$APP")
+                    set theProcess to theProcess
+                    set found to true
+                    exit repeat
+                end repeat
+                if not found then
+                    return
+                end if
+
+                tell theProcess to set theWindow to first item of windows
+
+                set topleftx to item 1 of terminalSize
+                set toplefty to (item 2 of terminalSize + 1 + $TOPLEFTY) as integer
+                set botrx to (item 3 of terminalSize * $XFRACTION) as integer
+                set botry to (item 4 of terminalSize * $YFRACTION) as integer
+                set position of theWindow to { topleftx, toplefty }
+                set size of theWindow to { botrx, botry }
             end tell
-            set item 3 of terminalSize to (item 3 of terminalSize * $XFRACTION) as integer
-            set item 4 of terminalSize to (item 4 of terminalSize * $YFRACTION) as integer
-            set bounds of window id winID to terminalSize
-        end tell
-        return
+            return
 EOF
     fi
 }
