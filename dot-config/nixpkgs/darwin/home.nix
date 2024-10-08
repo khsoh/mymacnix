@@ -16,6 +16,10 @@ in {
     ./usermod
   ];
 
+  ## User-specific aliases
+  home.shellAliases = {
+    cdnix = "cd ~/github/mymacnix/dot-config/nixpkgs/darwin";
+  };
 
   home.file.gitAllowedSigners = {
     ## Generate the allowed signers file
@@ -37,9 +41,9 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "tmuxconf";
-      rev = "f50a5a7c049afecb56129f8ea2ddf59b00a91231";
+      rev = "97995541fd77dbb56fc7a210cfdc191f315f6cfd";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-5+gOOhDfuE23oi475Dsu5cbidM8ePV30rvzNeOesnxo=";
+      sha256 = "sha256-7dciZwybpcLjgrZ0mt6rbxtgCtQNQLBvyFggxXGqKM8=";
     };
     recursive = true;
   };
