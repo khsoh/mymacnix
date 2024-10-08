@@ -108,6 +108,7 @@ in {
       vlc-bin
       audacity
       ttyplot
+      fastfetch
 
 # The following packages that could not be installed because these are marked as broken
       # handbrake
@@ -128,6 +129,7 @@ in {
   alias drs="darwin-rebuild switch"
   alias drlg="darwin-rebuild --list-generations"
   alias ..="cd .."
+  ${pkgs.fastfetch}/bin/fastfetch
   '';
 
   # Auto upgrade nix package and the daemon service.
