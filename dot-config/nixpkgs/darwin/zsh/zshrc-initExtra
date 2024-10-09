@@ -12,8 +12,7 @@ tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
     if [[ -z ${1+x} ]]; then
         resize_app
-        ## The following works around bug in tmux or catppuccin tmux in reading the themes
-        /run/current-system/sw/bin/tmux new-session -A \; set-hook -g session-created "source ~/.config/tmux/tmux.conf"
+        /run/current-system/sw/bin/tmux new-session -A
     else
         /run/current-system/sw/bin/tmux $@
     fi
