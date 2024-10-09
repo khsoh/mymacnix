@@ -13,7 +13,7 @@ tmux () {
     if [[ -z ${1+x} ]]; then
         resize_app
         ## The following works around bug in tmux or catppuccin tmux in reading the themes
-        /run/current-system/sw/bin/tmux new-session -A \; source ~/.config/tmux/tmux.conf \; source ~/.config/tmux/tmux.conf
+        /run/current-system/sw/bin/tmux new-session -A \; set-hook -g session-created "source ~/.config/tmux/tmux.conf"
     else
         /run/current-system/sw/bin/tmux $@
     fi
