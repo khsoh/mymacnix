@@ -66,6 +66,9 @@ in {
   homebrew.global.autoUpdate = false;
   homebrew.onActivation.upgrade = true;
   homebrew.onActivation.autoUpdate = true;
+  homebrew.onActivation.extraFlags = [
+    "--verbose"
+  ];
   ### End Setup for updates via Nix
 
   homebrew.brews = FORMULAE;
