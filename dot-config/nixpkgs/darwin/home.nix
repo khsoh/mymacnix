@@ -48,6 +48,22 @@ in {
     recursive = true;
   };
 
+  home.file.kitty = {
+    ## The defaults are commented out
+    # enable = true;
+
+    target = ".config/kitty";
+    #source = ../kitty;
+    source = pkgs.fetchFromGitHub {
+      owner = ghcfg.username;
+      repo = "kittyconf";
+      rev = "557d803e82c474263c1a5fd0c515fa50b837c2fa";
+      #sha256 = lib.fakeSha256;
+      sha256 = "sha256-79RW7hvv8bCO44Fl2mcllev801EHkV4g6XcADePnNKw=";
+    };
+    recursive = true;
+  };
+
   home.file.nvim = {
     ## The defaults are commented out
     # enable = true;

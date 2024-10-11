@@ -5,6 +5,7 @@
 declare -a REPOS=()
 REPOS+=("https://github.com/khsoh/kickstart.nvim;refs/heads/master")
 REPOS+=("https://github.com/khsoh/tmuxconf;refs/heads/master")
+REPOS+=("https://github.com/khsoh/kittyconf;refs/heads/main")
 
 for repo in "${REPOS[@]}";  do
     IFS=";"; read url ref <<< $repo
