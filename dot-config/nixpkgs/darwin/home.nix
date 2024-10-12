@@ -57,9 +57,9 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kittyconf";
-      rev = "557d803e82c474263c1a5fd0c515fa50b837c2fa";
+      rev = "cf18b6c2b6bd42db672f7ba5339ccb40eca60423";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-79RW7hvv8bCO44Fl2mcllev801EHkV4g6XcADePnNKw=";
+      sha256 = "sha256-dfQEQuhgwXnHT4oUKQSEyYz6XawPqXh9fOv7oXEEFjc=";
     };
     recursive = true;
   };
@@ -123,6 +123,7 @@ in {
 
     profileExtra = builtins.readFile ./zsh/zprofile-extra;
     initExtra = builtins.readFile ./zsh/zshrc-initExtra;
+    envExtra = builtins.readFile ./zsh/zshenv-extra;
   };
 
   ### Enable readline configuration
