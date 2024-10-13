@@ -21,6 +21,12 @@ in {
     cdnix = "cd ~/github/mymacnix/dot-config/nixpkgs/darwin";
   };
 
+  home.file.resize_app = {
+    ## AppleScript file to resize app
+    target = ".config/scpt/resize_app.scpt";
+    source = ./scpt/resize_app.scpt;
+  };
+
   home.file.gitAllowedSigners = {
     ## Generate the allowed signers file
     # enable = true;
