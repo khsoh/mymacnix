@@ -63,9 +63,9 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kittyconf";
-      rev = "062dfa8a23f0f3f42e237218b34b3115976dbde0";
+      rev = "3b4bac7e2348a2fcc96e8784183d4fbd33aa6817";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-34L7DvUKOLecrjynWPOEzWOrSnZKR9nE1V7J1mcnOgI=";
+      sha256 = "sha256-wnWenaLxxXvWo3QLRAJdg8CrmCxkG5mh3lrIfjZcneY=";
     };
     recursive = true;
   };
@@ -353,25 +353,44 @@ in {
         StandardErrorPath = "${homecfg.homeDirectory}/log/checknixchannelsError.log";
       };
     };
-    LoginStartTmux = {
+    LoginStartKitty = {
       enable = true;
       config = {
-        Label = "LoginStartTmux";
+        Label = "LoginStartKitty";
         ProgramArguments = [
           "osascript"
           "-e" "
-          tell application \"Terminal\"
-            if not (exists window 1) then reopen
-            activate
-            set winID to id of window 1
-            do script \"tmux 2>/dev/null\" in window id winID
-          end tell
+          tell application \"kitty\" to activate
+          delay 2
+          run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \"kitty\" }
           return
           "
           ];
         RunAtLoad = true;
+        StandardOutputPath = "${homecfg.homeDirectory}/log/kitty.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/kittyError.log";
       };
     };
+    #run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with paramaters \{ \"kitty\" \}
+    # LoginStartTmux = {
+    #   enable = true;
+    #   config = {
+    #     Label = "LoginStartTmux";
+    #     ProgramArguments = [
+    #       "osascript"
+    #       "-e" "
+    #       tell application \"Terminal\"
+    #         if not (exists window 1) then reopen
+    #         activate
+    #         set winID to id of window 1
+    #         do script \"tmux 2>/dev/null\" in window id winID
+    #       end tell
+    #       return
+    #       "
+    #       ];
+    #     RunAtLoad = true;
+    #   };
+    # };
     updateTmuxPlugins = {
       enable = true;
       config = {
