@@ -48,8 +48,8 @@ in {
       owner = ghcfg.username;
       repo = "tmuxconf";
       rev = "82ace5d9e0b3fdd8e234f4b0360e7c3fd954db5e";
-      #sha256 = lib.fakeSha256;
       sha256 = "sha256-7cp+qW7KzQHNnRfQ9prnsY4HL/l94YljGS8RiGMwyYM=";
+      #sha256 = lib.fakeSha256;
     };
     recursive = true;
   };
@@ -63,9 +63,9 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kittyconf";
-      rev = "811e6c1f2c2627d41215f6450f7cfad0b1873451";
+      rev = "ef5b1e236c5bb9c447578c29d130f6c84bcbae42";
+      sha256 = "sha256-z9r0Z8kyH8jbrEjGS3Rk8vcSn0y9LK8OnXVHxt2BUJk=";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-pDjRvDyIaCdfNhBT2BjCYFtlqVlc4TJ1hsBkS+XVBIk=";
     };
     recursive = true;
   };
@@ -80,8 +80,8 @@ in {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
       rev = "87402ffd9333719bc4645c04c8c7383def82ea21";
-      #sha256 = lib.fakeSha256;
       sha256 = "sha256-ViTCrKDdkcDUvn4RhrACNBSHACnBoCbT8g8u7Mf687o=";
+      #sha256 = lib.fakeSha256;
     };
     recursive = true;
   };
@@ -358,7 +358,12 @@ in {
       config = {
         Label = "LoginStartKitty";
         ProgramArguments = [
-          "${pkgs.kitty}"
+          "osascript"
+          "-e" "
+          tell application \"kitty\" to activate
+          delay 2
+          run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
+          "
           ];
         RunAtLoad = true;
         StandardOutputPath = "${homecfg.homeDirectory}/log/kitty.log";
