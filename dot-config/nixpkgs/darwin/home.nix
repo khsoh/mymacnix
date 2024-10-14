@@ -63,9 +63,9 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kittyconf";
-      rev = "3b4bac7e2348a2fcc96e8784183d4fbd33aa6817";
+      rev = "491ea37117cda0dbe4eedec85e10afa1544fc65a";
       #sha256 = lib.fakeSha256;
-      sha256 = "sha256-wnWenaLxxXvWo3QLRAJdg8CrmCxkG5mh3lrIfjZcneY=";
+      sha256 = "sha256-TrYJRzGL2qWBURZlb7p8fb9dQJPgUOl+WLpGByEv7Uc=";
     };
     recursive = true;
   };
@@ -358,20 +358,13 @@ in {
       config = {
         Label = "LoginStartKitty";
         ProgramArguments = [
-          "osascript"
-          "-e" "
-          tell application \"kitty\" to activate
-          delay 2
-          run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \"kitty\" }
-          return
-          "
+          "${pkgs.kitty}"
           ];
         RunAtLoad = true;
         StandardOutputPath = "${homecfg.homeDirectory}/log/kitty.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/kittyError.log";
       };
     };
-    #run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with paramaters \{ \"kitty\" \}
     # LoginStartTmux = {
     #   enable = true;
     #   config = {
