@@ -11,5 +11,5 @@ for repo in "${REPOS[@]}";  do
     IFS=";"; read url ref <<< $repo
     rev=$(git ls-remote $url $ref|awk '{print $1}')
     hash=$(nix-hash --to-sri --type sha256 $(nix-prefetch-url --unpack $url/archive/${rev}.tar.gz 2> /dev/null))
-    printf "REPO=$url\nREV=$rev\nSHA256=$hash\n\n"
+    printf "REPO=$url\nrev=\"$rev\";\nsha256=\"$hash\";\n\n"
 done
