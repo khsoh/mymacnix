@@ -63,8 +63,8 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kittyconf";
-      rev="0aec07cc366bfd790d2644497b91b668eb725394";
-      sha256="sha256-4wkP4ASQYkrgZIeiEH+KHk3ba7E4udGjRX3xP7CTYLI=";
+      rev="36725b0a40079511a27a1cfccbb55dedaba1b357";
+      sha256="sha256-TupwpfpR8TpTEg589gu/QoeHj7cSc46dR1vfwiuq+4A=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
