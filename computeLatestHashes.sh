@@ -10,6 +10,6 @@ REPOS+=("https://github.com/khsoh/kittyconf;refs/heads/main")
 for repo in "${REPOS[@]}";  do
     IFS=";"; read url ref <<< $repo
     rev=$(git ls-remote $url $ref|awk '{print $1}')
-    hash=$(nix-hash --to-sri --type sha256 $(nix-prefetch-url --unpack $url/archive/${rev}.tar.gz 2> /dev/null))
+    hash=$(nix --experimental-features nix-command hash convert --hash-algo sha256 --to sri $(nix-prefetch-url --unpack $url/archive/${rev}.tar.gz 2> /dev/null))
     printf "REPO=$url\nrev=\"$rev\";\nsha256=\"$hash\";\n\n"
 done
