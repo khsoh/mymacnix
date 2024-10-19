@@ -353,21 +353,30 @@ in {
         StandardErrorPath = "${homecfg.homeDirectory}/log/checknixchannelsError.log";
       };
     };
-    LoginStartKitty = {
+    LoginStartTerminal = {
       enable = true;
       config = {
-        Label = "LoginStartKitty";
+        Label = "LoginStartTerminal";
         ProgramArguments = [
           "osascript"
           "-e" "
-          tell application \"kitty\" to activate
-          delay 2
-          run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
+          try
+            tell application \"kitty\" to activate
+            delay 2
+            run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
+          on error errMsg
+            tell application \"Terminal\"
+              if not (exists window 1) then reopen
+              activate
+              set winID to id of window 1
+              do script \"tmux 2>/dev/null\" in window id winID
+            end tell
+          end try
           "
           ];
         RunAtLoad = true;
-        StandardOutputPath = "${homecfg.homeDirectory}/log/kitty.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/kittyError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/loginterm.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/logintermError.log";
       };
     };
     # LoginStartTmux = {
