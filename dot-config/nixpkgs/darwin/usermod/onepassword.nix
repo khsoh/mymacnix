@@ -1,10 +1,10 @@
-{ config, lib, ... }:
+{ config, osConfig, lib, ... }:
 let
   onepasscfg = config.onepassword;
   sshcfg = config.sshkeys;
 in {
 
-  config.warnings = lib.mkIf (!onepasscfg.sshsign_pgm_present) [
+  config.warnings = lib.mkIf (!onepasscfg.sshsign_pgm_present && !osConfig.machineInfo.is_vm) [
     ''
       Best to install 1Password App first before deploying the Nix configuration.
       Will use ${sshcfg.NIXIDPKFILE} as the user SSH key for GIT signing

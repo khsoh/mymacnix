@@ -31,11 +31,11 @@ let
   else [];
 
   ## Casks are machine dependent
-  USERCASKS = if builtins.pathExists casksnix then
+  USERCASKS = if (!config.machineInfo.is_vm) && builtins.pathExists casksnix then
     import casksnix ++ import commoncasksnix
   else import defaultcasksnix;
 
-  MASAPPS = if builtins.pathExists masappsnix then
+  MASAPPS = if (!config.machineInfo.is_vm) && builtins.pathExists masappsnix then
     lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
   else import defaultmasappsnix;
 
@@ -45,7 +45,7 @@ let
     (builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks));
 in {
 
-  warnings = lib.mkIf (!builtins.pathExists casksnix) [
+  warnings = lib.mkIf (!builtins.pathExists casksnix && !config.machineInfo.is_vm) [
     ''
     Using default-casks.nix and default-masapps.nix for 
     Homebrew casks and masapps.
