@@ -10,14 +10,11 @@ let
     }
   ];
 
-  machineInfo = {
-    is_vm = (builtins.exec [ "/usr/sbin/sysctl" "-n" "kern.hv_vmm_present" ]) > 0;
-    hostname = builtins.exec [ "bash" "-c" ''echo \"$(/usr/sbin/scutil --get LocalHostName)\"'' ];
-  };
 in {
   imports = [ 
     <home-manager/nix-darwin> 
     ./brews.nix
+    ./machine.nix
     ];
 
 
@@ -122,7 +119,7 @@ in {
       # _1password-gui
     ]
     # Install kitty only if this is not a VM
-    ++ lib.lists.optionals (!machineInfo.is_vm) [
+    ++ lib.lists.optionals (!config.machineInfo.is_vm) [
       kitty
     ];
 
