@@ -10,11 +10,13 @@ let
     }
   ];
 
+  is_vm = (builtins.exec [ "/usr/sbin/sysctl" "-n" "kern.hv_vmm_present" ]) > 0;
 in {
   imports = [ 
     <home-manager/nix-darwin> 
     ./brews.nix
     ];
+
 
   ######### Configuration of modules #########
 
@@ -109,13 +111,16 @@ in {
       audacity
       ttyplot
       fastfetch
-      kitty
 
 # The following packages that could not be installed because these are marked as broken
       # handbrake
 
 # The following packages that could not be installed because these cannot be executed
       # _1password-gui
+    ]
+    # Install kitty only if this is not a VM
+    ++ lib.lists.optionals (!is_vm) [
+      kitty
     ];
 
   # Use a custom configuration.nix location.
@@ -126,8 +131,8 @@ in {
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias drb="darwin-rebuild build"
-  alias drs="darwin-rebuild switch"
+  alias drb="darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
+  alias drs="darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
   alias drlg="darwin-rebuild --list-generations"
   alias ..="cd .."
   ${pkgs.fastfetch}/bin/fastfetch

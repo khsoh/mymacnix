@@ -215,12 +215,12 @@ After some experimentation, I found that it was possible to pin to stable
 version with the following command:
 
 ```
-darwin-rebuild switch -I nixpkgs=https://github.com/nixos/nixpkgs/archive/release-24.05.tar.gz -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
+darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/nixos/nixpkgs/archive/release-24.05.tar.gz -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
 ```
 
 or an alternate shorthand channel syntax:
 ```
-darwin-rebuild switch -I nixpkgs=channel:nixpkgs-24.05-darwin -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
+darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=channel:nixpkgs-24.05-darwin -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
 ```
 
 The other possible pinning syntax can be found [here](https://nix.dev/reference/pinning-nixpkgs#possible-url-values)

@@ -22,7 +22,7 @@ printf "${BOLD}${GREEN}Completed updating channels:\n$(nix-channel --list)${ESC}
 sleep 3
 
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
-darwin-rebuild switch --verbose
+darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
 
