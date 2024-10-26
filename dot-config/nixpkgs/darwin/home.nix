@@ -47,8 +47,8 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "tmuxconf";
-      rev="4378fad7afbc59e3d395dcfcee865b05ca2b4931";
-      sha256="sha256-GxzQOBlX0jxjrtwI51biRIBMm35d+PLIFjx46BWrV18=";
+      rev="cd93e8f43024f2527fd673f8397c99bd69497604";
+      sha256="sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
