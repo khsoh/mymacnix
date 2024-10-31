@@ -91,7 +91,7 @@ in {
       jq
       # dhall-json  ## Remove this because the nds alias can be used instead
       rectangle
-      _1password
+      _1password-cli
 ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];
