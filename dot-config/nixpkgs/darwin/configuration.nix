@@ -119,10 +119,6 @@ in {
 
 # The following packages that could not be installed because these cannot be executed
       # _1password-gui
-    ]
-    # Install kitty only if this is not a VM
-    ++ lib.lists.optionals (!config.machineInfo.is_vm) [
-      kitty
     ];
 
   # Use a custom configuration.nix location.
