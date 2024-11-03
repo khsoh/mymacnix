@@ -18,7 +18,7 @@ in {
 
   ## User-specific aliases
   home.shellAliases = {
-    cdnix = "cd ~/github/mymacnix/dot-config/nixpkgs/darwin";
+    cdnix = "cd $(readlink -f ${builtins.toString ./.})";
   };
 
   home.file.resize_app = {
