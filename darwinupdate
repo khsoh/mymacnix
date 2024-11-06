@@ -23,6 +23,7 @@ sleep 3
 
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
 darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose
+[ $? -eq 0 ] && nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/^.*\.//' >> ~/.working-nixpkgs
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
 

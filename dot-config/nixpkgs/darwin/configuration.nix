@@ -132,6 +132,8 @@ in {
   alias drb="darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
   alias drs="darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
   alias drlg="darwin-rebuild --list-generations"
+  alias drsgood="darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs).tar.gz"
+  alias drbgood="darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs).tar.gz"
   alias ..="cd .."
   ${pkgs.fastfetch}/bin/fastfetch
   '';
