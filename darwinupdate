@@ -21,9 +21,54 @@ nix-channel --update --verbose
 printf "${BOLD}${GREEN}Completed updating channels:\n$(nix-channel --list)${ESC}\n\n\n"
 sleep 3
 
+LAST_GOOD_REV=$(tail -1 ~/.working-nixpkgs || echo 0)
+LATEST_NIXPKGS_REV=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/.*\.//')
+BUILDARGS=""
+BUILDREV="$LATEST_NIXPKGS_REV"
+if grep -q "^$LATEST_NIXPKGS_REV$" ~/.nonworking-nixpkgs; then
+    if [ "$LAST_GOOD_REV" = "0" ]; then
+        OPTIONS="[l/x]"
+    else
+        OPTIONS="[l/g/x]"
+    fi
+    echo "nixpkgs rev $LATEST_NIXPKGS_REV failed to build previously"
+    echo "What would you like to build? $OPTIONS"
+    echo " l/L - Latest nixpkgs rev"
+    if [ "$LAST_GOOD_REV" != "0" ]; then
+        echo " g/G - Last good rev"
+    fi
+    echo " x/X - Exit"
+    echo -n "$OPTIONS "
+    read -k 1 i
+    case "$i" in
+        l|L)
+            ;;
+        g|G)
+            if [ "$LAST_GOOD_REV" = "0" ]; then
+                exit 0
+            fi
+            BUILDARGS="-I nixpkgs=https://github.com/NixOS/nixpkgs/archive/${LAST_GOOD_REV}.tar.gz"
+            BUILDREV="$LAST_GOOD_REV"
+            ;;
+        *)
+            exit 0
+            ;;
+    esac
+fi
+
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
-darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose
-[ $? -eq 0 ] && nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/^.*\.//' >> ~/.working-nixpkgs
+darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose $(echo $BUILDARGS)
+BUILDRESULT=$?
+
+if [ "$BUILDRESULT" = "0" ]; then
+    grep -q "^$BUILDREV$" ~/.working-nixpkgs || echo $BUILDREV >> ~/.working-nixpkgs
+    if grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs ; then
+        grep -v "^$BUILDREV$" ~/.nonworking-nixpkgs > ~/.xnonworking-nixpkgs
+        mv -f ~/.xnonworking-nixpkgs ~/.nonworking-nixpkgs
+    fi
+else
+    grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs || echo $BUILDREV >> ~/.nonworking-nixpkgs
+fi
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
 
