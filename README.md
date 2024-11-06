@@ -199,7 +199,21 @@ folder.  But 1Password does not execute because it was not installed inside of
 `/Applications/` folder (reference: [1Password doesn't work on Darwin/macOS
 #254944](https://github.com/NixOS/nixpkgs/issues/254944)
 
-## UPDATE ON 29 JUN 2024
+## UPDATE ON 6 NOV 2024
+
+Agenix has been removed (last mentioned in the 29 Jun 2024 update) because it 
+is no longer required when we use a throwaway email for the default git 
+configuration.
+
+The main challenges now in nix-darwin are:
+
+1. MacOS 18.1 has now removed the ability of non-codesigned packages to be 
+executed.  So, packages like Kitty Terminal must be installed via Homebrew.  
+
+2. The latest nixpkgs cannot be built due to build failures for zig.  The 
+last good nixpkgs that can be installed is git revision 2d2a9ddbe3f2.
+
+## OLD UPDATE ON 29 JUN 2024
 
 Agenix has been successfully installed to setup `~/.config/git/config-private`
 because this file contains private email address that we do not wish to reveal
@@ -240,7 +254,6 @@ System Settings->Privacy & Security->Full Disk Access.
 
 Next steps are:
 
-- Further investigation of 1Password
 - Studying [nix.dev](https://nix.dev) to understand Nix better
 
 [ vim: set textwidth=80: ]: #
