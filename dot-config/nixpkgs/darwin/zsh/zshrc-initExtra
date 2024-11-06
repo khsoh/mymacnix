@@ -26,6 +26,14 @@ delagent () {
     launchctl bootout gui/$UID/$1
 }
 
+drsgood () {
+  darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
+}
+
+drbgood () {
+  darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
+}
+
 # Change cursor shape for different vi modes.
 function zle-keymap-select {
     if [[ ${KEYMAP} == vicmd ]] ||
