@@ -19,3 +19,6 @@ tmux () {
 resize_app() {
     osascript ~/.config/scpt/resize_app.scpt $@
 }
+
+# Create kssh alias if running in a kitty terminal
+[ "$TERM" = "xterm-kitty" ] && alias kssh="kitten ssh"
