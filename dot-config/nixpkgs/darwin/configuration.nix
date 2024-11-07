@@ -157,7 +157,7 @@ in {
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
   system.activationScripts.preUserActivation.text = ''
-    if ! /opt/homebrew/bin/brew --version 2>&1 > /dev/null; then
+    if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
       echo "Installing Homebrew"
       NONINTERACTIVE=1 ${pkgs.bashInteractive}/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
