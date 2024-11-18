@@ -111,7 +111,6 @@ in {
       vlc-bin
       audacity
       ttyplot
-      kitty
       fastfetch
       zig
 
@@ -120,6 +119,8 @@ in {
 
 # The following packages that could not be installed because these cannot be executed
       # _1password-gui
+    ] ++lib.lists.optionals (!config.machineInfo.is_vm) [
+      kitty
     ];
 
   # Use a custom configuration.nix location.
