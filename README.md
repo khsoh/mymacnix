@@ -199,7 +199,13 @@ folder.  But 1Password does not execute because it was not installed inside of
 `/Applications/` folder (reference: [1Password doesn't work on Darwin/macOS
 #254944](https://github.com/NixOS/nixpkgs/issues/254944)
 
-## UPDATE ON 6 NOV 2024
+## UPDATES
+### 18 NOV 2024
+
+The latest nixpkgs released through Nix 2.25.1 has fixed the build issue mentioned
+earlier in the update on 6 Nov 2024.  So the build issues have been resolved.
+
+### 6 NOV 2024
 
 Agenix has been removed (last mentioned in the 29 Jun 2024 update) because it 
 is no longer required when we use a throwaway email for the default git 
@@ -213,7 +219,7 @@ executed.  So, packages like Kitty Terminal must be installed via Homebrew.
 2. The latest nixpkgs cannot be built due to build failures for zig.  The 
 last good nixpkgs that can be installed is git revision 2d2a9ddbe3f2.
 
-## OLD UPDATE ON 29 JUN 2024
+### 29 JUN 2024
 
 Agenix has been successfully installed to setup `~/.config/git/config-private`
 because this file contains private email address that we do not wish to reveal
@@ -223,7 +229,7 @@ Nerdfonts has been successfully installed on `nix-darwin` instead of
 `home-manager` after fixes to install fonts correctly on a `nix-darwin` system
 through `fonts.packages`.
 
-### Pinning to stable version
+## Pinning to stable version
 
 After some experimentation, I found that it was possible to pin to stable
 version with the following command:
@@ -240,7 +246,7 @@ darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -
 The other possible pinning syntax can be found [here](https://nix.dev/reference/pinning-nixpkgs#possible-url-values)
 
 
-### Homebrew installation
+## Homebrew installation
 
 Not all Mac Applications can be installed via Nix (e.g. Microsoft Office).  So,
 homebrew has been added to support the installation.
@@ -250,7 +256,7 @@ access
 to support installation and uninstallation of apps.  This can be enabled via
 System Settings->Privacy & Security->Full Disk Access.
 
-### Next steps
+## Next steps
 
 Next steps are:
 

@@ -363,7 +363,7 @@ in {
           try
             tell application \"kitty\" to activate
             delay 2
-            run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \"kitty\" }
+            run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
           on error errMsg
             tell application \"Terminal\"
               if not (exists window 1) then reopen

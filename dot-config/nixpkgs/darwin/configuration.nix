@@ -111,6 +111,7 @@ in {
       vlc-bin
       audacity
       ttyplot
+      kitty
       fastfetch
       zig
 
