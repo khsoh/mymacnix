@@ -56,7 +56,10 @@ in {
 
   home.file.kitty = {
     ## The defaults are commented out
-    # enable = true;
+
+    # Enable kitty config if kitty is installed in Nix or homebrew
+    enable = builtins.elem pkgs.kitty (osConfig.environment.systemPackages ++ homecfg.packages) ||
+      lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
 
     target = ".config/kitty";
     #source = ../kitty;
