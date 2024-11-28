@@ -46,7 +46,7 @@ in {
 
   fonts.packages = with pkgs;
   [
-    (nerdfonts.override { fonts = [ "FiraMono" ]; })
+    nerd-fonts.fira-mono
   ];
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
