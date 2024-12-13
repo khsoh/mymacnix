@@ -82,8 +82,8 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev="4231a1bececcae87fc262ebcb562ec07b8eade3c";
-      sha256="sha256-lRoDlyj58X3i7niS0Ls+joDkytm9+ge3D5+I7vHf5dA=";
+      rev="b814d098062f13e4893bf322af79eb7e4266e47f";
+      sha256="sha256-jH4TFC1NidhGFkecAbWASzHwQOGSuCrDUrxQJRd6Cl0=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
