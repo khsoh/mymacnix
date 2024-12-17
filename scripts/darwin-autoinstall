@@ -70,9 +70,9 @@ nix-channel --add https://github.com/LnL7/nix-darwin/archive/master.tar.gz darwi
 nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 nix-channel --update
 
-. /etc/zshenv
-. /etc/zprofile
-. /etc/zshrc
+[ -f /etc/zshenv ] && . /etc/zshenv
+[ -f /etc/zprofile ] && . /etc/zprofile
+[ -f /etc/zshrc ] && . /etc/zshrc
 
 print_arrow "Installing nix-darwin"
 
