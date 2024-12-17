@@ -54,7 +54,7 @@ fi
 
 print_arrow "Downloading nix-darwin"
 pushd $darwintmpDir
-nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
+nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A darwin-rebuild
 
 print_arrow "Starting a new sub-shell to configure nix-darwin"
 
