@@ -76,7 +76,7 @@ nix-channel --update
 
 print_arrow "Installing nix-darwin"
 
-darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
+$darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 
 popd
