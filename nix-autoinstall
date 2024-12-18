@@ -117,7 +117,7 @@ EOF
 
 print_arrow "Downloading and executing nixsys-setup from ${BRANCH} branch of mymacnix repo"
 curl -L $(makerepo ${REPOHOST} "${BRANCH}" "nixsys-setup") -o ${nixtmpDir}/nixsys-setup
-zsh -l ${nixtmpDir}/nixsys-setup ${CMDARGS[@]}
+zsh -l ${nixtmpDir}/nixsys-setup ${CMDARGS[@]:-}
 
 } # End of wrapping
 
