@@ -364,7 +364,7 @@ in {
           "osascript"
           "-e" "
           try
-            tell application \"kitty\" to activate
+            tell application \"/run/current-system/sw/bin/kitty\" to activate
             delay 2
             run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
           on error errMsg
