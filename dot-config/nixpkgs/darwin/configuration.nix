@@ -121,6 +121,7 @@ in {
       # _1password-gui
     ] ++lib.lists.optionals (!config.machineInfo.is_vm) [
       kitty
+      ghostty
     ];
 
   # Use a custom configuration.nix location.
