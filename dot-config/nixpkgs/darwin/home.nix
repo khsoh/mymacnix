@@ -84,8 +84,8 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "gttyconf";
-      rev="e035ff2dd97bb73b052c077f3ca6bcac600d2176";
-      sha256="sha256-FSQVKS8j5QDCjRW3ftsLnijuNQdU2jgrLNN6Qu7gGNM=";
+      rev="afb7d2c8d79d70f56771d93acceade1b5797e214";
+      sha256="sha256-tuDYKLvqJ8p1Fou+rOyb76aZIrpEK5w0fkBsg2BTFN8=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
