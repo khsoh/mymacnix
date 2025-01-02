@@ -66,8 +66,26 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kittyconf";
-      rev="d8e83a9f76611a7b0aca79cc9d584ef56b831079";
-      sha256="sha256-a13qd6hofR5LMGxymbGdR8OPTP49JxzA0ILdRABGQZ4=";
+      rev="35b8d631239bd53601eb9f9572f4d697bb3e1822";
+      sha256="sha256-Itur2SopHFtpTRa2jfeQj86JsdmHMOWCqZXWGe5rRqs=";
+      #sha256 = lib.fakeSha256;
+    };
+    recursive = true;
+  };
+
+  home.file.ghostty = {
+    ## The defaults are commented out
+
+    # Enable ghostty config if ghostty is installed in Nix or homebrew
+    enable = builtins.elem pkgs.ghostty (osConfig.environment.systemPackages ++ homecfg.packages) ||
+      lib.lists.any (cask: cask.name == "ghostty") osConfig.homebrew.casks;
+
+    target = ".config/ghostty";
+    source = pkgs.fetchFromGitHub {
+      owner = ghcfg.username;
+      repo = "gttyconf";
+      rev="e035ff2dd97bb73b052c077f3ca6bcac600d2176";
+      sha256="sha256-FSQVKS8j5QDCjRW3ftsLnijuNQdU2jgrLNN6Qu7gGNM=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
