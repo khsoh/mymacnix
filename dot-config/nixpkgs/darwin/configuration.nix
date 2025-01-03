@@ -122,6 +122,8 @@ in {
       # _1password-gui
     ] ++lib.lists.optionals (!config.machineInfo.is_vm) [
       kitty
+    ] ++lib.lists.optionals (!config.machineInfo.is_vm && 
+        (!(pkgs.ghostty.meta ? "broken") || !pkgs.ghostty.meta.broken)) [
       ghostty
     ];
 

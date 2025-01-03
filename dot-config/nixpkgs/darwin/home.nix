@@ -11,6 +11,8 @@ let
 
   NIXSYSPATH = "/run/current-system/sw/bin";
 
+  pkgInstalled = (name : builtins.elem name 
+    (builtins.catAttrs "pname" (osConfig.environment.systemPackages ++ homecfg.packages)));
 in {
   imports = [
     ./usermod
@@ -58,7 +60,7 @@ in {
     ## The defaults are commented out
 
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = builtins.elem pkgs.kitty (osConfig.environment.systemPackages ++ homecfg.packages) ||
+    enable = pkgInstalled "kitty" ||
       lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
 
     target = ".config/kitty";
@@ -77,8 +79,8 @@ in {
     ## The defaults are commented out
 
     # Enable ghostty config if ghostty is installed in Nix or homebrew
-    enable = builtins.elem pkgs.ghostty (osConfig.environment.systemPackages ++ homecfg.packages) ||
-      lib.lists.any (cask: cask.name == "ghostty") osConfig.homebrew.casks;
+    enable = pkgInstalled "ghostty" ||
+        lib.lists.any (cask: cask.name == "ghostty") osConfig.homebrew.casks;
 
     target = ".config/ghostty";
     source = pkgs.fetchFromGitHub {
