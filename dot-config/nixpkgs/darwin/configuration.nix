@@ -120,12 +120,10 @@ in {
 
 # The following packages that could not be installed because these cannot be executed
       # _1password-gui
-    ] ++lib.lists.optionals (!config.machineInfo.is_vm) [
+    ] ++ lib.lists.flatten (lib.lists.optionals (!config.machineInfo.is_vm) [
       kitty
-    ] ++lib.lists.optionals (!config.machineInfo.is_vm && 
-        (!(pkgs.ghostty.meta ? "broken") || !pkgs.ghostty.meta.broken)) [
-      ghostty
-    ];
+      (lib.lists.optional (!(ghostty.meta ? "broken") || !ghostty.meta.broken) ghostty)
+    ]);
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
