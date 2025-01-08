@@ -21,6 +21,7 @@ in {
   ## User-specific aliases
   home.shellAliases = {
     cdnix = "cd $(readlink -f ${builtins.toString ./.})";
+    hbb = "HOMEBREW_NO_AUTOUPDATE=;brew bundle";
   };
 
   home.file.resize_app = {
