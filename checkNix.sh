@@ -3,14 +3,21 @@
 NIXDARWIN_VERSION=$(darwin-version --darwin-label)
 REMOTE_VERSION=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g')
 LOCAL_VERSION=${NIXDARWIN_VERSION%%+?*}
+LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
+REMOTE_DARWIN_VERSION=${REMOTE_VERSION%%pre*}
+REMOTE_NIXPKGSREVISION=${REMOTE_VERSION##*.}
 
-if [[ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]]; then
+if [[ $LOCAL_VERSION == $REMOTE_VERSION || ($LOCAL_VERSION == $REMOTE_DARWIN_VERSION && $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION*) ]]; then
+  echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
+  if [[ $LOCAL_VERSION == $REMOTE_VERSION ]]; then
+    echo "  LOCAL_VERSION::  $LOCAL_VERSION"
+  else
+    echo "  LOCAL_VERSION.LOCAL_NIXPKGSREVISION::  $LOCAL_VERSION.$LOCAL_NIXPKGSREVISION"
+  fi
+else
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel"
   echo "  LOCAL_VERSION::  $LOCAL_VERSION"
   echo "  REMOTE_VERSION:: $REMOTE_VERSION"
-else
-  echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
-  echo "  LOCAL_VERSION::  $LOCAL_VERSION"
 fi
 
 declare -A NIXCHANNELS
