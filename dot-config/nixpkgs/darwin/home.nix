@@ -310,19 +310,21 @@ in {
           REMOTE_DARWIN_VERSION=\${REMOTE_VERSION%%pre*}
           REMOTE_NIXPKGSREVISION=\${REMOTE_VERSION##*.}
           LAST_REMOTE_VERSION=\$(/usr/bin/grep \"^REMOTE_VERSION::\\s\\+\" ~/log/checknixpkgsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p')
+          XLOCAL_DESC=LOCAL_VERSION
           XLOCAL_VERSION=$LOCAL_VERSION
           if [[ $LOCAL_VERSION == $REMOTE_DARWIN_VERSION ]]; then
+            XLOCAL_DESC=LOCAL_VERSION.NIXPKGSREVISION
             XLOCAL_VERSION=$LOCAL_VERSION.$LOCAL_NIXPKGSREVISION
           fi
 
           &gt;&amp;2 echo \"\"
           &gt;&amp;2 date
           if [[ $LOCAL_VERSION == $REMOTE_VERSION || ($LOCAL_VERSION == $REMOTE_DARWIN_VERSION &amp;&amp; $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION*) ]]; then
-            &gt;&amp;2 echo \"  LOCAL_VERSION::  $XLOCAL_VERSION\"
+            &gt;&amp;2 echo \"  $XLOCAL_DESC::  $XLOCAL_VERSION\"
 
           else
             &gt;&amp;2 echo \"***New nixpkgs version detected for update on nixpkgs-unstable channel\"
-            &gt;&amp;2 echo \"  LOCAL_VERSION::  $XLOCAL_VERSION\"
+            &gt;&amp;2 echo \"  $XLOCAL_DESC::  $XLOCAL_VERSION\"
             &gt;&amp;2 echo \"  REMOTE_VERSION:: $REMOTE_VERSION\"
             if [[ $REMOTE_VERSION != $LAST_REMOTE_VERSION ]]; then
               osascript -e \"display notification \\\"Local::  $XLOCAL_VERSION\\nRemote:: $REMOTE_VERSION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
