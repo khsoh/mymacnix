@@ -140,8 +140,7 @@ in {
   ${pkgs.fastfetch}/bin/fastfetch
   '';
 
-  # Auto upgrade nix package and the daemon service.
-  services.nix-daemon.enable = true;
+  # Auto upgrade nix package
   nix.package = pkgs.nix;
 
   # Create /etc/zshrc that loads the nix-darwin environment.
