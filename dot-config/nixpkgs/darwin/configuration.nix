@@ -10,6 +10,8 @@ let
     }
   ];
 
+  nixbldstr = builtins.exec [ "bash" "-c" ''echo \"$(dscl . -read /Groups/nixbld PrimaryGroupID)\"''];
+  buildGroupID = lib.strings.toInt (builtins.elemAt (lib.strings.splitString " " nixbldstr) 1);
 in {
   imports = [ 
     <home-manager/nix-darwin> 
@@ -171,5 +173,7 @@ in {
 
 # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
-  system.stateVersion = 4;
+  system.stateVersion = 5;
+
+  ids.gids.nixbld = buildGroupID;
 }
