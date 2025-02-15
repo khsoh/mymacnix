@@ -259,20 +259,22 @@ in {
     #    smudge = "git-lfs smudge -- %f"
     #    required = true
 
+    signing = {
+      format = "ssh";
+      key = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey;
+      signByDefault = true;
+    } // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
+      signer = onepasscfg.SSHSIGN_PROGRAM;
+    };
+
     extraConfig = {
       ### The following are needed because home-manager's gpg/signing module
-      #  does not support ssh
-      user = { signingkey = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey; };
+      #  does not support ssh.allowedSignersFile
       gpg = {
-        format = "ssh";
         ssh = {
           allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
-        } // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
-            program = onepasscfg.SSHSIGN_PROGRAM;
-          };
+        };
       };
-      commit = { gpgsign = true; };
-      tag = { gpgsign = true; };
 
       rerere = { enabled = true; };
       rebase = { updateRefs = true; };
