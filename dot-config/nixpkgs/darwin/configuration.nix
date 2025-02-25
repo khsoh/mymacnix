@@ -162,6 +162,13 @@ in {
   # For /etc/hosts - do not publicize contents for security reasons
   networking.hostFiles = [ "/etc/hosts.private" ];
 
+  # Add sudo_local security services
+  security.pam.services.sudo_local = {
+    enable = true;
+    reattach = true;
+    touchIdAuth = true;
+  };
+
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
   system.activationScripts.preUserActivation.text = ''
