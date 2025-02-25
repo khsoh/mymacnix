@@ -159,6 +159,9 @@ in {
   [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
 
+  # For /etc/hosts - do not publicize contents for security reasons
+  networking.hostFiles = [ "/etc/hosts.private" ];
+
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
   system.activationScripts.preUserActivation.text = ''
