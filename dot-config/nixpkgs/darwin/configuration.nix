@@ -158,9 +158,10 @@ in {
   programs.bash.interactiveShellInit = ''
   [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
-
-  # For /etc/hosts - do not publicize contents for security reasons
-  networking.hostFiles = [ "/etc/hosts.private" ];
+  
+  #!!!! Removed by nix-darwin commit 1d9f622
+  # # For /etc/hosts - do not publicize contents for security reasons
+  # networking.hostFiles = [ "/etc/hosts.private" ];
 
   # Add sudo_local security services
   security.pam.services.sudo_local = {
