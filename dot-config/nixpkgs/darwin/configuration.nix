@@ -168,6 +168,7 @@ in {
     enable = true;
     reattach = true;
     touchIdAuth = true;
+    watchIdAuth = true;
   };
 
 ##### Sample code for system.activationScripts.*.text - this is undocumented
