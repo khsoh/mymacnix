@@ -58,23 +58,45 @@ in {
     recursive = true;
   };
 
-  home.file.kitty = {
-    ## The defaults are commented out
-
+  # home.file.kitty = {
+  #   ## The defaults are commented out
+  #
+  #   # Enable kitty config if kitty is installed in Nix or homebrew
+  #   enable = pkgInstalled "kitty" ||
+  #     lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
+  #
+  #   target = ".config/kitty";
+  #   #source = ../kitty;
+  #   source = pkgs.fetchFromGitHub {
+  #     owner = ghcfg.username;
+  #     repo = "kittyconf";
+  #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
+  #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
+  #     #sha256 = lib.fakeSha256;
+  #   };
+  #   recursive = true;
+  # };
+  home.file.kittyStartup = {
     # Enable kitty config if kitty is installed in Nix or homebrew
     enable = pkgInstalled "kitty" ||
       lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
 
-    target = ".config/kitty";
-    #source = ../kitty;
-    source = pkgs.fetchFromGitHub {
-      owner = ghcfg.username;
-      repo = "kittyconf";
-      rev="98fe859b971f83faa2af7741b01ab23f347f544d";
-      sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
-      #sha256 = lib.fakeSha256;
-    };
-    recursive = true;
+    target = ".config/kitty/startup.conf";
+    text = ''
+cd ~/github
+layout splits
+launch zsh
+launch --location hsplit zsh
+# use .kitty-wrapped as the process to resize for Nix-based install
+launch --type overlay zsh -c "resize_app .kitty-wrapped"
+      '';
+  };
+  home.file.kittyBackdrop = {
+    # Enable kitty config if kitty is installed in Nix or homebrew
+    enable = pkgInstalled "kitty" ||
+      lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
+    target = ".config/kitty/totoro-dimmed.jpeg";
+    source = ./totoro-dimmed.jpeg;
   };
 
   home.file.ghostty = {
@@ -292,6 +314,89 @@ in {
         };
     };
 
+  };
+
+  programs.kitty = {
+    enable = true;
+    font = {
+      name = "FiraMono Nerd Font Mono";
+      size = 18;
+    };
+    keybindings = {
+      # Space added in front of --new-mode to ensure that it appears before --mode keys
+      #  in kitty.conf
+      " --new-mode pfx" = "--on-action end --on-unknown end ctrl+a";
+      "--mode pfx ctrl+a" = "send_key ctrl+a";
+      "--mode pfx shift+r" = "load_config_file";
+      "--mode pfx h" = "launch --location=hsplit --cwd=current";
+      "--mode pfx v" = "launch --location=vsplit --cwd=current";
+      "--mode pfx c" = "new_tab";
+      "--mode pfx n" = "next_tab";
+      "--mode pfx p" = "previous_tab";
+      "--mode pfx 1" = "goto_tab 1";
+      "--mode pfx 2" = "goto_tab 2";
+      "--mode pfx 3" = "goto_tab 3";
+      "--mode pfx 4" = "goto_tab 4";
+      "--mode pfx 5" = "goto_tab 5";
+      "--mode pfx 6" = "goto_tab 6";
+      "--mode pfx 7" = "goto_tab 7";
+      "--mode pfx 8" = "goto_tab 8";
+      "--mode pfx 9" = "goto_tab 9";
+      "--mode pfx apostrophe" = "select_tab";
+
+      "--mode pfx :" = "kitty_shell";
+      "--mode pfx !" = "detach_window new-tab";
+      "--mode pfx @" = "detach_window ask";
+      "--mode pfx q" = "focus_visible_window";
+
+      # Select layout
+      "--mode pfx alt+1" = "goto_layout splits";
+      "--mode pfx alt+2" = "goto_layout horizontal";
+      "--mode pfx alt+3" = "goto_layout vertical";
+      "--mode pfx alt+4" = "goto_layout fat";
+      "--mode pfx alt+5" = "goto_layout tall";
+      "--mode pfx alt+6" = "goto_layout grid";
+
+      # TMUX-like copy mode - access the scrollback pager
+      "--mode pfx [" = "show_scrollback";
+
+      "--mode pfx ?" = "debug_config";
+
+      "--mode pfx esc" = "pop_keyboard_mode";
+
+      "ctrl+h" = "neighboring_window left";
+      "ctrl+l" = "neighboring_window right";
+      "ctrl+k" = "neighboring_window top";
+      "ctrl+j" = "neighboring_window bottom";
+    };
+    settings = {
+      bold_font = "auto";
+      italic_font  = "auto";
+      bold_italic_font  = "auto";
+      inactive_text_alpha = 0.5;
+      background_opacity = 0.85;
+      background_blur = 20;
+      dynamic_background_opacity = true;
+      background_image_layout = "cscaled";
+      background_image = "./totoro-dimmed.jpeg";
+      # Setup in a similar fashion as tmux
+      enabled_layouts = "splits,horizontal,vertical,fat,tall,grid";
+
+      macos_quit_when_last_window_closed = true;
+
+      tab_bar_edge = "top";
+      tab_bar_style = "powerline";
+      tab_powerline_style = "round";
+      tab_bar_min_tabs = 1;
+      tab_title_template = "\"{fmt.fg.red}{keyboard_mode}{bell_symbol}{activity_symbol} {fmt.fg.tab}{title} | {fmt.fg.yellow}{index}\"";
+      active_tab_title_template = "\"{fmt.fg.red}{keyboard_mode}{bell_symbol}{activity_symbol} {fmt.fg.tab}{title} | {layout_name} | {fmt.fg.yellow}{index}\"";
+
+      startup_session = "startup.conf";
+    };
+    shellIntegration = {
+      enableZshIntegration = true;
+    };
+    themeFile = "Catppuccin-Mocha";
   };
 
   ### Setup the user-specific launch agents
