@@ -175,7 +175,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     };
 
     profileExtra = builtins.readFile ./zsh/zprofile-extra;
-    initExtra = builtins.readFile ./zsh/zshrc-initExtra;
+    initContent = builtins.readFile ./zsh/zshrc-initExtra;
     envExtra = builtins.readFile ./zsh/zshenv-extra;
   };
 
