@@ -67,3 +67,6 @@ precmd_functions+=(_fix_cursor)
 # Create kssh alias if running in a kitty terminal
 [ "$TERM" = "xterm-kitty" ] && alias kssh="kitten ssh"
 
+# Enable Apple watch to unlock on multi-monitor setup
+/usr/bin/defaults write ~/Library/Preferences/com.apple.security.authorization.plist ignoreArd -bool TRUE
+
