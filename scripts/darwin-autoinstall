@@ -66,9 +66,9 @@ zsh -l <<EOF
 eval "\$func_print_arrow"
 
 
-nix-channel --add https://github.com/LnL7/nix-darwin/archive/master.tar.gz darwin
-nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-nix-channel --update
+sudo nix-channel --add https://github.com/LnL7/nix-darwin/archive/master.tar.gz darwin
+sudo nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+sudo nix-channel --update
 
 [ -f /etc/zshenv ] && . /etc/zshenv
 [ -f /etc/zprofile ] && . /etc/zprofile
@@ -76,7 +76,7 @@ nix-channel --update
 
 print_arrow "Installing nix-darwin"
 
-$darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
+sudo $darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 
 popd

@@ -1,12 +1,17 @@
 { config, pkgs, lib, ... }:
 let
+  # Declare primary user and home
+  cfgpathel = lib.strings.splitString "/" (builtins.toString ./.);
+  primaryUser = builtins.elemAt cfgpathel 2;
+  primaryHome = "/Users/${primaryUser}";
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
+
   hmUsers = [
     {
-      name = builtins.getEnv "USER";
-      home = builtins.getEnv "HOME";
+      name = primaryUser;
+      home = primaryHome;
     }
   ];
 
@@ -129,15 +134,15 @@ in {
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
-  environment.darwinConfig = "$HOME/.config/nixpkgs/darwin/configuration.nix";
+  environment.darwinConfig = "${primaryHome}/.config/nixpkgs/darwin/configuration.nix";
 
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias drb="darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
-  alias drs="darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
-  alias drlg="darwin-rebuild --list-generations"
+  alias drb="sudo darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
+  alias drs="sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
+  alias drlg="sudo darwin-rebuild --list-generations"
   alias ..="cd .."
   ${pkgs.fastfetch}/bin/fastfetch
   '';
@@ -171,9 +176,11 @@ in {
     watchIdAuth = true;
   };
 
+  system.primaryUser = primaryUser;
+
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
-  system.activationScripts.preUserActivation.text = ''
+  system.activationScripts.preActivation.text = ''
     if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
       echo "Installing Homebrew"
       NONINTERACTIVE=1 ${pkgs.bashInteractive}/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

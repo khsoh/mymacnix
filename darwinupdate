@@ -57,7 +57,7 @@ if grep -q "^$LATEST_NIXPKGS_REV$" ~/.nonworking-nixpkgs; then
 fi
 
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
-darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose $(echo $BUILDARGS)
+sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
 if [ "$BUILDRESULT" = "0" ]; then

@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }:
 let
-  HOMEDIR = builtins.getEnv "HOME";
+  HOMEDIR = "/Users/${config.system.primaryUser}";
   CaskMasDir = "${HOMEDIR}/.config/CaskMasApps/";
   formulaenix = CaskMasDir + "formulae.nix";
   commonformulaenix = CaskMasDir + "common-formulae.nix";

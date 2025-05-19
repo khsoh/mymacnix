@@ -1,30 +1,21 @@
 #!/run/current-system/sw/bin/bash
 
-NIXDARWIN_VERSION=$(darwin-version --darwin-label)
 REMOTE_VERSION=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g')
-LOCAL_VERSION=${NIXDARWIN_VERSION%%+?*}
 LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
-REMOTE_DARWIN_VERSION=${REMOTE_VERSION%%pre*}
 REMOTE_NIXPKGSREVISION=${REMOTE_VERSION##*.}
-XLOCAL_DESC=LOCAL_VERSION
-XLOCAL_VERSION=$LOCAL_VERSION
-if [[ $LOCAL_VERSION == $REMOTE_DARWIN_VERSION ]]; then
-  XLOCAL_DESC=LOCAL_VERSION.NIXPKGSREVISION
-  XLOCAL_VERSION=$LOCAL_VERSION.$LOCAL_NIXPKGSREVISION
-fi
 
-if [[ $LOCAL_VERSION == $REMOTE_VERSION || ($LOCAL_VERSION == $REMOTE_DARWIN_VERSION && $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION*) ]]; then
+if [[ "$LOCAL_NIXPKGSREVISION" == "$REMOTE_NIXPKGSREVISION"* ]]; then
   echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
-  echo "  $XLOCAL_DESC::  $XLOCAL_VERSION"
+  echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
 else
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel"
-  echo "  $XLOCAL_DESC::  $XLOCAL_VERSION"
-  echo "  REMOTE_VERSION:: $REMOTE_VERSION"
+  echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
+  echo "  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION"
 fi
 
 declare -A NIXCHANNELS
 
-eval "$(nix-channel --list|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
+eval "$(sudo -i nix-channel --list|grep -v "^nixpkgs"|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
 
 echo ""
 echo "==============="
