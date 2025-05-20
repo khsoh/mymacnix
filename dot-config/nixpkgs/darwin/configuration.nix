@@ -180,12 +180,12 @@ in {
 
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
-  system.activationScripts.preActivation.text = ''
-    if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
-      echo "Installing Homebrew"
-      NONINTERACTIVE=1 ${pkgs.bashInteractive}/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-    '';
+  # system.activationScripts.preActivation.text = ''
+  #   if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
+  #     echo "Installing Homebrew"
+  #     NONINTERACTIVE=1 ${pkgs.bashInteractive}/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  #   fi
+  #   '';
   # system.activationScripts.postActivation.text = lib.mkAfter ''
   #   echo "I am in PostActivation"
   #   '';

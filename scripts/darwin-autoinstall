@@ -52,6 +52,11 @@ elif [[ ! $(nix --version 2>/dev/null) ]]; then
     . /etc/zshrc
 fi
 
+if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
+    echo "Installing Homebrew"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
 print_arrow "Downloading nix-darwin"
 pushd $darwintmpDir
 nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A darwin-rebuild
