@@ -23,7 +23,7 @@ non-flake way](https://jade.fyi/blog/flakes-arent-real/)
 Nix](https://zimbatm.com/notes/summary-of-nix-flakes-vs-original-nix)
 * [Nix Flakes is an experiment that did too much at
 once…](https://samuel.dionne-riel.com/blog/2023/09/06/flakes-is-an-experiment-that-did-too-much-at-once.html)
-* [nix-darwin](https://github.com/LnL7/nix-darwin)
+* [nix-darwin](https://github.com/nix-darwin/nix-darwin)
 * [Declarative macOS Configuration Using nix-darwin And
 home-manager](https://xyno.space/post/nix-darwin-introduction)
 
