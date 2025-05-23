@@ -126,8 +126,8 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev="9a879a2851c53a2ee2d5e1c57b17b7f058fbb6cc";
-      sha256="sha256-Vf1m3zadEHmmzmWTOmuNoP+m8gbJL6HR2B4lchXGrXc=";
+      rev="d16d76aaf089a3156fa726f3f1d4d23a30ca46dc";
+      sha256="sha256-Vso8ufrlN/eEhe86tfsAzEhxm7o8OO1018/+Qc1E1GM=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
