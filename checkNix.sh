@@ -4,12 +4,12 @@ REMOTE_VERSION=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eva
 LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 REMOTE_NIXPKGSREVISION=${REMOTE_VERSION##*.}
 
-if [[ "$LOCAL_NIXPKGSREVISION" == "$REMOTE_NIXPKGSREVISION"* ]]; then
+if [[ ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}} == $REMOTE_NIXPKGSREVISION ]]; then
   echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
-  echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
+  echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}"
 else
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel"
-  echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
+  echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}"
   echo "  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION"
 fi
 
