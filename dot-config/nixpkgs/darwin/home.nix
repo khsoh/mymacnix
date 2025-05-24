@@ -425,7 +425,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
             &gt;&amp;2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
             &gt;&amp;2 echo \"  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION\"
             if [[ $REMOTE_VERSION != $LAST_REMOTE_VERSION ]]; then
-              osascript -e \"display notification \\\"Local::  $LOCAL_NIXPKGSREVISION\\nRemote:: $REMOTE_NIXPKGSREVISION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
+              osascript -e \"display notification \\\"Local::  \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\\nRemote:: $REMOTE_NIXPKGSREVISION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
             fi
           fi
           "
