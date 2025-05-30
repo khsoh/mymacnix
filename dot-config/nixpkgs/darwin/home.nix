@@ -447,7 +447,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "
           declare -A NIXCHANNELS
 
-          eval \"\$(sudo nix-channel --list 2&gt;/dev/null|awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$1,\"]=\",$2 }')\"
+          eval \"\$(sudo HOME=/var/root nix-channel --list|awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$1,\"]=\",$2 }')\"
 
           &gt;&amp;2 echo \"\"
           &gt;&amp;2 date

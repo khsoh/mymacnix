@@ -15,7 +15,7 @@ fi
 
 declare -A NIXCHANNELS
 
-eval "$(sudo nix-channel --list 2>/dev/null|grep -v "^nixpkgs"|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
+eval "$(sudo HOME=/var/root nix-channel --list|grep -v "^nixpkgs"|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
 
 echo ""
 echo "==============="

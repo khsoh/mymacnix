@@ -3,7 +3,7 @@
 ## Declare the channels that are declared in root (excluding nixpkgs)
 ##   **** Requires user login to access root account
 declare -A NIXCHANNELS
-eval "$(sudo -i nix-channel --list|grep -v "^nixpkgs" | awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
+eval "$(sudo HOME=/var/root nix-channel --list|grep -v "^nixpkgs" | awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
 
 ## Add channels defined for this local user
 eval "$(nix-channel --list|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"

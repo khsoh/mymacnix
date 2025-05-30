@@ -182,7 +182,7 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
 fi
 
 ## Update the nix channels
-sudo nix-channel --update
+sudo HOME=/var/root nix-channel --update
 
 print_arrow "Installing nix-darwin"
 cd "$gitfolder"
