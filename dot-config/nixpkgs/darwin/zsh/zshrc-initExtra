@@ -6,8 +6,8 @@ nixclean () {
     echo "$(tput setaf 9)Performing garbage collection on Nix store objects older than ${DDAYS%d} days${reset_color}"
     nix-store --gc
     nix-collect-garbage --delete-older-than ${DDAYS}
-    sudo nix-store --gc
-    sudo nix-collect-garbage --delete-older-than ${DDAYS}
+    sudo HOME=/var/root nix-store --gc
+    sudo HOME=/var/root nix-collect-garbage --delete-older-than ${DDAYS}
 }
 
 tmux () {
