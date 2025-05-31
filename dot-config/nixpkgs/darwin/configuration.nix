@@ -179,7 +179,9 @@ in {
   # configure sudoers to allow %admin to execute the following sudo commands without password
   security.sudo.extraConfig = ''
     %admin  ALL = (ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild, \
-                                  /run/current-system/sw/bin/nix-channel
+                                  /run/current-system/sw/bin/nix-channel, \
+                                  /run/current-system/sw/bin/nix-collect-garbage, \
+                                  /run/current-system/sw/bin/nix-store
     '';
 
   system.primaryUser = primaryUser;
