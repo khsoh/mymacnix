@@ -10,10 +10,16 @@ readonly BOLD="$(tput bold)"
 readonly GREEN="$(tput setaf 2)"
 readonly RED="$(tput setaf 1)"
 
-sudo -i printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
-printf "${BOLD}${RED}Starting to update channels:\n$(sudo -i nix-channel --list)${ESC}\n"
-sudo -i nix-channel --update --verbose
-printf "${BOLD}${GREEN}Completed updating channels:\n$(sudo -i nix-channel --list)${ESC}\n\n\n"
+declare -A hmlinked
+for i in ~/Applications/Home\ Manager\ Apps/*; do
+  dest="$(readlink "$i")"
+  hmlinked[$dest]="1"
+done
+
+printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
+printf "${BOLD}${RED}Starting to update channels:\n$(sudo HOME=/var/root nix-channel --list)${ESC}\n"
+sudo HOME=/var/root nix-channel --update --verbose
+printf "${BOLD}${GREEN}Completed updating channels:\n$(sudo HOME=/var/root nix-channel --list)${ESC}\n\n\n"
 sleep 3
 
 printf "${BOLD}${RED}Starting to update channels:\n$(nix-channel --list)${ESC}\n"
@@ -71,4 +77,41 @@ else
 fi
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
+declare -A linked
+for i in ~/Applications/Home\ Manager\ Apps/*; do
+    dest="$(readlink "$i")"
+    linked[$dest]="1"
+    if [[ ! -n ${hmlinked[$dest]+1} ]]; then
+        echo "!!!! $dest is new"
+        dorebuild=1
+    fi
+done
+
+echo "old keys in hmapps: ${${(@k)hmlinked}/ /\n}"
+echo "new keys in hmapps: ${${(@k)linked}/ /\n}"
+exit 0
+
+if [[ ! -n "${dorebuild+1}" ]]; then
+    echo "All application links are up-to-date - no need to rebuild"
+    exit 0
+fi
+
+existingPaths="$(/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -dump | grep -e "path: */nix/" | sed -E 's/.*(\/nix\/.*) \(0x[0-9a-f]+\)/\1/')"
+
+unregistered="0"
+IFS=$'\n'
+arr=( $(echo $existingPaths) )
+for i in $arr; do
+  if [ "${hmlinked[$i]}" = "1" ]; then
+    echo "Unregistering $i"
+    "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister" -u "$i"
+    unregistered="1"
+  fi
+done
+
+if [ "$unregistered" = "1" ]; then
+  echo "Redoing darwin-rebuild to update launchpad links..."
+  find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} +; killall Dock
+  sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true
+fi
 
