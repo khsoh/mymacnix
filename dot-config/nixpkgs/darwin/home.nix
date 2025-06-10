@@ -103,7 +103,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     ## The defaults are commented out
 
     # Enable ghostty config if ghostty is installed in Nix or homebrew
-    enable = pkgInstalled "ghostty" ||
+    enable = pkgInstalled "ghostty-bin" ||
         lib.lists.any (cask: cask.name == "ghostty") osConfig.homebrew.casks;
 
     target = ".config/ghostty";

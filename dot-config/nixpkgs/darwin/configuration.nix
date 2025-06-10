@@ -127,9 +127,11 @@ in {
 
 # The following packages that could not be installed because these cannot be executed
       # _1password-gui
+
+      ghostty-bin
     ] ++ lib.lists.flatten (lib.lists.optionals (!config.machineInfo.is_vm) [
       kitty
-      (lib.lists.optional (!(ghostty.meta ? "broken") || !ghostty.meta.broken) ghostty)
+      ## !!! (lib.lists.optional (!(ghostty.meta ? "broken") || !ghostty.meta.broken) ghostty)
     ]);
 
   # Use a custom configuration.nix location.
