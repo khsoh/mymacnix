@@ -82,19 +82,20 @@ for i in ~/Applications/Home\ Manager\ Apps/*; do
     dest="$(readlink "$i")"
     linked[$dest]="1"
     if [[ ! -n ${hmlinked[$dest]+1} ]]; then
-        echo "!!!! $dest is new"
+        printf "${BOLD}${RED}!!!! $dest is new${ESC}"
         dorebuild=1
     fi
 done
 
-echo "old keys in hmapps: ${${(@k)hmlinked}/ /\n}"
-echo "new keys in hmapps: ${${(@k)linked}/ /\n}"
-exit 0
+printf "${BOLD}${GREEN}old keys in hmapps: ${${(@k)hmlinked}/ /\n}${ESC}"
+printf "${BOLD}${GREEN}new keys in hmapps: ${${(@k)linked}/ /\n}${ESC}"
 
 if [[ ! -n "${dorebuild+1}" ]]; then
-    echo "All application links are up-to-date - no need to rebuild"
+    printf "All application links are up-to-date - no need to rebuild"
     exit 0
 fi
+
+printf "${BOLD}${RED}Need to rebuild${ESC}"
 
 existingPaths="$(/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -dump | grep -e "path: */nix/" | sed -E 's/.*(\/nix\/.*) \(0x[0-9a-f]+\)/\1/')"
 
@@ -102,15 +103,15 @@ unregistered="0"
 IFS=$'\n'
 arr=( $(echo $existingPaths) )
 for i in $arr; do
-  if [ "${hmlinked[$i]}" = "1" ]; then
-    echo "Unregistering $i"
+  if [[ -v hmlinked[$i] && "${hmlinked[$i]}" = "1" ]]; then
+    printf "Unregistering $i"
     "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister" -u "$i"
     unregistered="1"
   fi
 done
 
 if [ "$unregistered" = "1" ]; then
-  echo "Redoing darwin-rebuild to update launchpad links..."
+  printf "Redoing darwin-rebuild to update launchpad links..."
   find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} +; killall Dock
   sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true
 fi
