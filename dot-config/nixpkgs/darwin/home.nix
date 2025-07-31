@@ -27,7 +27,7 @@ in {
 
   home.file.resize_app = {
     ## AppleScript file to resize app
-    target = ".config/scpt/resize_app.scpt";
+    target = "${config.xdg.configHome}/scpt/resize_app.scpt";
     source = ./scpt/resize_app.scpt;
   };
 
@@ -46,7 +46,7 @@ in {
     ## The defaults are commented out
     # enable = true;
 
-    target = ".config/tmux";
+    target = "${config.xdg.configHome}/tmux";
     #source = ../tmux;
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
@@ -65,7 +65,7 @@ in {
   #   enable = pkgInstalled "kitty" ||
   #     lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
   #
-  #   target = ".config/kitty";
+  #   target = "${config.xdg.configHome}/kitty";
   #   #source = ../kitty;
   #   source = pkgs.fetchFromGitHub {
   #     owner = ghcfg.username;
@@ -81,7 +81,7 @@ in {
     enable = pkgInstalled "kitty" ||
       lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
 
-    target = ".config/kitty/startup.conf";
+    target = "${config.xdg.configHome}/kitty/startup.conf";
     text = ''
 cd ~/github
 layout splits
@@ -95,7 +95,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     # Enable kitty config if kitty is installed in Nix or homebrew
     enable = pkgInstalled "kitty" ||
       lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
-    target = ".config/kitty/totoro-dimmed.jpeg";
+    target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
     source = ./totoro-dimmed.jpeg;
   };
 
@@ -106,7 +106,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     enable = pkgInstalled "ghostty-bin" ||
         lib.lists.any (cask: cask.name == "ghostty") osConfig.homebrew.casks;
 
-    target = ".config/ghostty";
+    target = "${config.xdg.configHome}/ghostty";
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "gttyconf";
@@ -121,7 +121,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     ## The defaults are commented out
     # enable = true;
 
-    target = ".config/nvim";
+    target = "${config.xdg.configHome}/nvim";
     #source = ../nvim;
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
@@ -160,7 +160,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
   ### Enable zsh configuration
   programs.zsh = {
     enable = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.xdg.configHome}/zsh";
 
     autocd = true;
     defaultKeymap = "viins";
@@ -494,7 +494,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           try
             tell application \"/run/current-system/sw/bin/kitty\" to activate
             delay 2
-            run script \"${homecfg.homeDirectory}/.config/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
+            run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
           on error errMsg
             tell application \"Terminal\"
               if not (exists window 1) then reopen
