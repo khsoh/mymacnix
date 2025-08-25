@@ -411,19 +411,19 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           "
-          REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import &lt;nixpkgs&gt; {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
+          REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import <nixpkgs> {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
           LOCAL_NIXPKGSREVISION=\$(${NIXSYSPATH}/darwin-version --json|${pkgs.jq}/bin/jq -r \".nixpkgsRevision\")
           REMOTE_NIXPKGSREVISION=\${REMOTE_VERSION##*.}
           LAST_REMOTE_VERSION=\$(/usr/bin/grep \"^REMOTE_VERSION::\\s\\+\" ~/log/checknixpkgsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p')
 
-          &gt;&amp;2 echo \"\"
-          &gt;&amp;2 date
+          >&2 echo \"\"
+          >&2 date
           if [[ \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}} == $REMOTE_NIXPKGSREVISION ]]; then
-            &gt;&amp;2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
+            >&2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
           else
-            &gt;&amp;2 echo \"***New nixpkgs version detected for update on nixpkgs-unstable channel\"
-            &gt;&amp;2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
-            &gt;&amp;2 echo \"  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION\"
+            >&2 echo \"***New nixpkgs version detected for update on nixpkgs-unstable channel\"
+            >&2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
+            >&2 echo \"  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION\"
             if [[ $REMOTE_VERSION != $LAST_REMOTE_VERSION ]]; then
               osascript -e \"display notification \\\"Local::  \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\\nRemote:: $REMOTE_NIXPKGSREVISION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
             fi
@@ -449,30 +449,33 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
 
           eval \"\$(sudo HOME=/var/root nix-channel --list|awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$1,\"]=\",$2 }')\"
 
-          &gt;&amp;2 echo \"\"
-          &gt;&amp;2 date
+          >&2 echo \"\"
+          >&2 date
           for pkg in \"\${!NIXCHANNELS[@]}\"; do
-              pkgpath=\$(/usr/bin/readlink -f \$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"&lt;\${pkg}&gt;\"))
+              if [[ $pkg == \"nixpkgs\" ]]; then
+                continue
+              fi
+              pkgpath=\$(/usr/bin/readlink -f \$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"<\${pkg}>\"))
               if [[ ! -z \${pkgpath+x} ]]; then
                   pkgurl=\${NIXCHANNELS[$pkg]}
 
                   lastrhash=\$(/usr/bin/grep \"^\${pkg}_remote_hash:\\s\\+\" ~/log/checknixchannelsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^\${pkg}_remote_hash:\\s\\+//p')
                   lhash=\$(nix-hash --base32 --type sha256 $pkgpath/)
-                  rhash=\$(nix-prefetch-url --unpack --type sha256 $pkgurl 2&gt; /dev/null)
+                  rhash=\$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
 
                   if [[ \"$lhash\" != \"$rhash\" ]]; then
-                    &gt;&amp;2 echo \"***New package detected for update on $pkg channel:\"
-                    &gt;&amp;2 echo \"  \${pkg}_local_hash:  $lhash\"
-                    &gt;&amp;2 echo \"  \${pkg}_remote_hash: $rhash\"
+                    >&2 echo \"***New package detected for update on $pkg channel:\"
+                    >&2 echo \"  \${pkg}_local_hash:  $lhash\"
+                    >&2 echo \"  \${pkg}_remote_hash: $rhash\"
                     if [[ \"$rhash\" != \"$lastrhash\" ]]; then
                       osascript -e \"display notification \\\"\${pkg}_local_hash:  $lhash\\n\${pkg}_remote_hash: $rhash\\\" with title \\\"New package detected for update on $pkg channel\\\"\"
                     fi
                   else
-                    &gt;&amp;2 echo \"Local package is up-to-date with $pkg channel\"
-                    &gt;&amp;2 echo \"  \${pkg}_local_hash:  $lhash\"
+                    >&2 echo \"Local package is up-to-date with $pkg channel\"
+                    >&2 echo \"  \${pkg}_local_hash:  $lhash\"
                   fi
               else
-                &gt;&amp;2 echo \"!!!Cannot find local installed package detected for channel $pkg\"
+                >&2 echo \"!!!Cannot find local installed package detected for channel $pkg\"
                 osascript -e \"display notification \\\"Cannot find local installed package for channel $pkg\\\" with title \\\"Channel $pkg error\\\"\"
               fi
           done
@@ -538,12 +541,12 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           "
-          &gt;&amp;2 date
+          >&2 date
           [ -d ${homecfg.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins\"
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
-           &gt;&amp;2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
-           &gt;&amp;2 echo \"Completed TPM plugin updates\"
+           >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins\"
+           >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
+           >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
+           >&2 echo \"Completed TPM plugin updates\"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
@@ -560,9 +563,9 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           "
-          &gt;&amp;2 date
+          >&2 date
           ${pkgs.neovim}/bin/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" 
-          &gt;&amp;2 echo \"\"
+          >&2 echo \"\"
           "
           ];
         RunAtLoad = true;
