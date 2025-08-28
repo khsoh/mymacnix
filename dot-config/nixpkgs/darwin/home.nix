@@ -194,13 +194,37 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
   programs.ssh = if onepasscfg.sshsign_pgm_present then
     {
       enable = true;
-      addKeysToAgent = "no";
+      enableDefaultConfig = false;
+      matchBlocks."*" = {
+        addKeysToAgent = "no";
+        forwardAgent = false;
+        compression = false;
+        serverAliveInterval = 0;
+        serverAliveCountMax = 3;
+        hashKnownHosts = false;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        controlMaster = "no";
+        controlPath = "~/.ssh/master-%r@%n:%p";
+        controlPersist = "no";
+      };
       extraConfig = ''
         IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
       '';
     } else {
       enable = true;
-      addKeysToAgent = "yes";
+      enableDefaultConfig = false;
+      matchBlocks."*" = {
+        addKeysToAgent = "yes";
+        forwardAgent = false;
+        compression = false;
+        serverAliveInterval = 0;
+        serverAliveCountMax = 3;
+        hashKnownHosts = false;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        controlMaster = "no";
+        controlPath = "~/.ssh/master-%r@%n:%p";
+        controlPersist = "no";
+      };
       extraConfig = ''
         IdentityFile ${sshcfg.NIXIDPKFILE};
       '';
