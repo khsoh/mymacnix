@@ -132,7 +132,10 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     export REPOHOST
-    sudo nix-shell -p git stow openssh --keep BRANCH --keep REPOHOST --command '
+    [ -f /etc/zshenv ] && . /etc/zshenv
+    [ -f /etc/zprofile ] && . /etc/zprofile
+    [ -f /etc/zshrc ] && . /etc/zshrc
+    nix-shell -p git stow openssh --command '
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
