@@ -50,7 +50,7 @@ function get_gitfolder () {
 }
 
 ## Test to confirm nix has been installed
-if [[ ! $(mount | grep -w "/nix") ]]; then
+if [[ ! $(/sbin/mount | grep -w "/nix") ]]; then
     printf "${BOLD}${RED}Error: Nix has not yet been installed - nixsys-setup script cannot be executed${ESC}\n"
     exit 1
 fi
@@ -132,7 +132,7 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     export REPOHOST
-    nix-shell -p git stow openssh --command '
+    sudo nix-shell -p git stow openssh --command '
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
     cd $gitfolder

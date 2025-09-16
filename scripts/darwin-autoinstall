@@ -37,7 +37,7 @@ cleanup() {
 trap cleanup EXIT INT QUIT TERM
 
 ## Test to confirm nix has been installed
-if [[ ! $(mount | grep -w "/nix") ]]; then
+if [[ ! $(/sbin/mount | grep -w "/nix") ]]; then
     printf "${BOLD}${RED}Error: Nix has not yet been installed - darwin-autoinstall script cannot be executed${ESC}\n"
     exit 1
 fi
@@ -59,7 +59,7 @@ fi
 
 print_arrow "Downloading nix-darwin"
 pushd $darwintmpDir
-nix-build https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz -A darwin-rebuild
+sudo nix-build https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz -A darwin-rebuild
 
 print_arrow "Starting a new sub-shell to configure nix-darwin"
 
