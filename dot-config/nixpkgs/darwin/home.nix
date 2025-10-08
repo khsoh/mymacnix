@@ -449,7 +449,14 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
             >&2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
             >&2 echo \"  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION\"
             if [[ $REMOTE_VERSION != $LAST_REMOTE_VERSION ]]; then
-              osascript -e \"display notification \\\"Local::  \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\\nRemote:: $REMOTE_NIXPKGSREVISION\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
+              WARNREV=
+              if test -e ~/.nonworking-nixpkgs && 
+                  grep -q \"^$REMOTE_NIXPKGSREVISION$\" ~/.nonworking-nixpkgs &&
+                  ! (test -e ~/.working-nixpkgs && 
+                  grep -q \"^$REMOTE_NIXPKGSREVISION$\" ~/.working-nixpkgs) ; then
+                WARNREV=\"(Failed rebuild)\"
+              fi
+              osascript -e \"display notification \\\"Local::  \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\\nRemote:: $REMOTE_NIXPKGSREVISION $WARNREV\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
             fi
           fi
           "
