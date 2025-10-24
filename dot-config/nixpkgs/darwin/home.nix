@@ -235,7 +235,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     enable = true;
 
     settings = {
-      aliases = {
+      alias = {
         co = "checkout";
         ci = "commit";
         br = "branch";
