@@ -233,17 +233,40 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
   ### Enable git configuration
   programs.git = {
     enable = true;
-    userName = "K H Soh";
-    userEmail = default_git_email;
 
-    aliases = {
-      co = "checkout";
-      ci = "commit";
-      br = "branch";
-      st = "status";
-      unstage = "reset HEAD --";
-      last = "log -1 HEAD";
-      glog = "log --graph --all";
+    settings = {
+      aliases = {
+        co = "checkout";
+        ci = "commit";
+        br = "branch";
+        st = "status";
+        unstage = "reset HEAD --";
+        last = "log -1 HEAD";
+        glog = "log --graph --all";
+      };
+      user = {
+        name = "K H Soh";
+        email = default_git_email;
+      };
+      gpg = {
+        ssh = {
+          allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
+        };
+      };
+      rerere = { enabled = true; };
+      rebase = { updateRefs = true; };
+
+      credential = {} // 
+        lib.optionalAttrs ghcfg.enable {
+          "https://github.com" = {
+            username = ghcfg.username;
+          };
+        } // 
+        lib.optionalAttrs glcfg.enable {
+          "https://gitlab.com" = {
+            username = glcfg.username;
+          };
+        };
     };
 
     includes = [
@@ -311,31 +334,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
       signByDefault = true;
     } // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
       signer = onepasscfg.SSHSIGN_PROGRAM;
-    };
-
-    extraConfig = {
-      ### The following are needed because home-manager's gpg/signing module
-      #  does not support ssh.allowedSignersFile
-      gpg = {
-        ssh = {
-          allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
-        };
-      };
-
-      rerere = { enabled = true; };
-      rebase = { updateRefs = true; };
-
-      credential = {} // 
-        lib.optionalAttrs ghcfg.enable {
-          "https://github.com" = {
-            username = ghcfg.username;
-          };
-        } // 
-        lib.optionalAttrs glcfg.enable {
-          "https://gitlab.com" = {
-            username = glcfg.username;
-          };
-        };
     };
 
   };
