@@ -88,6 +88,7 @@ in {
       bat
       tmux
       gnused
+      moreutils
       git
       git-credential-manager
       git-lfs
