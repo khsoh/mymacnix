@@ -81,7 +81,7 @@ sudo HOME=/var/root nix-channel --update
 
 print_arrow "Installing nix-darwin"
 
-sudo $darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
+NIX_ABORT_ON_WARN=1 sudo $darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 
 popd

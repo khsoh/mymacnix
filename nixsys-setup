@@ -104,7 +104,7 @@ fi
 
 if [[ $DARWININSTALLED -eq 1 ]]; then
     printf "${BOLD}${RED}nix-darwin already installed - re-running darwin-rebuild switch${ESC}\n"
-    sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true 
+    NIX_ABORT_ON_WARN=1 sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true 
     exit
 fi
 
