@@ -24,6 +24,14 @@ in {
     ./machine.nix
     ];
 
+  #!!! WORKAROUND until nixpkgs PR#462090 is fully committed.
+  nixpkgs.overlays = [ 
+    (final: prev: {
+      fish = prev.fish.overrideAttrs (oldAttrs: {
+        doCheck = false;
+      });
+    })
+  ];
 
   ######### Configuration of modules #########
 
