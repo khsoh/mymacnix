@@ -27,7 +27,7 @@ eval "$(sudo HOME=/var/root nix-channel --list|grep -v "^nixpkgs"|awk 'BEGIN { O
 echo ""
 echo "==============="
 for pkg in "${!NIXCHANNELS[@]}"; do
-  pkgpath=$(readlink -f $(nix-instantiate --eval --expr "<${pkg}>"))
+  pkgpath=$(readlink -f $(sudo HOME=/var/root nix-instantiate --eval --expr "<${pkg}>"))
   if [[ ! -z ${pkgpath+x} ]]; then
     pkgurl=${NIXCHANNELS[$pkg]}
 
