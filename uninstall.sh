@@ -63,23 +63,23 @@ elif [[ -f /etc/bash.bashrc ]]; then
 fi
 
 # Stop and remove the Nix daemon services:
-sudo launchctl disable system/org.nixos.nix-daemon
+sudo -H launchctl disable system/org.nixos.nix-daemon
 sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-sudo launchctl disable system/org.nixos.darwin-store
+sudo -H launchctl disable system/org.nixos.darwin-store
 sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist
 
 # Remove the nixbld group and the _nixbuildN users
-sudo dscl . -delete /Groups/nixbld
-for u in $(sudo dscl . -list /Users | grep _nixbld); do sudo dscl . -delete /Users/$u; done
+sudo -H dscl . -delete /Groups/nixbld
+for u in $(sudo -H dscl . -list /Users | grep _nixbld); do sudo -H dscl . -delete /Users/$u; done
 
 # Edit fstab using sudo vifs to remove the line mounting the Nix Store volume on /nix, 
 # which looks like UUID=<uuid> /nix apfs rw,noauto,nobrowse,suid,owners or LABEL=Nix\040Store /nix apfs rw,nobrowse.
-echo -e "${RED}Calling: sudo vifs  to edit /etc/fstab"
+echo -e "${RED}Calling: sudo -H vifs  to edit /etc/fstab"
 echo -e "  You will have to delete line that contains \"/nix apfs rw\""
 echo -e "  and then save the file${ESC}"
 
 dly 8
-sudo vifs
+sudo -H vifs
 
 echo ""
 echo ""
@@ -87,13 +87,13 @@ echo ""
 # Edit /etc/synthetic.conf to remove the nix line. If this is the only line in the file 
 # you can remove it entirely, sudo rm /etc/synthetic.conf. This will prevent the creation of 
 # the empty /nix directory to provide a mountpoint for the Nix Store volume.
-echo -e "${RED}Calling: sudo vim /etc/synthetic.conf  to edit /etc/synthetic.conf"
+echo -e "${RED}Calling: sudo -H vim /etc/synthetic.conf  to edit /etc/synthetic.conf"
 echo -e "  You will have to delete line that contains starts with \"nix\""
 echo -e "  and then save the file."
 echo -e "  If this is the only line, you may remove the file${ESC}"
 
 dly 8
-sudo vim /etc/synthetic.conf
+sudo -H vim /etc/synthetic.conf
 echo ""
 echo ""
 
@@ -110,14 +110,14 @@ sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.ni
 # Remove the Nix Store volume
 if getyesno "Do you want to schedule a task to remove Nix Store volume after reboot?" ; then
     sudo cp -f $PWD/removenixvol.sh /var/root
-    sudo chown root:wheel /var/root/removenixvol.sh
+    sudo -H chown root:wheel /var/root/removenixvol.sh
     sudo cp $PWD/org.nixos.removenixvol.plist /Library/LaunchDaemons
-    sudo chown root:wheel /Library/LaunchDaemons/org.nixos.removenixvol.plist
-    sudo launchctl enable system/org.nixos.removenixvol
+    sudo -H chown root:wheel /Library/LaunchDaemons/org.nixos.removenixvol.plist
+    sudo -H launchctl enable system/org.nixos.removenixvol
     sudo rm -f /var/db/com.apple.xpc.launchd/disabled.plist
 
     if getyesno "The Nix Store volume will only be removed after reboot - do you want to reboot now?" ; then
-        sudo shutdown -r now
+        sudo -H shutdown -r now
     fi
 else
     sudo rm -f /var/db/com.apple.xpc.launchd/disabled.plist

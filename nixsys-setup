@@ -104,13 +104,13 @@ fi
 
 if [[ $DARWININSTALLED -eq 1 ]]; then
     printf "${BOLD}${RED}nix-darwin already installed - re-running darwin-rebuild switch${ESC}\n"
-    NIX_ABORT_ON_WARN=1 sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true 
+    NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true 
     exit
 fi
 
 # Added code to install Xcode command line tools
 print_arrow "Checking whether Xcode command line tools have been installed"
-sudo xcode-select -p &> /dev/null
+sudo -H xcode-select -p &> /dev/null
 if [ $? -ne 0 ]; then
   print_arrow "Command Line Tools for Xcode not found. Installing from softwareupdate…"
 # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
@@ -186,7 +186,7 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
 fi
 
 ## Update the nix channels
-sudo HOME=/var/root nix-channel --update
+sudo -H nix-channel --update
 
 print_arrow "Installing nix-darwin"
 cd "$gitfolder"

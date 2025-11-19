@@ -4,8 +4,8 @@ KEYTIMEOUT=5
 nixclean () {
     DDAYS=${1:-20d}
     echo "$(tput setaf 9)Performing garbage collection on Nix store objects older than ${DDAYS%d} days${reset_color}"
-    sudo HOME=/var/root nix-store --gc
-    sudo HOME=/var/root nix-collect-garbage --delete-older-than ${DDAYS}
+    sudo -H nix-store --gc
+    sudo -H nix-collect-garbage --delete-older-than ${DDAYS}
 }
 
 tmux () {
@@ -27,11 +27,11 @@ delagent () {
 }
 
 drsgood () {
-  NIX_ABORT_ON_WARN=1 sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
+  NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
 }
 
 drbgood () {
-  NIX_ABORT_ON_WARN=1 sudo darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
+  NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
 }
 
 # Change cursor shape for different vi modes.

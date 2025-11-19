@@ -59,7 +59,7 @@ nix --version
 Getting the list of subscribed channels:
 
 ```
-sudo nix-channel --list
+sudo -H nix-channel --list
 ```
 
 Channels are something like Linux Debian apt sources - they point to where
@@ -84,7 +84,7 @@ nix-env -qaA nixpkgs.nix
 or
 
 ```
-sudo nix upgrade-nix --dry-run
+sudo -H nix upgrade-nix --dry-run
 ```
 
 Follow these instructions to [install a specific version of
@@ -94,20 +94,20 @@ nix](https://nixos.org/manual/nix/stable/installation/installing-binary#installi
 To find the actual latest version of `Nix` (outside of `nixpkgs`):
 
 ```
-sudo nix-env --query nix 2>/dev/null
+sudo -H nix-env --query nix 2>/dev/null
 ```
 
 If you had accidentally ran the command:
 
 ```
-sudo nix upgrade-nix
+sudo -H nix upgrade-nix
 ```
 
 that would result in an older version of `Nix` being installed, you can force
 `Nix` back to the latest version by running the following command:
 
 ```
-sudo nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-env --query nix)/fallback-paths.nix
+sudo -H nix upgrade-nix --nix-store-paths-url https://releases.nixos.org/nix/$(nix-env --query nix)/fallback-paths.nix
 ```
 
 ### Why the messy Nix version issue
@@ -235,12 +235,12 @@ After some experimentation, I found that it was possible to pin to stable
 version with the following command:
 
 ```
-sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/nixos/nixpkgs/archive/release-24.05.tar.gz -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
+sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/nixos/nixpkgs/archive/release-24.05.tar.gz -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
 ```
 
 or an alternate shorthand channel syntax:
 ```
-sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=channel:nixpkgs-24.05-darwin -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
+sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=channel:nixpkgs-24.05-darwin -I home-manager=https://github.com/nix-community/home-manager/archive/release-24.05.tar.gz
 ```
 
 The other possible pinning syntax can be found [here](https://nix.dev/reference/pinning-nixpkgs#possible-url-values)

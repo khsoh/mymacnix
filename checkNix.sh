@@ -1,6 +1,6 @@
-#!/run/current-system/sw/bin/bash
+#!/usr/bin/env bash
 
-REMOTE_VERSION=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g')
+REMOTE_VERSION=$(NIX_PATH="nixpkgs=$(readlink -f ~/.nix-defexpr/channels_root/nixpkgs)" nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g')
 LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 REMOTE_NIXPKGSREVISION=${REMOTE_VERSION##*.}
 
@@ -22,12 +22,12 @@ fi
 
 declare -A NIXCHANNELS
 
-eval "$(sudo HOME=/var/root nix-channel --list|grep -v "^nixpkgs"|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
+eval "$(sudo -H nix-channel --list|grep -v "^nixpkgs"|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
 
 echo ""
 echo "==============="
 for pkg in "${!NIXCHANNELS[@]}"; do
-  pkgpath=$(readlink -f $(sudo HOME=/var/root nix-instantiate --eval --expr "<${pkg}>"))
+  pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/$pkg)
   if [[ ! -z ${pkgpath+x} ]]; then
     pkgurl=${NIXCHANNELS[$pkg]}
 

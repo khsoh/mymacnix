@@ -59,7 +59,7 @@ fi
 
 print_arrow "Downloading nix-darwin"
 pushd $darwintmpDir
-sudo nix-build https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz -A darwin-rebuild
+sudo -H nix-build https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz -A darwin-rebuild
 
 print_arrow "Starting a new sub-shell to configure nix-darwin"
 
@@ -71,9 +71,9 @@ zsh -l <<EOF
 eval "\$func_print_arrow"
 
 
-sudo HOME=/var/root nix-channel --add https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz darwin
-sudo HOME=/var/root nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-sudo HOME=/var/root nix-channel --update
+sudo -H nix-channel --add https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz darwin
+sudo -H nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+sudo -H nix-channel --update
 
 [ -f /etc/zshenv ] && . /etc/zshenv
 [ -f /etc/zprofile ] && . /etc/zprofile
@@ -81,7 +81,7 @@ sudo HOME=/var/root nix-channel --update
 
 print_arrow "Installing nix-darwin"
 
-NIX_ABORT_ON_WARN=1 sudo $darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
+NIX_ABORT_ON_WARN=1 sudo -H $darwintmpDir/result/bin/darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
 EOF
 
 popd

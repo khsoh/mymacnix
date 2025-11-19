@@ -143,9 +143,9 @@ in {
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias drb="NIX_ABORT_ON_WARN=1 sudo darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
-  alias drs="NIX_ABORT_ON_WARN=1 sudo darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
-  alias drlg="NIX_ABORT_ON_WARN=1 sudo darwin-rebuild --list-generations"
+  alias drb="NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
+  alias drs="NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
+  alias drlg="NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild --list-generations"
   alias ..="cd .."
   ${pkgs.fastfetch}/bin/fastfetch
   '';
@@ -182,9 +182,11 @@ in {
   # configure sudoers to allow %admin to execute the following sudo commands without password
   security.sudo.extraConfig = ''
     %admin  ALL = (ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild, \
-                                  /run/current-system/sw/bin/nix-channel, \
-                                  /run/current-system/sw/bin/nix-collect-garbage, \
-                                  /run/current-system/sw/bin/nix-store
+                                  /run/current-system/sw/bin/nix-channel --list, \
+                                  /run/current-system/sw/bin/nix-channel --update, \
+                                  /run/current-system/sw/bin/nix-channel --update --verbose, \
+                                  /run/current-system/sw/bin/nix-collect-garbage ^--delete-older-than [0-9]+d$, \
+                                  /run/current-system/sw/bin/nix-store --gc
     '';
 
   system.primaryUser = primaryUser;
