@@ -1,9 +1,9 @@
-#!/run/current-system/sw/bin/bash
+#!/usr/bin/env bash
 
 ## Declare the channels that are declared in root (excluding nixpkgs)
 ##   **** Requires user login to access root account
 declare -A NIXCHANNELS
-eval "$(sudo -H nix-channel --list|grep -v "^nixpkgs" | awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"
+eval "$(grep -v "nixpkgs$" /etc/nix-channels/system-channels | awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$2,"]=",$1 }')"
 
 ## Add channels defined for this local user
 eval "$(nix-channel --list|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$1,"]=",$2 }')"

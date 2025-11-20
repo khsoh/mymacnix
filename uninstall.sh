@@ -104,7 +104,7 @@ if [[ $(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' /etc/synthetic.conf|wc
 fi
 
 # Remove the files Nix added to your system:
-sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.nix-channels ~/.nix-profile ~/.nix-defexpr ~/.nix-channels
+sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.nix-channels ~/.nix-profile ~/.nix-defexpr ~/.nix-channels /etc/nix-channels
 
 
 # Remove the Nix Store volume

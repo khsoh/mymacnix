@@ -139,6 +139,43 @@ in {
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
   environment.darwinConfig = "${primaryHome}/.config/nixpkgs/darwin/configuration.nix";
 
+  # Launch daemon to make root channels public
+  launchd.daemons.makeRootChannelsPublic = {
+    # The 'script' attribute is not available here. We define the program logic
+    # directly in the serviceConfig using ProgramArguments.
+    serviceConfig = {
+      # The Label is required for launchd
+      Label = "org.nixos.makeRootChannelsPublic";
+      
+      # ProgramArguments defines what command to run.
+      # We use a shell command to execute all the steps sequentially.
+      ProgramArguments = [
+        "${pkgs.bashInteractive}/bin/bash"
+        "-c"
+        ''
+          mkdir -p /etc/nix-channels && \
+          chmod a+rx /etc/nix-channels && \
+          cp /var/root/.nix-channels /etc/nix-channels/system-channels && \
+          chmod a+r /etc/nix-channels/system-channels
+        ''
+      ];
+
+      # Monitor this file for modifications
+      WatchPaths = [
+        "/var/root/.nix-channels"
+      ];
+
+      # Optional: Ensure it runs at least every 10 seconds if many changes happen
+      # or if a change is somehow missed, though WatchPaths is generally reliable.
+      ThrottleInterval = 10;
+
+       # Run once when the daemon loads (at boot)
+      RunAtLoad = true;
+      # Do not keep the process alive; launchd will restart it when the file changes
+      KeepAlive = false;     
+    };
+  };
+
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
@@ -182,7 +219,6 @@ in {
   # configure sudoers to allow %admin to execute the following sudo commands without password
   security.sudo.extraConfig = ''
     %admin  ALL = (ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild, \
-                                  /run/current-system/sw/bin/nix-channel --list, \
                                   /run/current-system/sw/bin/nix-channel --update, \
                                   /run/current-system/sw/bin/nix-channel --update --verbose, \
                                   /run/current-system/sw/bin/nix-collect-garbage ^--delete-older-than [0-9]+d$, \
