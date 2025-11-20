@@ -181,6 +181,12 @@ in {
       Label = "org.nixos.darwin.generateMachineInfo";
       # Set 'exec' to the absolute path of the generated script in the Nix store
       ProgramArguments = [ "/etc/nix-darwin/generate_machine_info.sh" "/etc/nix-darwin/machine-info.nix" ];
+
+      # Monitor this file for modifications
+      WatchPaths = [
+        "/Library/Preferences/SystemConfiguration/preferences.plist"
+      ];
+
       # Other launchd options
       RunAtLoad = true;
       StartInterval = 3600;
