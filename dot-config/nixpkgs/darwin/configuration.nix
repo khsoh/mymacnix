@@ -178,7 +178,7 @@ in {
 
     serviceConfig = {
       # The Label is required for launchd
-      Label = "com.nixos.darwin.generateMachineInfo";
+      Label = "org.nixos.darwin.generateMachineInfo";
       # Set 'exec' to the absolute path of the generated script in the Nix store
       ProgramArguments = [ "/etc/nix-darwin/generate_machine_info.sh" "/etc/nix-darwin/machine-info.nix" ];
       # Other launchd options
