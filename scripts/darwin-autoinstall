@@ -79,6 +79,11 @@ sudo -H nix-channel --update
 [ -f /etc/zprofile ] && . /etc/zprofile
 [ -f /etc/zshrc ] && . /etc/zshrc
 
+sudo mkdir -p /etc/nix-channels
+sudo chmod a+rx /etc/nix-channels
+sudo cp /var/root/.nix-channels /etc/nix-channels/system-channels
+sudo chmod a+r /etc/nix-channels/system-channels
+
 print_arrow "Installing nix-darwin"
 
 sudo -H $darwintmpDir/result/bin/darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix

@@ -16,6 +16,13 @@ for i in ~/Applications/Home\ Manager\ Apps/*; do
   hmlinked[$dest]="1"
 done
 
+if [ ! -e /etc/nix-channels/system-channels ]; then
+    sudo mkdir -p /etc/nix-channels
+    sudo chmod a+rx /etc/nix-channels
+    sudo cp /var/root/.nix-channels /etc/nix-channels/system-channels
+    sudo chmod a+r /etc/nix-channels/system-channels
+fi
+
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 printf "${BOLD}${RED}Starting to update channels:\n$(awk '{ print $2, $1 }' /etc/nix-channels/system-channels)${ESC}\n"
 sudo -H nix-channel --update --verbose
