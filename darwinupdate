@@ -63,7 +63,7 @@ if grep -q "^$LATEST_NIXPKGS_REV$" ~/.nonworking-nixpkgs; then
 fi
 
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
-sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true --verbose $(echo $BUILDARGS)
+sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
 if [ "$BUILDRESULT" = "0" ]; then
@@ -113,6 +113,6 @@ done
 if [ "$unregistered" = "1" ]; then
   printf "Redoing darwin-rebuild to update launchpad links...\n"
   find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} +; killall Dock
-  sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true
+  sudo -H darwin-rebuild switch
 fi
 

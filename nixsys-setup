@@ -102,9 +102,44 @@ if [[ ! $(darwin-version --version 2>/dev/null) ]]; then
     fi
 fi
 
+# Define where the config is
+NIX_DARWIN_DIR="/etc/nix-darwin"
+SCRIPT_PATH="$NIX_DARWIN_DIR/generate_machine_info.sh"
+MINFO_FILE="$NIX_DARWIN_DIR/machine-info.nix"
+
+if [ ! -f $SCRIPT_PATH ]; then
+    # 1. Ensure the directory exists
+    sudo mkdir -p "$NIX_DARWIN_DIR"
+
+    # 2. Write the script to the disk
+    sudo -H tee "$SCRIPT_PATH" > /dev/null <<'EOF'
+#!/usr/bin/env bash
+IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
+XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+BGROUPID=$(dscl . -read /Groups/nixbld PrimaryGroupID 2>/dev/null | awk '{ print $2 }')
+if [ -z "$BGROUPID" ]; then
+  BGROUPID=350
+fi
+MINFO_FILE="$1"
+cat <<EOF2 > "$MINFO_FILE"
+{
+  is_vm = $IS_VM;
+  hostname = "${XHOSTNAME}";
+  buildGroupID = $BGROUPID;
+}
+EOF2
+EOF
+
+    # 3. Make the script executable
+    sudo -H chmod +x "$SCRIPT_PATH"
+
+    # 4. Run the script *now* to create the initial machine-info.nix file
+    sudo -H "$SCRIPT_PATH" "$MINFO_FILE"
+fi
+
 if [[ $DARWININSTALLED -eq 1 ]]; then
     printf "${BOLD}${RED}nix-darwin already installed - re-running darwin-rebuild switch${ESC}\n"
-    sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true 
+    sudo -H darwin-rebuild switch
     exit
 fi
 

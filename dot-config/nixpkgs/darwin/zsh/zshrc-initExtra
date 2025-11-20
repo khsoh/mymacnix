@@ -27,11 +27,11 @@ delagent () {
 }
 
 drsgood () {
-  sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
+  sudo -H darwin-rebuild switch -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
 }
 
 drbgood () {
-  sudo -H darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
+  sudo -H darwin-rebuild build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(tail -1 ~/.working-nixpkgs || echo master).tar.gz
 }
 
 # Change cursor shape for different vi modes.

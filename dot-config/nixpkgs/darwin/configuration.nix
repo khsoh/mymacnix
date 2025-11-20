@@ -15,8 +15,6 @@ let
     }
   ];
 
-  nixbldstr = builtins.exec [ "bash" "-c" ''echo \"$(dscl . -read /Groups/nixbld PrimaryGroupID)\"''];
-  buildGroupID = lib.strings.toInt (builtins.elemAt (lib.strings.splitString " " nixbldstr) 1);
 in {
   imports = [ 
     <home-manager/nix-darwin> 
@@ -176,12 +174,27 @@ in {
     };
   };
 
+  launchd.daemons.generateMachineInfo = {
+
+    serviceConfig = {
+      # The Label is required for launchd
+      Label = "com.nixos.darwin.generateMachineInfo";
+      # Set 'exec' to the absolute path of the generated script in the Nix store
+      ProgramArguments = [ "/etc/nix-darwin/generate_machine_info.sh" "/etc/nix-darwin/machine-info.nix" ];
+      # Other launchd options
+      RunAtLoad = true;
+      StartInterval = 3600;
+      StandardOutPath = "/var/log/generate-machine-info.log";
+      StandardErrorPath = "/var/log/generate-machine-info-error.log";
+    };
+  };
+
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias drb="sudo -H darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
-  alias drs="sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
+  alias drb="sudo -H darwin-rebuild build"
+  alias drs="sudo -H darwin-rebuild switch"
   alias drlg="sudo -H darwin-rebuild --list-generations"
   alias ..="cd .."
   ${pkgs.fastfetch}/bin/fastfetch
@@ -243,5 +256,5 @@ in {
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
 
-  ids.gids.nixbld = buildGroupID;
+  ids.gids.nixbld = config.machineInfo.buildGroupID;
 }
