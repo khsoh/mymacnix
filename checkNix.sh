@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REMOTE_VERSION=$(NIX_PATH="nixpkgs=$(readlink -f ~/.nix-defexpr/channels_root/nixpkgs)" nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g')
+REMOTE_VERSION=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g')
 LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 REMOTE_NIXPKGSREVISION=${REMOTE_VERSION##*.}
 
