@@ -476,14 +476,11 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "
           declare -A NIXCHANNELS
 
-          eval \"\$(awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$2,\"]=\",$1 }' /etc/nix-channels/system-channels)\"
+          eval \"\$(awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$2,\"]=\",$1 }' /etc/nix-channels/system-channels | grep -v \"\\[nixpkgs\\]\")\"
 
           >&2 echo \"\"
           >&2 date
           for pkg in \"\${!NIXCHANNELS[@]}\"; do
-              if [[ $pkg == \"nixpkgs\" ]]; then
-                continue
-              fi
               pkgpath=\$(/usr/bin/readlink -f \$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"<\${pkg}>\"))
               if [[ ! -z \${pkgpath+x} ]]; then
                   pkgurl=\${NIXCHANNELS[$pkg]}

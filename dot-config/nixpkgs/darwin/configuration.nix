@@ -180,9 +180,9 @@ in {
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias nie="nix-instantiate --eval"
-  alias drb="NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
-  alias drs="NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
-  alias drlg="NIX_ABORT_ON_WARN=1 sudo -H darwin-rebuild --list-generations"
+  alias drb="sudo -H darwin-rebuild build --option allow-unsafe-native-code-during-evaluation true"
+  alias drs="sudo -H darwin-rebuild switch --option allow-unsafe-native-code-during-evaluation true"
+  alias drlg="sudo -H darwin-rebuild --list-generations"
   alias ..="cd .."
   ${pkgs.fastfetch}/bin/fastfetch
   '';

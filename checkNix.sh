@@ -22,7 +22,7 @@ fi
 
 declare -A NIXCHANNELS
 
-eval "$(grep -v "nixpkgs$" /etc/nix-channels/system-channels|awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$2,"]=",$1 }')"
+eval "$(awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$2,"]=",$1 }' /etc/nix-channels/system-channels | grep -v "\[nixpkgs\]")"
 
 echo ""
 echo "==============="
