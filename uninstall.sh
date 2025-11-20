@@ -63,10 +63,16 @@ elif [[ -f /etc/bash.bashrc ]]; then
 fi
 
 # Stop and remove the Nix daemon services:
+sudo -H launchctl disable system/org.nixos.activate-system
+sudo rm -f /Library/LaunchDaemons/org.nixos.activate-system.plist
 sudo -H launchctl disable system/org.nixos.nix-daemon
 sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist
 sudo -H launchctl disable system/org.nixos.darwin-store
 sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist
+sudo -H launchctl disable system/org.nixos.darwin.generateMachineInfo
+sudo rm -f /Library/LaunchDaemons/org.nixos.darwin.generateMachineInfo.plist
+sudo -H launchctl disable system/org.nixos.makeRootChannelsPublic
+sudo rm -f /Library/LaunchDaemons/org.nixos.makeRootChannelsPublic.plist
 
 # Remove the nixbld group and the _nixbuildN users
 sudo -H dscl . -delete /Groups/nixbld
@@ -104,7 +110,7 @@ if [[ $(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' /etc/synthetic.conf|wc
 fi
 
 # Remove the files Nix added to your system:
-sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.nix-channels ~/.nix-profile ~/.nix-defexpr ~/.nix-channels /etc/nix-channels
+sudo rm -rf /etc/nix /var/root/.nix-profile /var/root/.nix-defexpr /var/root/.nix-channels ~/.nix-profile ~/.nix-defexpr ~/.nix-channels /etc/nix-channels /etc/nix-darwin
 
 
 # Remove the Nix Store volume
