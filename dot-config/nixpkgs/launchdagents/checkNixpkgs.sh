@@ -15,9 +15,9 @@ else
       grep -q "^$REMOTE_NIXPKGSREVISION$" ~/.working-nixpkgs) ; then
     WARNREV="(Failed last darwin-rebuild)"
   fi
-  echo "***New nixpkgs version detected for update on nixpkgs-unstable channel"
-  echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}"
-  echo "  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION $WARNREV"
+  echo "***New nixpkgs version detected for update on nixpkgs-unstable channel" >&2
+  echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}" >&2
+  echo "  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION $WARNREV" >&2
 fi
 
 declare -A NIXCHANNELS
@@ -35,15 +35,15 @@ for pkg in "${!NIXCHANNELS[@]}"; do
     rhash=$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
 
     if [[ "$lhash" != "$rhash" ]]; then
-      echo "***New package detected for update on $pkg channel:"
-      echo "  ${pkg}_local_hash:  $lhash"
-      echo "  ${pkg}_remote_hash: $rhash"
+      echo "***New package detected for update on $pkg channel:" >&2
+      echo "  ${pkg}_local_hash:  $lhash" >&2
+      echo "  ${pkg}_remote_hash: $rhash" >&2
     else
       echo "Local package is up-to-date with $pkg channel"
       echo "  ${pkg}_local_hash:  $lhash"
     fi
   else
-    echo "!!!Cannot find local installed package detected for channel $pkg"
+    echo "!!!Cannot find local installed package detected for channel $pkg" >&2
   fi
 done
 

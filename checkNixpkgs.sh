@@ -1,0 +1,1 @@
+dot-config/nixpkgs/launchdagents/checkNixpkgs.sh

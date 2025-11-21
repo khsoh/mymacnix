@@ -424,99 +424,31 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
   ### Setup the user-specific launch agents
   launchd.enable = true;
   launchd.agents = {
-    checkNixpkgs = {
+    detectNixUpdates = {
       enable = true;
       config = {
-        Label = "checkNixpkgs";
+        Label = "org.nixos.detectNixUpdates";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
           "
-          REMOTE_VERSION=\$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable ${pkgs.nix}/bin/nix-instantiate --eval --expr \"(import <nixpkgs> {}).lib.version\"|${pkgs.gnused}/bin/sed -e 's/\"//g')
-          LOCAL_NIXPKGSREVISION=\$(${NIXSYSPATH}/darwin-version --json|${pkgs.jq}/bin/jq -r \".nixpkgsRevision\")
-          REMOTE_NIXPKGSREVISION=\${REMOTE_VERSION##*.}
-          LAST_REMOTE_VERSION=\$(/usr/bin/grep \"^REMOTE_VERSION::\\s\\+\" ~/log/checknixpkgsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^REMOTE_VERSION::\\s\\+//p')
-
-          >&2 echo \"\"
-          >&2 date
-          if [[ \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}} == $REMOTE_NIXPKGSREVISION ]]; then
-            >&2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
-          else
-            >&2 echo \"***New nixpkgs version detected for update on nixpkgs-unstable channel\"
-            >&2 echo \"  LOCAL_REVISION:: \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\"
-            >&2 echo \"  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION\"
-            if [[ $REMOTE_VERSION != $LAST_REMOTE_VERSION ]]; then
-              WARNREV=
-              if test -e ~/.nonworking-nixpkgs && 
-                  grep -q \"^$REMOTE_NIXPKGSREVISION$\" ~/.nonworking-nixpkgs &&
-                  ! (test -e ~/.working-nixpkgs && 
-                  grep -q \"^$REMOTE_NIXPKGSREVISION$\" ~/.working-nixpkgs) ; then
-                WARNREV=\"(Failed rebuild)\"
-              fi
-              osascript -e \"display notification \\\"Local::  \${LOCAL_NIXPKGSREVISION:0:\${#REMOTE_NIXPKGSREVISION}}\\nRemote:: $REMOTE_NIXPKGSREVISION $WARNREV\\\" with title \\\"New nixpkgs version detected on nixpkgs-unstable channel\\\"\"
-            fi
+          UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
+          if [ -n \"\${UPDATENIXPKGS}\" ]; then
+            osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
           fi
           "
           ];
         RunAtLoad = true;
         StartInterval = 3600;
-        StandardOutputPath = "${homecfg.homeDirectory}/log/checknixpkgsOutput.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/checknixpkgsError.log";
-      };
-    };
-    checkNixchannels = {
-      enable = true;
-      config = {
-        Label = "checkNixchannels";
-        ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
-          "-l"
-          "-c"
-          "
-          declare -A NIXCHANNELS
-
-          eval \"\$(awk 'BEGIN { OFS=\"\" } { print \"NIXCHANNELS[\",$2,\"]=\",$1 }' /etc/nix-channels/system-channels | grep -v \"\\[nixpkgs\\]\")\"
-
-          >&2 echo \"\"
-          >&2 date
-          for pkg in \"\${!NIXCHANNELS[@]}\"; do
-              pkgpath=\$(/usr/bin/readlink -f \$(${pkgs.nix}/bin/nix-instantiate --eval --expr \"<\${pkg}>\"))
-              if [[ ! -z \${pkgpath+x} ]]; then
-                  pkgurl=\${NIXCHANNELS[$pkg]}
-
-                  lastrhash=\$(/usr/bin/grep \"^\${pkg}_remote_hash:\\s\\+\" ~/log/checknixchannelsError.log | tail -1 | ${pkgs.gnused}/bin/sed -n -e 's/^\${pkg}_remote_hash:\\s\\+//p')
-                  lhash=\$(nix-hash --base32 --type sha256 $pkgpath/)
-                  rhash=\$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
-
-                  if [[ \"$lhash\" != \"$rhash\" ]]; then
-                    >&2 echo \"***New package detected for update on $pkg channel:\"
-                    >&2 echo \"  \${pkg}_local_hash:  $lhash\"
-                    >&2 echo \"  \${pkg}_remote_hash: $rhash\"
-                    if [[ \"$rhash\" != \"$lastrhash\" ]]; then
-                      osascript -e \"display notification \\\"\${pkg}_local_hash:  $lhash\\n\${pkg}_remote_hash: $rhash\\\" with title \\\"New package detected for update on $pkg channel\\\"\"
-                    fi
-                  else
-                    >&2 echo \"Local package is up-to-date with $pkg channel\"
-                    >&2 echo \"  \${pkg}_local_hash:  $lhash\"
-                  fi
-              else
-                >&2 echo \"!!!Cannot find local installed package detected for channel $pkg\"
-                osascript -e \"display notification \\\"Cannot find local installed package for channel $pkg\\\" with title \\\"Channel $pkg error\\\"\"
-              fi
-          done
-          "
-          ];
-        RunAtLoad = true;
-        StartInterval = 3600;
-        StandardOutputPath = "${homecfg.homeDirectory}/log/checknixchannelsOutput.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/checknixchannelsError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
       };
     };
     LoginStartTerminal = {
       enable = true;
       config = {
-        Label = "LoginStartTerminal";
+        Label = "org.nixos.user.LoginStartTerminal";
         ProgramArguments = [
           "osascript"
           "-e" "
@@ -535,14 +467,14 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "
           ];
         RunAtLoad = true;
-        StandardOutputPath = "${homecfg.homeDirectory}/log/loginterm.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/logintermError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.loginterm.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.logintermError.log";
       };
     };
     # LoginStartTmux = {
     #   enable = true;
     #   config = {
-    #     Label = "LoginStartTmux";
+    #     Label = "org.nixos.user.LoginStartTmux";
     #     ProgramArguments = [
     #       "osascript"
     #       "-e" "
@@ -561,7 +493,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     updateTmuxPlugins = {
       enable = true;
       config = {
-        Label = "updateTmuxPlugins";
+        Label = "org.nixos.user.updateTmuxPlugins";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
@@ -576,14 +508,14 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${homecfg.homeDirectory}/log/tmuxupdate.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/tmuxupdateError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdate.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
       enable = true;
       config = {
-        Label = "updateNvimPlugins";
+        Label = "org.nixos.user.updateNvimPlugins";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
@@ -596,8 +528,8 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
-        StandardOutputPath = "${homecfg.homeDirectory}/log/nvimupdate.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/nvimupdateError.log";
+        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdate.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateError.log";
       };
     };
   };
