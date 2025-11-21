@@ -198,6 +198,7 @@ in {
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nds="nix --extra-experimental-features nix-command derivation show"
+  alias enix="nix --extra-experimental-features nix-command"
   alias nie="nix-instantiate --eval"
   alias drb="sudo -H darwin-rebuild build"
   alias drs="sudo -H darwin-rebuild switch"
