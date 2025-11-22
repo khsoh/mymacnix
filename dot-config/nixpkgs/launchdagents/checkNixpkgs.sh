@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-REMOTE_VERSION=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version" 2> /dev/null|sed -e 's/"//g')
+declare -A NIXCHANNELS
+
+eval "$(awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$2,"]=",$1 }' /etc/nix-channels/system-channels)"
+
 LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
-REMOTE_NIXPKGSREVISION=${REMOTE_VERSION##*.}
+REMOTE_NIXPKGSREVISION=$(curl -s $(curl -Ls -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]})/git-revision)
 
 if [[ ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}} == $REMOTE_NIXPKGSREVISION ]]; then
   echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
@@ -17,12 +20,10 @@ else
   fi
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel" >&2
   echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}" >&2
-  echo "  REMOTE_VERSION:: $REMOTE_NIXPKGSREVISION $WARNREV" >&2
+  echo "  REMOTE_REVISION:: $REMOTE_NIXPKGSREVISION $WARNREV" >&2
 fi
 
-declare -A NIXCHANNELS
-
-eval "$(awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$2,"]=",$1 }' /etc/nix-channels/system-channels | grep -v "\[nixpkgs\]")"
+unset 'NIXCHANNELS["nixpkgs"]'
 
 echo ""
 echo "==============="
