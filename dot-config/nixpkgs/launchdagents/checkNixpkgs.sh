@@ -9,7 +9,7 @@ LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 # Get the git revision from the effective URL of the nixpkgs channel
 # Another method is to read the git-revision file within that URL (this requires downloading the file).
 #REMOTE_NIXPKGSREVISION=$(curl -s $(curl -Ls -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]})/git-revision)
-REMOTE_NIXPKGSREVISION=$(curl -Ls -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]} | sed 's/.*\.//')
+REMOTE_NIXPKGSREVISION=$(output=$(curl -Lsf -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]}) && echo "$output" | sed 's/.*\.//')
 
 if [[ ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}} == $REMOTE_NIXPKGSREVISION ]]; then
   echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
