@@ -46,7 +46,20 @@ let
   BrewCask = (casks:
     builtins.map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e)
     (builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks));
+
+  # Get the mas-cli package version
+  masdirContents = builtins.readDir "/opt/homebrew/Cellar/mas";
+  versionDirs = lib.attrNames (lib.filterAttrs (name: type: type == "directory") masdirContents);
+  # Get the latest version
+  masSortedVersions = lib.sort (a: b: lib.versionOlder b a) versionDirs;
+  masLatestVersion = builtins.elemAt masSortedVersions 0;
+
+  masLatestCannotUpdateVersion = "3.1.0";
+  canUpdateWithMas = lib.versionOlder masLatestCannotUpdateVersion masLatestVersion;
+
 in {
+
+  mas.canUpdate = canUpdateWithMas;
 
   warnings = lib.mkIf (!builtins.pathExists casksnix && !config.machineInfo.is_vm) [
     ''
@@ -78,9 +91,16 @@ in {
 
   homebrew.casks = BrewCask USERCASKS;
 
-  homebrew.masApps = MASAPPS;
+  homebrew.masApps = lib.optionalAttrs config.mas.canUpdate MASAPPS;
 
   ## The following allows Nix to uninstall stuff absent from cask list
   homebrew.onActivation.cleanup = "zap";
+
+  ## Check for mas oudated if mas-cli currently cannot update from App Store
+  system.activationScripts.homebrew.text = lib.mkAfter (lib.optionalString (!config.mas.canUpdate)
+    ''
+      echo ">>>Checking for App Store updates with mas outdated..." >&2
+      sudo -i -u ${config.homebrew.user} mas outdated || true
+    '');
 }
 
