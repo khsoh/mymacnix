@@ -99,8 +99,15 @@ in {
   ## Check for mas oudated if mas-cli currently cannot update from App Store
   system.activationScripts.homebrew.text = lib.mkAfter (lib.optionalString (!config.mas.canUpdate)
     ''
-      echo ">>>Checking for App Store updates with mas outdated..." >&2
-      sudo -i -u ${config.homebrew.user} mas outdated || true
+      sudo -u ${config.homebrew.user} TERM=xterm-256color -i ${pkgs.bash}/bin/bash <<'EOF'
+        BOLD="$(tput bold)"
+        RED="$(tput setaf 1)"
+        ESC="$(tput sgr0)"
+        printf "$BOLD$RED"
+        echo ">>>Checking for App Store updates with mas outdated...<<<" >&2
+        mas outdated || true
+        printf "$ESC"
+      EOF
     '');
 }
 
