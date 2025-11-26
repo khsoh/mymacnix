@@ -97,3 +97,7 @@ for pkg in "${!NIXCHANNELS[@]}"; do
   fi
 done
 
+# Perform homebrew check for outdated packages
+brew update > /dev/null 2>&1
+brew outdated 1>&"$OUTPUT"
+
