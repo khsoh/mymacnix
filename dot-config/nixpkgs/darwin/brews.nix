@@ -48,14 +48,45 @@ let
     (builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks));
 
   # Get the mas-cli package version
-  masdirContents = builtins.readDir "/opt/homebrew/Cellar/mas";
-  versionDirs = lib.attrNames (lib.filterAttrs (name: type: type == "directory") masdirContents);
-  # Get the latest version
-  masSortedVersions = lib.sort (a: b: lib.versionOlder b a) versionDirs;
-  masLatestVersion = builtins.elemAt masSortedVersions 0;
+  masdir = "/opt/homebrew/Cellar/mas";
+
+  # Check if a given path is a directory
+  isDir = path: builtins.pathExists (toString path + "/.");
+
+  # Check if the base directory exists
+  baseDirExists = builtins.pathExists masdir && isDir masdir;
+
+  # Function to find the newest version string
+  findLatestVersion = dirPath:
+    let
+      # Read directory contents and keep only directories (which are version names)
+      versions = builtins.filter (name: isDir (dirPath + "/${name}"))
+        (builtins.attrNames (builtins.readDir dirPath));
+
+      # Sort versions to find the latest one.
+      # The compareVersions function returns 1 if the first arg is newer, -1 if older, 0 if same.
+      # We use lib.sort with a custom comparator to sort in descending order (latest first).
+      sortedVersions = lib.sort (a: b:
+        if lib.strings.compareVersions a b == 1 then -1 else 1
+      ) versions;
+
+      # The latest version is the head of the sorted list
+      latestVersion = if builtins.length sortedVersions > 0 then builtins.elemAt sortedVersions 0 else null;
+    in
+      latestVersion;
+
+  # Get the latest version string if the base directory exists
+  latestMasVersion = if baseDirExists then findLatestVersion masdir else null;
 
   masLatestCannotUpdateVersion = "3.1.0";
-  canUpdateWithMas = lib.versionOlder masLatestCannotUpdateVersion masLatestVersion;
+
+  # Compare the latest version with "3.1.0"
+  isNewerThanTarget = if latestMasVersion != null then
+    lib.strings.compareVersions latestMasVersion masLatestCannotUpdateVersion == 1
+  else
+    false;
+
+  canUpdateWithMas = (!baseDirExists) || isNewerThanTarget;
 
 in {
 
