@@ -433,9 +433,23 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           "
+          HMEALIAS=\"toenail.benzine-1c@icloud.com\"
           UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
           if [ -n \"\${UPDATENIXPKGS}\" ]; then
             osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
+
+            osascript -e \"
+              set emailSubject to \\\"New nix channel updates\\\"
+              set emailBody to \\\"\${UPDATENIXPKGS}\\\"
+              tell application \\\"Mail\\\"
+                set newMessage to make new outgoing message with properties {subject:emailSubject, content:emailBody, visible:false}
+                tell newMessage
+                  make new to recipient with properties {address:\\\"\${HMEALIAS}\\\"}
+                end tell
+
+                send newMessage
+              end tell
+            \"
           fi
           "
           ];
