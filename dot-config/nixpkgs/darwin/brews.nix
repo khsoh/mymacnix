@@ -48,7 +48,7 @@ let
     (builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks));
 
   # Get the mas-cli package version
-  masdir = "/opt/homebrew/Cellar/mas";
+  masdir = config.homebrew.brewPrefix + "/../Cellar/mas";
 
   # Check if a given path is a directory
   isDir = path: builtins.pathExists (toString path + "/.");
@@ -60,7 +60,8 @@ let
   findLatestVersion = dirPath:
     let
       # Read directory contents and keep only directories (which are version names)
-      versions = builtins.filter (name: isDir (dirPath + "/${name}"))
+      versions = builtins.filter ( (name: (isDir (dirPath + "/${name}")) &&
+        (builtins.pathExists (dirPath + "/${name}/bin/mas"))) )
         (builtins.attrNames (builtins.readDir dirPath));
 
       # Sort versions to find the latest one.
@@ -80,13 +81,16 @@ let
 
   masLatestCannotUpdateVersion = "3.1.0";
 
-  # Compare the latest version with "3.1.0"
+  # Compare the latest version with masLatestCannotUpdateVersion
   isNewerThanTarget = if latestMasVersion != null then
     lib.strings.compareVersions latestMasVersion masLatestCannotUpdateVersion == 1
   else
     false;
 
-  canUpdateWithMas = (!baseDirExists) || isNewerThanTarget;
+  ## Allow update with mas-cli under any of the following conditions
+  # 1. mas is not installed OR
+  # 2. if installed mas is newer than target version
+  canUpdateWithMas = (latestMasVersion == null) || isNewerThanTarget;
 
 in {
 
