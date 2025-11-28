@@ -475,7 +475,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "
+          ("
           IMSGID=\$(jq '.iMessageID' ~/.config/nix/armored-secrets.json)
           UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
           if [ -n \"\${UPDATENIXPKGS}\" ]; then
@@ -494,10 +494,11 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
             #     send newMessage
             #   end tell
             # \"
-
+          " + lib.optionalString (osConfig.machineInfo.hostname == "MacBook-Pro") "
             osascript -e \"tell application \\\"Messages\\\" to send \\\"\${UPDATENIXPKGS}\\\" to buddy $IMSGID\"
+          " + "
           fi
-          "
+          ")
           ];
         RunAtLoad = true;
         StartInterval = 3600;
