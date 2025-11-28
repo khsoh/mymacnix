@@ -5,7 +5,6 @@ let
   sshcfg = config.sshkeys;
   ghcfg = config.github;
   glcfg = config.gitlab;
-  agecfg = config.age;
 
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
@@ -495,13 +494,8 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
             #     send newMessage
             #   end tell
             # \"
-            osascript -e \"
-              tell application \\\"Messages\\\"
-                set targetService to 1st service whose service type = iMessage
-                set targetBuddy to participant $IMSGID of targetService
-                send \\\"\${UPDATENIXPKGS}\\\" to targetBuddy
-              end tell
-            \"
+
+            osascript -e \"tell application \\\"Messages\\\" to send \\\"\${UPDATENIXPKGS}\\\" to buddy $IMSGID\"
           fi
           "
           ];
