@@ -25,7 +25,7 @@ in {
     "${sshcfg.USERPKFILE}"
   ];
 
-  # armor-secrets stores various secret information in JSON file format
+  # armored-secrets stores various secret information in JSON file format
   age.secrets."armored-secrets.json" = {
     file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/armored-secrets.json.age";
 
