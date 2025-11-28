@@ -18,6 +18,7 @@ let
 in {
   imports = [ 
     <home-manager/nix-darwin> 
+    <agenix/modules/age.nix>
     ./brews.nix
     ./machine.nix
     ];
@@ -74,6 +75,7 @@ in {
     [ vim
       neovim
       python3
+      (pkgs.callPackage <agenix/pkgs/agenix.nix> {})
 
       ### The following are for kickstart.nvim
       ripgrep

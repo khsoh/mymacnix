@@ -5,6 +5,7 @@ let
   sshcfg = config.sshkeys;
   ghcfg = config.github;
   glcfg = config.gitlab;
+  agecfg = config.age;
 
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
@@ -15,8 +16,36 @@ let
     (builtins.catAttrs "pname" (osConfig.environment.systemPackages ++ homecfg.packages)));
 in {
   imports = [
+    <agenix/modules/age-home.nix>
     ./usermod
   ];
+
+  ##### agenix configuration
+  age.identityPaths = [
+    "${sshcfg.NIXIDPKFILE}"
+    "${sshcfg.USERPKFILE}"
+  ];
+
+  # armor-secrets stores various secret information in JSON file format
+  age.secrets."armored-secrets.json" = {
+    file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/armored-secrets.json.age";
+
+# path should be a string expression (in quotes), not a path expression
+# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    path = "${homecfg.homeDirectory}/.config/nix/armored-secrets.json";
+
+# The default is true if not specified.  We want to make sure that
+# the "file" (decrypted secret) is symlinked and not generated directly into
+# that location
+    symlink = true;
+
+# The following are needed to ensure the decrypted secret has the correct permission
+    mode = "600";
+
+# Note that the owner and group attribute are absent from home-manager module
+    #owner = "${username}";
+    #group = "staff";
+  };
 
   ## User-specific aliases
   home.shellAliases = {
@@ -29,6 +58,21 @@ in {
     ## AppleScript file to resize app
     target = "${config.xdg.configHome}/scpt/resize_app.scpt";
     source = ./scpt/resize_app.scpt;
+  };
+
+  ## Generate list of public keys file in pubkeys.nix
+  home.file."pubkeys.nix" = {
+    ## The defaults are commented out
+    # enable = true;
+
+    target = ".config/nixpkgs/secrets/pubkeys.nix";
+    text = ''
+      [
+        "${sshcfg.userssh_pubkey}"
+        "${sshcfg.nixidssh_pubkey}"
+      ]
+      '';
+
   };
 
   home.file.gitAllowedSigners = {
@@ -150,7 +194,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       XDG_CONFIG_HOME = "\${XDG_CONFIG_HOME:-$HOME/.config}";
       XDG_DATA_HOME = "\${XDG_DATA_HOME:-$HOME/.local/share}";
-      EDITOR = "vim";
+      EDITOR = "nvim";
     };  # Written to start of .profile
 
     # Written to end of .profile
@@ -171,7 +215,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       XDG_CONFIG_HOME = "\${XDG_CONFIG_HOME:-$HOME/.config}";
       XDG_DATA_HOME = "\${XDG_DATA_HOME:-$HOME/.local/share}";
-      EDITOR = "vim";
+      EDITOR = "nvim";
     };
 
     profileExtra = builtins.readFile ./zsh/zprofile-extra;
@@ -433,21 +477,29 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           "
-          HMEALIAS=\"toenail.benzine-1c@icloud.com\"
+          IMSGID=\$(jq '.iMessageID' ~/.config/nix/armored-secrets.json)
           UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
           if [ -n \"\${UPDATENIXPKGS}\" ]; then
             osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
 
+            # COMMENTED OUT OPTION TO SEND MESSAGE VIA EMAIL
+            # osascript -e \"
+            #   set emailSubject to \\\"New nix channel updates\\\"
+            #   set emailBody to \\\"\${UPDATENIXPKGS}\\\"
+            #   tell application \\\"Mail\\\"
+            #     set newMessage to make new outgoing message with properties {subject:emailSubject, content:emailBody, visible:false}
+            #     tell newMessage
+            #       make new to recipient with properties {address:$IMSGID}
+            #     end tell
+            #
+            #     send newMessage
+            #   end tell
+            # \"
             osascript -e \"
-              set emailSubject to \\\"New nix channel updates\\\"
-              set emailBody to \\\"\${UPDATENIXPKGS}\\\"
-              tell application \\\"Mail\\\"
-                set newMessage to make new outgoing message with properties {subject:emailSubject, content:emailBody, visible:false}
-                tell newMessage
-                  make new to recipient with properties {address:\\\"\${HMEALIAS}\\\"}
-                end tell
-
-                send newMessage
+              tell application \\\"Messages\\\"
+                set targetService to 1st service whose service type = iMessage
+                set targetBuddy to participant $IMSGID of targetService
+                send \\\"\${UPDATENIXPKGS}\\\" to targetBuddy
               end tell
             \"
           fi
@@ -459,6 +511,49 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
       };
     };
+    # detectNixUpdates = {
+    #   enable = true;
+    #   config = {
+    #     Label = "org.nixos.detectNixUpdates";
+    #     ProgramArguments = [
+    #       "${pkgs.bashInteractive}/bin/bash"
+    #       "-l"
+    #       "-c"
+    #       "
+    #       IMSGID=\$(jq '.iMessageID' ~/.config/nix/armored-secrets.json)
+    #       HMEALIAS=\"toenail.benzine-1c@icloud.com\"
+    #       UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
+    #       if [ -n \"\${UPDATENIXPKGS}\" ]; then
+    #         osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
+    #
+    #         osascript -e \"
+    #           set emailSubject to \\\"New nix channel updates\\\"
+    #           set emailBody to \\\"\${UPDATENIXPKGS}\\\"
+    #           tell application \\\"Mail\\\"
+    #             set newMessage to make new outgoing message with properties {subject:emailSubject, content:emailBody, visible:false}
+    #             tell newMessage
+    #               make new to recipient with properties {address:\\\"\${HMEALIAS}\\\"}
+    #             end tell
+    #
+    #             send newMessage
+    #           end tell
+    #         \"
+    #       fi
+    #       osascript -e \"
+    #         tell application \\\"Messages\\\" 
+    #           set targetService to 1st service whose service type = iMessage
+    #           set targetBuddy to participant \\\"\${IMSGID}\\\" of targetService
+    #           send \\\"Hello 1324234\\\" to targetBuddy
+    #         end tell
+    #       \"
+    #       "
+    #       ];
+    #     RunAtLoad = true;
+    #     StartInterval = 3600;
+    #     StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
+    #     StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
+    #   };
+    # };
     LoginStartTerminal = {
       enable = true;
       config = {
