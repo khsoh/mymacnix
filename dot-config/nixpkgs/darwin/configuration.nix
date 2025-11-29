@@ -153,9 +153,9 @@ in {
         "${pkgs.bashInteractive}/bin/bash"
         "-c"
         ''
-          mkdir -p /etc/nix-channels && \
-          chmod a+rx /etc/nix-channels && \
-          cp /var/root/.nix-channels /etc/nix-channels/system-channels && \
+          mkdir -p /etc/nix-channels
+          chmod a+rx /etc/nix-channels
+          cp /var/root/.nix-channels /etc/nix-channels/system-channels
           chmod a+r /etc/nix-channels/system-channels
         ''
       ];
