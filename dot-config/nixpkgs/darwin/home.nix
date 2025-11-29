@@ -476,7 +476,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           ("
-          IMSGID=\$(jq '.iMessageID' ~/.config/nix/armored-secrets.json 2>/dev/null)
           UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
           if [ -n \"\${UPDATENIXPKGS}\" ]; then
             osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
@@ -495,10 +494,9 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
             #   end tell
             # \"
           " + lib.optionalString (osConfig.machineInfo.hostname == "MacBook-Pro") "
+            IMSGID=\$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
             if [ -n \"$IMSGID\" ]; then
               osascript -e \"tell application \\\"Messages\\\" to send \\\"\${UPDATENIXPKGS}\\\" to buddy $IMSGID\"
-            else
-              osascript -e \"display notification \\\"~/.config/nix/armored-secrets.json not yet available\\\" with title \\\"agenix not yet active\\\"\"
             fi
           " + "
           fi
