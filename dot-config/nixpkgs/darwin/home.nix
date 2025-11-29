@@ -505,54 +505,11 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           ")
           ];
         RunAtLoad = true;
-        StartInterval = 60*30;
+        StartInterval = 60*20;
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
       };
     };
-    # detectNixUpdates = {
-    #   enable = true;
-    #   config = {
-    #     Label = "org.nixos.detectNixUpdates";
-    #     ProgramArguments = [
-    #       "${pkgs.bashInteractive}/bin/bash"
-    #       "-l"
-    #       "-c"
-    #       "
-    #       IMSGID=\$(jq '.iMessageID' ~/.config/nix/armored-secrets.json)
-    #       HMEALIAS=\"toenail.benzine-1c@icloud.com\"
-    #       UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 >/dev/null)
-    #       if [ -n \"\${UPDATENIXPKGS}\" ]; then
-    #         osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
-    #
-    #         osascript -e \"
-    #           set emailSubject to \\\"New nix channel updates\\\"
-    #           set emailBody to \\\"\${UPDATENIXPKGS}\\\"
-    #           tell application \\\"Mail\\\"
-    #             set newMessage to make new outgoing message with properties {subject:emailSubject, content:emailBody, visible:false}
-    #             tell newMessage
-    #               make new to recipient with properties {address:\\\"\${HMEALIAS}\\\"}
-    #             end tell
-    #
-    #             send newMessage
-    #           end tell
-    #         \"
-    #       fi
-    #       osascript -e \"
-    #         tell application \\\"Messages\\\" 
-    #           set targetService to 1st service whose service type = iMessage
-    #           set targetBuddy to participant \\\"\${IMSGID}\\\" of targetService
-    #           send \\\"Hello 1324234\\\" to targetBuddy
-    #         end tell
-    #       \"
-    #       "
-    #       ];
-    #     RunAtLoad = true;
-    #     StartInterval = 3600;
-    #     StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
-    #     StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
-    #   };
-    # };
     LoginStartTerminal = {
       enable = true;
       config = {
