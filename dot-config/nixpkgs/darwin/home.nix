@@ -501,7 +501,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           ")
           ];
         RunAtLoad = true;
-        StartInterval = 3600;
+        StartInterval = 60*15;
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
       };
