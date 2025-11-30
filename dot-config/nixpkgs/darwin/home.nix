@@ -465,6 +465,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
   };
 
   ### Setup the user-specific launch agents
+  launchd.agents.activate-agenix.config.ProcessType = lib.mkForce "Standard";
   launchd.enable = true;
   launchd.agents = {
     detectNixUpdates = {
