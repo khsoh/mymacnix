@@ -5,4 +5,8 @@ in {
     publicKeys = pubkeys;
     armor = true;
   };
+  "mac-raise2.json.age" = {
+    publicKeys = pubkeys;
+    armor = true;
+  };
 }
