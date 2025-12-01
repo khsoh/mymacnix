@@ -46,6 +46,27 @@ in {
     #group = "staff";
   };
 
+  # Stores the Raise2 backup configuration
+  age.secrets."mac-raise2.json" = {
+    file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/mac-raise2.json.age";
+
+# path should be a string expression (in quotes), not a path expression
+# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    path = "${homecfg.homeDirectory}/Dygma/mac-raise2.json";
+
+# The default is true if not specified.  We want to make sure that
+# the "file" (decrypted secret) is symlinked and not generated directly into
+# that location
+    symlink = true;
+
+# The following are needed to ensure the decrypted secret has the correct permission
+    mode = "600";
+
+# Note that the owner and group attribute are absent from home-manager module
+    #owner = "${username}";
+    #group = "staff";
+  };
+
   ## User-specific aliases
   home.shellAliases = {
     cdnix = "cd $(readlink -f ${builtins.toString ./.})";
@@ -207,7 +228,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
 
     autocd = true;
     defaultKeymap = "viins";
-    completionInit = "";
     sessionVariables = {
       LANG = "en_US.UTF-8";
       LC_ALL = "en_US.UTF-8";
