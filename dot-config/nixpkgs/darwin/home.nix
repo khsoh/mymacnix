@@ -269,7 +269,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
         controlPersist = "no";
       };
       extraConfig = ''
-        IdentityFile ${sshcfg.NIXIDPKFILE};
+        IdentityFile ${sshcfg.NIXIDPKFILE}
       '';
     };
 
