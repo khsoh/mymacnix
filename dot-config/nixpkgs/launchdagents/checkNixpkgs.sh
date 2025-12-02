@@ -28,12 +28,13 @@ OUTPUT=$?
 
 get_conditional_substring() {
     local value=$1
+    local len=${2:-8}
 
     if [ "$OUTPUT" -eq 1 ]; then
         # Running in login - just use the whole length
         echo $value
     else
-        echo ${value:0:7}
+        echo ${value:0:$len}
     fi
 }
 
@@ -64,8 +65,8 @@ LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 
 # Get the git revision from the effective URL of the nixpkgs channel
 # Another method is to read the git-revision file within that URL (this requires downloading the file).
-#REMOTE_NIXPKGSREVISION=$(curl -s $(curl -Ls -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]})/git-revision)
-REMOTE_NIXPKGSREVISION=$(output=$(curl -Lsf -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]}) && echo "$output" | sed 's/.*\.//')
+REMOTE_NIXPKGSREVISION=$(curl -s $(curl -Ls -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]})/git-revision)
+#REMOTE_NIXPKGSREVISION=$(output=$(curl -Lsf -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]}) && echo "$output" | sed 's/.*\.//')
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
 if [[ $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION ]]; then
@@ -80,8 +81,8 @@ else
     WARNREV="(Failed last darwin-rebuild)"
   fi
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel" >&"$OUTPUT"
-  echo "  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION)" >&"$OUTPUT"
-  echo "  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION) $WARNREV" >&"$OUTPUT"
+  echo "  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)" >&"$OUTPUT"
+  echo "  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV" >&"$OUTPUT"
 fi
 
 unset 'NIXCHANNELS["nixpkgs"]'
@@ -98,8 +99,8 @@ for pkg in "${!NIXCHANNELS[@]}"; do
 
     if [[ "$lhash" != "$rhash" ]]; then
       echo "***New package detected for update on $pkg channel:" >&"$OUTPUT"
-      echo "  ${pkg}_local_hash:  $(get_conditional_substring $lhash)" >&"$OUTPUT"
-      echo "  ${pkg}_remote_hash: $(get_conditional_substring $rhash)" >&"$OUTPUT"
+      echo "  ${pkg}_local_hash:  $(get_conditional_substring $lhash 8)" >&"$OUTPUT"
+      echo "  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)" >&"$OUTPUT"
     else
       echo "Local package is up-to-date with $pkg channel"
       echo "  ${pkg}_local_hash:  $lhash"
