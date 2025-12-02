@@ -26,6 +26,17 @@ is_running_under_login() {
 is_running_under_login
 OUTPUT=$?
 
+get_conditional_substring() {
+    local value=$1
+
+    if [ "$OUTPUT" -eq 1 ]; then
+        # Running in login - just use the whole length
+        echo $value
+    else
+        echo ${value:0:7}
+    fi
+}
+
 if [ "$OUTPUT" -eq 1 ]; then
     # Your login-shell-specific logic
     while getopts ":k" opt; do
@@ -55,10 +66,11 @@ LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 # Another method is to read the git-revision file within that URL (this requires downloading the file).
 #REMOTE_NIXPKGSREVISION=$(curl -s $(curl -Ls -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]})/git-revision)
 REMOTE_NIXPKGSREVISION=$(output=$(curl -Lsf -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]}) && echo "$output" | sed 's/.*\.//')
+LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
-if [[ ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}} == $REMOTE_NIXPKGSREVISION ]]; then
+if [[ $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION ]]; then
   echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
-  echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}"
+  echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
 else
   WARNREV=
   if test -e ~/.nonworking-nixpkgs && 
@@ -68,8 +80,8 @@ else
     WARNREV="(Failed last darwin-rebuild)"
   fi
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel" >&"$OUTPUT"
-  echo "  LOCAL_REVISION:: ${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}" >&"$OUTPUT"
-  echo "  REMOTE_REVISION:: $REMOTE_NIXPKGSREVISION $WARNREV" >&"$OUTPUT"
+  echo "  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION)" >&"$OUTPUT"
+  echo "  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION) $WARNREV" >&"$OUTPUT"
 fi
 
 unset 'NIXCHANNELS["nixpkgs"]'
@@ -86,8 +98,8 @@ for pkg in "${!NIXCHANNELS[@]}"; do
 
     if [[ "$lhash" != "$rhash" ]]; then
       echo "***New package detected for update on $pkg channel:" >&"$OUTPUT"
-      echo "  ${pkg}_local_hash:  $lhash" >&"$OUTPUT"
-      echo "  ${pkg}_remote_hash: $rhash" >&"$OUTPUT"
+      echo "  ${pkg}_local_hash:  $(get_conditional_substring $lhash)" >&"$OUTPUT"
+      echo "  ${pkg}_remote_hash: $(get_conditional_substring $rhash)" >&"$OUTPUT"
     else
       echo "Local package is up-to-date with $pkg channel"
       echo "  ${pkg}_local_hash:  $lhash"
