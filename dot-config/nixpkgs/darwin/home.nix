@@ -620,6 +620,9 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
 
   # The state version is required and should stay at the version you
   # originally installed.
-  home.stateVersion = "25.05";
+  home.stateVersion = "25.11";
+
+  targets.darwin.copyApps.enable = false;
+  targets.darwin.linkApps.enable = true;
 }
 
