@@ -32,7 +32,7 @@ LAST_GOOD_REV=$(awk 'END {print $1}' ~/.working-nixpkgs || echo 0)
 LATEST_NIXPKGS_REV=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/.*\.//')
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
-if grep -q "^$LATEST_NIXPKGS_REV$" ~/.nonworking-nixpkgs; then
+if grep -q "^$LATEST_NIXPKGS_REV" ~/.nonworking-nixpkgs; then
     if [ "$LAST_GOOD_REV" = "0" ]; then
         OPTIONS="[l/x]"
     else
@@ -68,12 +68,18 @@ sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
 if [ "$BUILDRESULT" = "0" ]; then
-    grep -q "^$BUILDREV$" ~/.working-nixpkgs || echo "$BUILDREV $(date "%d %b %Y %I:%M:%S %p")" >> ~/.working-nixpkgs
-    if grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs ; then
-        grep -v "^$BUILDREV$" ~/.nonworking-nixpkgs | sponge ~/.nonworking-nixpkgs
+    if grep -q "^$BUILDREV" ~/.working-nixpkgs ; then
+        sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" ~/.working-nixpkgs
+    else
+        echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> ~/.working-nixpkgs
     fi
+    sed -i "/^$BUILDREV/d" ~/.nonworking-nixpkgs
 else
-    grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs || echo "$BUILDREV $(date "%d %b %Y %I:%M:%S %p")" >> ~/.nonworking-nixpkgs
+    if grep -q "^$BUILDREV" ~/.nonworking-nixpkgs ; then
+        sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" ~/.nonworking-nixpkgs
+    else
+        echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> ~/.nonworking-nixpkgs
+    fi
 fi
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
