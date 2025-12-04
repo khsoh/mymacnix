@@ -199,6 +199,7 @@ in {
 
   # Setup aliases
   environment.interactiveShellInit = ''
+  alias nex="nix --extra-experimental-features nix-command"
   alias nds="nix --extra-experimental-features nix-command derivation show"
   alias enix="nix --extra-experimental-features nix-command"
   alias nie="nix-instantiate --eval"
