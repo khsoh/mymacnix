@@ -28,7 +28,7 @@ nix-channel --update --verbose
 printf "${BOLD}${GREEN}Completed updating channels:\n$(nix-channel --list)${ESC}\n\n\n"
 sleep 3
 
-LAST_GOOD_REV=$(tail -1 ~/.working-nixpkgs || echo 0)
+LAST_GOOD_REV=$(awk 'END {print $1}' ~/.working-nixpkgs || echo 0)
 LATEST_NIXPKGS_REV=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/.*\.//')
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
@@ -68,12 +68,12 @@ sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
 if [ "$BUILDRESULT" = "0" ]; then
-    grep -q "^$BUILDREV$" ~/.working-nixpkgs || echo $BUILDREV >> ~/.working-nixpkgs
+    grep -q "^$BUILDREV$" ~/.working-nixpkgs || echo "$BUILDREV $(date "%d %b %Y %I:%M:%S %p")" >> ~/.working-nixpkgs
     if grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs ; then
         grep -v "^$BUILDREV$" ~/.nonworking-nixpkgs | sponge ~/.nonworking-nixpkgs
     fi
 else
-    grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs || echo $BUILDREV >> ~/.nonworking-nixpkgs
+    grep -q "^$BUILDREV$" ~/.nonworking-nixpkgs || echo "$BUILDREV $(date "%d %b %Y %I:%M:%S %p")" >> ~/.nonworking-nixpkgs
 fi
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
