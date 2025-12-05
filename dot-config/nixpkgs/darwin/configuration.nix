@@ -1,18 +1,13 @@
 { config, pkgs, lib, ... }:
 let
   # Declare primary user and home
-  cfgpathel = lib.strings.splitString "/" (builtins.toString ./.);
-  primaryUser = builtins.elemAt cfgpathel 2;
-  primaryHome = "/Users/${primaryUser}";
+  primaryUserInfo = import ./user.nix;
+
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
-
   hmUsers = [
-    {
-      name = primaryUser;
-      home = primaryHome;
-    }
+    primaryUserInfo
   ];
 
 in {
@@ -37,7 +32,7 @@ in {
 
   ## Apply home-manager configuration for all users
   home-manager.users = lib.attrsets.genAttrs
-    (builtins.map ({name, home}: name) hmUsers)
+    (builtins.map (o: o.name) hmUsers)
     (_: import ./home.nix );
 
   ##### end home-manager configuration
@@ -48,7 +43,7 @@ in {
   ## The following is needed by home-manager to set the
   ##  home.username and home.homeDirectory attributes
   users.users = builtins.listToAttrs
-    (builtins.map ({name, home}@value: { inherit name; value = value; }) hmUsers);
+    (builtins.map (o: { inherit (o) name; value = o; }) hmUsers);
 
   fonts.packages = with pkgs;
   [
@@ -61,11 +56,11 @@ in {
 
   # Setup user specific logfile rotation for all users
   environment.etc = builtins.listToAttrs
-    (builtins.map ({name, home}@value: { 
-      name = "newsyslog.d/${name}.conf";
+    (builtins.map (o: {
+      name = "newsyslog.d/${o.name}.conf";
       value = {
         text = ''
-          ${home}/log/*.log      644  5  1024  *  NJ
+          ${o.home}/log/*.log      644  5  1024  *  NJ
           '';
       }; }) hmUsers);
 
@@ -137,7 +132,7 @@ in {
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
-  environment.darwinConfig = "${primaryHome}/.config/nixpkgs/darwin/configuration.nix";
+  environment.darwinConfig = "${primaryUserInfo.home}/.config/nixpkgs/darwin/configuration.nix";
 
   # Launch daemon to make root channels public
   launchd.daemons.makeRootChannelsPublic = {
@@ -248,7 +243,7 @@ in {
                                   /run/current-system/sw/bin/nix-store --gc
     '';
 
-  system.primaryUser = primaryUser;
+  system.primaryUser = primaryUserInfo.name;
 
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin

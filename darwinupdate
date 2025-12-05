@@ -17,6 +17,9 @@ if [ ! -e /etc/nix-channels/system-channels ]; then
     sudo chmod a+r /etc/nix-channels/system-channels
 fi
 
+SCRIPTNAME=$(readlink -f "$0")
+SCRIPTDIR=$(dirname "$SCRIPTNAME")
+
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 printf "${BOLD}${RED}Starting to update channels:\n$(awk '{ print $2, $1 }' /etc/nix-channels/system-channels)${ESC}\n"
 sudo -H nix-channel --update --verbose
@@ -64,6 +67,9 @@ if grep -q "^$LATEST_NIXPKGS_REV" ~/.nonworking-nixpkgs; then
 fi
 
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
+if [ ! -e ~/.config/nixpkgs/darwin/user.nix ]; then
+    $SCRIPTDIR/genusernix.sh
+fi
 sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
