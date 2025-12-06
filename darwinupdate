@@ -67,9 +67,10 @@ if grep -q "^$LATEST_NIXPKGS_REV" ~/.nonworking-nixpkgs; then
 fi
 
 printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
-if [ ! -e ~/.config/nixpkgs/darwin/user.nix ]; then
-    $SCRIPTDIR/genusernix.sh
-fi
+
+## Generate the primary user nix file
+$SCRIPTDIR/genusernix.sh
+
 sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 

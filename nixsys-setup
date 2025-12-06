@@ -221,9 +221,7 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
 fi
 
 ## Generate the primary user nix file
-if [ ! -e ~/.config/nixpkgs/darwin/user.nix ]; then
-    $SCRIPTDIR/genusernix.sh
-fi
+$SCRIPTDIR/genusernix.sh
 
 ## Update the nix channels
 sudo -H nix-channel --update

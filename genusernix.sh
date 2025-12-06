@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-cat <<EOF > ~/.config/nixpkgs/darwin/user.nix
+if [ -e ~/.config/nixpkgs/darwin/_user.nix ]; then
+    exit 0
+fi
+cat <<EOF > ~/.config/nixpkgs/darwin/_user.nix
 {
     name = "$(id -un)";
     home = "$(python -c 'import os; print(os.path.expanduser("~"))')";

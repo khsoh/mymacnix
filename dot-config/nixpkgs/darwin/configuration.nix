@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 let
   # Declare primary user and home
-  primaryUserInfo = import ./user.nix;
+  primaryUserInfo = import ./_user.nix;
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
