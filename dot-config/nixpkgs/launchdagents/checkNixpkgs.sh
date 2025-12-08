@@ -112,5 +112,10 @@ done
 
 # Perform homebrew check for outdated packages
 brew update > /dev/null 2>&1
-brew outdated 1>&"$OUTPUT"
+BREWOUTDATED=$(brew outdated)
+if [ -n "$BREWOUTDATED" ]; then
+    echo ""
+    echo "Outdated homebrew packages:" >&"$OUTPUT"
+    echo "$BREWOUTDATED" >&"$OUTPUT"
+fi
 
