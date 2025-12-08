@@ -70,8 +70,8 @@ in {
   ## User-specific aliases
   home.shellAliases = {
     cdnix = "cd $(readlink -f ${builtins.toString ./.})";
-    hbb = "HOMEBREW_NO_AUTOUPDATE=;brew bundle";
-    hbu = "HOMEBREW_NO_AUTOUPDATE=;brew update";
+    hbb = "brew bundle";
+    hbu = "brew update";
   };
 
   home.file.resize_app = {
