@@ -114,7 +114,7 @@ in {
   homebrew.global.brewfile = true;
 
   ### Setup for updates via Nix
-  homebrew.global.autoUpdate = true;
+  homebrew.global.autoUpdate = false;
   homebrew.onActivation.upgrade = true;
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.extraFlags = [
