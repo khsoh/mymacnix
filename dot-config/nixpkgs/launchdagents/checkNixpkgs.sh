@@ -69,15 +69,17 @@ REMOTE_NIXPKGSREVISION=$(curl -s $(curl -Ls -o /dev/null -w %{url_effective} ${N
 #REMOTE_NIXPKGSREVISION=$(output=$(curl -Lsf -o /dev/null -w %{url_effective} ${NIXCHANNELS["nixpkgs"]}) && echo "$output" | sed 's/.*\.//')
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
+WORKFILE=~/.working-nixpkgs
+NONWORKFILE=~/.nonworking-nixpkgs
 if [[ $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION ]]; then
   echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
   echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
 else
   WARNREV=
-  if test -e ~/.nonworking-nixpkgs && 
-      grep -q "^$REMOTE_NIXPKGSREVISION$" ~/.nonworking-nixpkgs &&
-      ! (test -e ~/.working-nixpkgs && 
-      grep -q "^$REMOTE_NIXPKGSREVISION$" ~/.working-nixpkgs) ; then
+  if test -e $NONWORKFILE && 
+      grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE &&
+      ! (test -e $WORKFILE && 
+      grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE) ; then
     WARNREV="(Failed last darwin-rebuild)"
   fi
   echo "***New nixpkgs version detected for update on nixpkgs-unstable channel" >&"$OUTPUT"
