@@ -31,11 +31,13 @@ nix-channel --update --verbose
 printf "${BOLD}${GREEN}Completed updating channels:\n$(nix-channel --list)${ESC}\n\n\n"
 sleep 3
 
-LAST_GOOD_REV=$(awk 'END {print $1}' ~/.working-nixpkgs || echo 0)
+WORKFILE=~/.working-nixpkgs
+NONWORKFILE=~/.nonworking-nixpkgs
+LAST_GOOD_REV=$(awk 'END {print $1}' $WORKFILE || echo 0)
 LATEST_NIXPKGS_REV=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/.*\.//')
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
-if grep -q "^$LATEST_NIXPKGS_REV" ~/.nonworking-nixpkgs; then
+if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
     if [ "$LAST_GOOD_REV" = "0" ]; then
         OPTIONS="[l/x]"
     else
@@ -75,17 +77,23 @@ sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
 if [ "$BUILDRESULT" = "0" ]; then
-    if grep -q "^$BUILDREV" ~/.working-nixpkgs ; then
-        sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" ~/.working-nixpkgs
+    if grep -q "^$BUILDREV" $WORKFILE ; then
+        sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $WORKFILE
     else
-        echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> ~/.working-nixpkgs
+        echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $WORKFILE
     fi
-    sed -i "/^$BUILDREV/d" ~/.nonworking-nixpkgs
+    if [ "$(wc -l < $WORKFILE | xargs)" -gt 40 ]; then
+        tail -n 20 $WORKFILE | sponge $WORKFILE
+    fi
+    sed -i "/^$BUILDREV/d" $NONWORKFILE
 else
-    if grep -q "^$BUILDREV" ~/.nonworking-nixpkgs ; then
-        sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" ~/.nonworking-nixpkgs
+    if grep -q "^$BUILDREV" $NONWORKFILE ; then
+        sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $NONWORKFILE
     else
-        echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> ~/.nonworking-nixpkgs
+        echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $NONWORKFILE
+    fi
+    if [ "$(wc -l < $NONWORKFILE | xargs)" -gt 40 ]; then
+        tail -n 20 $NONWORKFILE | sponge $NONWORKFILE
     fi
 fi
 brew upgrade
