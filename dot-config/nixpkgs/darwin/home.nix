@@ -9,10 +9,8 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  NIXSYSPATH = "/run/current-system/sw/bin";
-
   pkgInstalled = (name : builtins.elem name 
-    (builtins.catAttrs "pname" (osConfig.environment.systemPackages ++ homecfg.packages)));
+    (lib.unique (builtins.map lib.getName (osConfig.environment.systemPackages ++ homecfg.packages))));
 in {
   imports = [
     <agenix/modules/age-home.nix>

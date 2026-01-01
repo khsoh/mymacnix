@@ -10,6 +10,15 @@ let
     primaryUserInfo
   ];
 
+  nixAppInstalled = (name : builtins.elem name 
+    (builtins.map lib.getName config.environment.systemPackages));
+  hmNixAppInstalled = (name : builtins.elem name 
+    (builtins.map lib.getName config.home-manager.users.${primaryUserInfo.name}.home.packages));
+  brewAppInstalled = (name: builtins.elem name
+    (builtins.map (brew: if builtins.isAttrs brew then brew.name else brew)
+      config.homebrew.brews ++ config.homebrew.casks ++ config.homebrew.whalebrews ++
+      (builtins.attrNames config.homebrew.masApps)
+    ));
 in {
   imports = [ 
     <home-manager/nix-darwin> 
@@ -245,6 +254,10 @@ in {
 
   system.primaryUser = primaryUserInfo.name;
 
+  system.defaults.dock.persistent-apps = [
+  ] ++ 
+    lib.lists.optional (nixAppInstalled "kitty") "/Applications/Nix Apps/kitty.app" ++
+    lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app" ;
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
   # system.activationScripts.preActivation.text = ''
