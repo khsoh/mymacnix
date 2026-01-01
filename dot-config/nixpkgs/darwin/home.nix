@@ -11,6 +11,8 @@ let
 
   pkgInstalled = (name : builtins.elem name 
     (lib.unique (builtins.map lib.getName (osConfig.environment.systemPackages ++ homecfg.packages))));
+  nixAppInstalled = (name : builtins.elem name 
+    (builtins.map lib.getName osConfig.environment.systemPackages));
 in {
   imports = [
     <agenix/modules/age-home.nix>
@@ -401,6 +403,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
 
   programs.kitty = {
     enable = true;
+    package = lib.mkIf (nixAppInstalled "kitty") null;
     font = {
       name = "FiraMono Nerd Font Mono";
       size = 18;
