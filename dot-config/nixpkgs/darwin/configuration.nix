@@ -16,8 +16,8 @@ let
     (builtins.map lib.getName config.home-manager.users.${primaryUserInfo.name}.home.packages));
   brewAppInstalled = (name: builtins.elem name
     (builtins.map (brew: if builtins.isAttrs brew then brew.name else brew)
-      config.homebrew.brews ++ config.homebrew.casks ++ config.homebrew.whalebrews ++
-      (builtins.attrNames config.homebrew.masApps)
+      (config.homebrew.brews ++ config.homebrew.casks ++ config.homebrew.whalebrews ++
+      (builtins.attrNames config.homebrew.masApps))
     ));
 in {
   imports = [ 
