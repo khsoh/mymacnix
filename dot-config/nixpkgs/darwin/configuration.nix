@@ -19,6 +19,17 @@ let
       (config.homebrew.brews ++ config.homebrew.casks ++ config.homebrew.whalebrews ++
       (builtins.attrNames config.homebrew.masApps))
     ));
+
+  nixAppPath = "/Applications/Nix Apps";
+  hmNixAppPath = "~/Applications/Home Manager Apps";
+
+  getMacBundleAppName = pkg: topPath:
+    let
+      appsDir = "${pkg}/Applications";
+      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else {};
+      appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
+    in builtins.map (a: "${topPath}/" + a) appNames;
+
 in {
   imports = [ 
     <home-manager/nix-darwin> 
@@ -256,7 +267,7 @@ in {
 
   system.defaults.dock.persistent-apps = [
   ] ++ 
-    lib.lists.optional (nixAppInstalled "kitty") "/Applications/Nix Apps/kitty.app" ++
+    lib.lists.optionals (nixAppInstalled "kitty") getMacBundleAppName pkgs.kitty nixAppPath ++
     lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app" ;
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
