@@ -10,6 +10,10 @@ let
     primaryUserInfo
   ];
 
+  ## Functions to detect if app is installed as:
+  # a top-level nix package
+  # a home-manager nix package
+  # a homebrew installed package
   nixAppInstalled = (name : builtins.elem name 
     (builtins.map lib.getName config.environment.systemPackages));
   hmNixAppInstalled = (name : builtins.elem name 
@@ -23,6 +27,9 @@ let
   nixAppPath = "/Applications/Nix Apps";
   hmNixAppPath = "~/Applications/Home Manager Apps";
 
+  ## Function to generate the path of the Mac App Bundle name from the nix package in the form of a list:
+  # E.g. [ "/Applications/Nix Apps/abc.app" ].
+  # It will return an empty list [] if no Mac App Bundle name is found.
   getMacBundleAppName = pkg: topPath:
     let
       appsDir = "${pkg}/Applications";
