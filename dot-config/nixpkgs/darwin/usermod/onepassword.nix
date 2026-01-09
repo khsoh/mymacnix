@@ -14,7 +14,7 @@ in {
     SSHSIGN_PROGRAM = lib.mkOption {
       type = lib.types.str;
       description = "Relative path to current user's secret key file";
-      default = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      default = "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
     };
 
     ## This is readOnly to determine if the SSHSIGN_PROGRAM is present
@@ -26,6 +26,7 @@ in {
 
 
   config.onepassword = {
+    SSHSIGN_PROGRAM = "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
     sshsign_pgm_present = builtins.pathExists onepasscfg.SSHSIGN_PROGRAM;
   };
 }

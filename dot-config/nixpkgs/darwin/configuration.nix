@@ -79,6 +79,7 @@ in {
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
+    "1password"
   ];
 
   # Setup user specific logfile rotation for all users
@@ -107,6 +108,7 @@ in {
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
+      bitwarden-desktop
       squashfsTools
       bat
       tmux
@@ -123,6 +125,7 @@ in {
       # dhall-json  ## Remove this because the nds alias can be used instead
       rectangle
       _1password-cli
+      _1password-gui
 ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];

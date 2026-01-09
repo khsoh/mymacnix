@@ -1,4 +1,4 @@
-if [[ ! -e /Applications/1Password.app/Contents/MacOS/op-ssh-sign && -n $SSH_AUTH_SOCK ]]; then
+if [[ ! -e /Applications/Nix\ Apps/1Password.app/Contents/MacOS/op-ssh-sign && -n $SSH_AUTH_SOCK ]]; then
   if ! ssh-add -l 2>&1 >/dev/null; then
     [ -f ~/.ssh/nixid_ed25519 ] && ssh-add ~/.ssh/nixid_ed25519
   fi
