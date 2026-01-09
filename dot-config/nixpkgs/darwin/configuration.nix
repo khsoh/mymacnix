@@ -107,6 +107,7 @@ in {
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
+      squashfsTools
       bat
       tmux
       gnused
