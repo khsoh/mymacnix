@@ -80,6 +80,7 @@ in {
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "1password-cli"
     "1password"
+    "discord"
   ];
 
   # Setup user specific logfile rotation for all users
@@ -110,6 +111,7 @@ in {
 
       bitwarden-desktop
       squashfsTools
+      discord
       bat
       tmux
       gnused
