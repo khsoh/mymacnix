@@ -112,6 +112,7 @@ in {
       bitwarden-desktop
       squashfsTools
       discord
+      brave
       bat
       tmux
       gnused
@@ -281,7 +282,8 @@ in {
   system.defaults.dock.persistent-apps = [
   ] ++ 
     lib.lists.optionals (nixAppInstalled "kitty") getMacBundleAppName pkgs.kitty nixAppPath ++
-    lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app" ;
+    lib.lists.optionals (nixAppInstalled "brave") getMacBundleAppName pkgs.brave nixAppPath ++
+    lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
   # system.activationScripts.preActivation.text = ''
