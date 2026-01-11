@@ -109,6 +109,7 @@ in {
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
+      protonmail-desktop
       bitwarden-desktop
       squashfsTools
       discord
@@ -279,11 +280,24 @@ in {
 
   system.primaryUser = primaryUserInfo.name;
 
-  system.defaults.dock.persistent-apps = [
-  ] ++ 
-    lib.lists.optionals (nixAppInstalled "kitty") getMacBundleAppName pkgs.kitty nixAppPath ++
-    lib.lists.optionals (nixAppInstalled "brave") getMacBundleAppName pkgs.brave nixAppPath ++
-    lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
+  system.defaults.dock = {
+    showLaunchpadGestureEnabled = true;
+    showMissionControlGestureEnabled = true;
+    persistent-apps = [
+      "/System/Applications/Apps.app"
+    ] ++
+      lib.lists.optionals (nixAppInstalled "kitty") getMacBundleAppName pkgs.kitty nixAppPath ++
+      lib.lists.optionals (nixAppInstalled "brave") getMacBundleAppName pkgs.brave nixAppPath ++
+      lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
+  };
+  system.defaults.trackpad = {
+    TrackpadFourFingerPinchGesture = 2;
+    TrackpadRightClick = true;
+    TrackpadPinch = true;
+    TrackpadRotate = true;
+    TrackpadThreeFingerDrag = true;
+    TrackpadThreeFingerHorizSwipeGesture = 1;
+  };
 ##### Sample code for system.activationScripts.*.text - this is undocumented
 ###     stuff from nix-darwin
   # system.activationScripts.preActivation.text = ''
