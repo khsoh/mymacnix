@@ -81,6 +81,7 @@ in {
     "1password-cli"
     "1password"
     "discord"
+    "google-chrome"
   ];
 
   # Setup user specific logfile rotation for all users
@@ -113,6 +114,7 @@ in {
       bitwarden-desktop
       squashfsTools
       discord
+      google-chrome
       brave
       bat
       tmux
@@ -288,6 +290,7 @@ in {
     ] ++
       lib.lists.optionals (nixAppInstalled "kitty") getMacBundleAppName pkgs.kitty nixAppPath ++
       lib.lists.optionals (nixAppInstalled "brave") getMacBundleAppName pkgs.brave nixAppPath ++
+      lib.lists.optionals (nixAppInstalled "google-chrome") getMacBundleAppName pkgs.google-chrome nixAppPath ++
       lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
   };
   system.defaults.trackpad = {
