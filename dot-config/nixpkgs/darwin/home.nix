@@ -163,24 +163,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     source = ./totoro-dimmed.jpeg;
   };
 
-  home.file.ghostty = {
-    ## The defaults are commented out
-
-    # Enable ghostty config if ghostty is installed in Nix or homebrew
-    enable = pkgInstalled "ghostty-bin" ||
-        lib.lists.any (cask: cask.name == "ghostty") osConfig.homebrew.casks;
-
-    target = "${config.xdg.configHome}/ghostty";
-    source = pkgs.fetchFromGitHub {
-      owner = ghcfg.username;
-      repo = "gttyconf";
-      rev="afb7d2c8d79d70f56771d93acceade1b5797e214";
-      sha256="sha256-tuDYKLvqJ8p1Fou+rOyb76aZIrpEK5w0fkBsg2BTFN8=";
-      #sha256 = lib.fakeSha256;
-    };
-    recursive = true;
-  };
-
   home.file.nvim = {
     ## The defaults are commented out
     # enable = true;

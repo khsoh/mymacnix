@@ -32,10 +32,7 @@ let
 
   ## Casks are machine dependent
   USERCASKS = if (!config.machineInfo.is_vm) && builtins.pathExists casksnix then
-    import casksnix ++ import commoncasksnix ++ 
-    lib.lists.optionals (!builtins.elem "ghostty-bin" (builtins.map lib.getName config.environment.systemPackages)) [
-      { name = "ghostty"; greedy = true; }
-    ]
+    import casksnix ++ import commoncasksnix
   else import defaultcasksnix;
 
   MASAPPS = if (!config.machineInfo.is_vm) && builtins.pathExists masappsnix then
