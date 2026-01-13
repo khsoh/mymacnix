@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <source_file> <destination_file>"
+    exit 1
+fi
 
 # Define paths (adjust if yours are in non-standard locations)
 #CONFIG_FILE="$HOME/.nixpkgs/darwin-configuration.nix"
 USER_NAME="$(whoami)"
 SOURCE_NAME="$1"
 SECRET_NAME="$2"
+
+SECRET_NAME="${SECRET_NAME%.age}"
 
 if [ ! -f "$SOURCE_NAME" ]; then
     echo "Source file $SOURCE_NAME does not exist"
