@@ -73,6 +73,8 @@ printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
 ## Generate the primary user nix file
 $SCRIPTDIR/genusernix.sh
 
+ORIGINAL_KITTY_NIXSTORE=$(nix-store -q --outputs $(which kitty))
+
 sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
@@ -97,5 +99,13 @@ else
     fi
 fi
 brew upgrade
+
+CURRENT_KITTY_NIXSTORE=$(nix-store -q --outputs $(which kitty))
+
+if [ "$CURRENT_KITTY_NIXSTORE" != "$ORIGINAL_KITTY_NIXSTORE" ]; then
+    printf "${BOLD}${RED}kitty modified from $ORIGINAL_KITTY_NIXSTORE to $CURRENT_KITTY_NIXSTORE${ESC}\n"
+    printf "${BOLD}${RED}- Please update the Privacy and Security settings for kitty${ESC}\n"
+fi
+
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
