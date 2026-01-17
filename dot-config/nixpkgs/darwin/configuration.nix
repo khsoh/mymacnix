@@ -286,9 +286,9 @@ in {
     persistent-apps = [
       "/System/Applications/Apps.app"
     ] ++
-      lib.lists.optionals (nixAppInstalled "kitty") getMacBundleAppName pkgs.kitty nixAppPath ++
-      lib.lists.optionals (nixAppInstalled "brave") getMacBundleAppName pkgs.brave nixAppPath ++
-      lib.lists.optionals (nixAppInstalled "google-chrome") getMacBundleAppName pkgs.google-chrome nixAppPath ++
+      lib.lists.optionals (nixAppInstalled pkgs.kitty.pname) getMacBundleAppName pkgs.kitty nixAppPath ++
+      lib.lists.optionals (nixAppInstalled pkgs.brave.pname) getMacBundleAppName pkgs.brave nixAppPath ++
+      lib.lists.optionals (nixAppInstalled pkgs.google-chrome.pname) getMacBundleAppName pkgs.google-chrome nixAppPath ++
       lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
   };
   system.defaults.trackpad = {
