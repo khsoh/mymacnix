@@ -274,7 +274,8 @@ in {
                                   /run/current-system/sw/bin/nix-channel --update, \
                                   /run/current-system/sw/bin/nix-channel --update --verbose, \
                                   /run/current-system/sw/bin/nix-collect-garbage ^--delete-older-than [0-9]+d$, \
-                                  /run/current-system/sw/bin/nix-store --gc
+                                  /run/current-system/sw/bin/nix-store --gc, \
+                                  /usr/bin/sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db SELECT\ *\ FROM\ access*
     '';
 
   system.primaryUser = primaryUserInfo.name;

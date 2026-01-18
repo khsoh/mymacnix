@@ -121,3 +121,17 @@ if [ -n "$BREWOUTDATED" ]; then
     echo "$BREWOUTDATED" >&"$OUTPUT"
 fi
 
+declare -A kitty_perms
+
+while IFS='|' read -r service client auth_value; do
+    kitty_perms[$service]=$auth_value
+done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
+    "SELECT service, client, auth_value FROM access WHERE client LIKE '%net.kovidgoyal.kitty%';")
+
+for svc in "${!kitty_perms[@]}"; do
+    if [ ${kitty_perms[$svc]} -ne 2 ]; then
+        echo "$svc permission for kitty is disabled" >&"$OUTPUT"
+    else
+        echo "$svc permission for kitty is enabled"
+    fi
+done

@@ -73,8 +73,6 @@ printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
 ## Generate the primary user nix file
 $SCRIPTDIR/genusernix.sh
 
-ORIGINAL_KITTY_NIXSTORE=$(nix-store -q --outputs $(which kitty))
-
 sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
@@ -100,12 +98,18 @@ else
 fi
 brew upgrade
 
-CURRENT_KITTY_NIXSTORE=$(nix-store -q --outputs $(which kitty))
+typeset -A kitty_perms
 
-if [ "$CURRENT_KITTY_NIXSTORE" != "$ORIGINAL_KITTY_NIXSTORE" ]; then
-    printf "${BOLD}${RED}kitty modified from $ORIGINAL_KITTY_NIXSTORE to $CURRENT_KITTY_NIXSTORE${ESC}\n"
-    printf "${BOLD}${RED}- Please update the Privacy and Security settings for kitty${ESC}\n"
-fi
+while IFS='|' read -r service client auth_value; do
+    kitty_perms[$service]=$auth_value
+done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
+    "SELECT service, client, auth_value FROM access WHERE client LIKE '%net.kovidgoyal.kitty%';")
+
+for svc val in "${(@kv)kitty_perms}"; do
+    if [ $val -ne 2 ]; then
+        echo "$svc permission for kitty is disabled"
+    fi
+done
 
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
