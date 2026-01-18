@@ -115,7 +115,6 @@ in {
       squashfsTools
       discord
       google-chrome
-      brave
       bat
       tmux
       gnused
@@ -287,7 +286,6 @@ in {
       "/System/Applications/Apps.app"
     ] ++
       lib.lists.optionals (nixAppInstalled pkgs.kitty.pname) getMacBundleAppName pkgs.kitty nixAppPath ++
-      lib.lists.optionals (nixAppInstalled pkgs.brave.pname) getMacBundleAppName pkgs.brave nixAppPath ++
       lib.lists.optionals (nixAppInstalled pkgs.google-chrome.pname) getMacBundleAppName pkgs.google-chrome nixAppPath ++
       lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
   };
