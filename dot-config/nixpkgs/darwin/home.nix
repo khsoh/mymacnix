@@ -521,7 +521,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-e" "
           try
             tell application \"/run/current-system/sw/bin/kitty\" to activate
-            delay 2
+            delay 8
             run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
           on error errMsg
             tell application \"Terminal\"
