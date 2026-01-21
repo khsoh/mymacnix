@@ -19,6 +19,9 @@ in {
     ./usermod
   ];
 
+  ##### xdg configuration
+  xdg.enable = true;
+
   ##### agenix configuration
   age.identityPaths = [
     "${sshcfg.NIXIDPKFILE}"
@@ -27,11 +30,11 @@ in {
 
   # armored-secrets stores various secret information in JSON file format
   age.secrets."armored-secrets.json" = {
-    file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/armored-secrets.json.age";
+    file = /. + "${config.xdg.configHome}/nixpkgs/secrets/armored-secrets.json.age";
 
 # path should be a string expression (in quotes), not a path expression
 # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "${homecfg.homeDirectory}/.config/nix/armored-secrets.json";
+    path = "${config.xdg.configHome}/nix/armored-secrets.json";
 
 # The default is true if not specified.  We want to make sure that
 # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -48,7 +51,7 @@ in {
 
   # Stores the Raise2 backup configuration
   age.secrets."mac-raise2.json" = {
-    file = /. + "${homecfg.homeDirectory}/.config/nixpkgs/secrets/mac-raise2.json.age";
+    file = /. + "${config.xdg.configHome}/nixpkgs/secrets/mac-raise2.json.age";
 
 # path should be a string expression (in quotes), not a path expression
 # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
@@ -194,8 +197,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
       LC_ALL = "en_US.UTF-8";
       LANG = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
-      XDG_CONFIG_HOME = "\${XDG_CONFIG_HOME:-$HOME/.config}";
-      XDG_DATA_HOME = "\${XDG_DATA_HOME:-$HOME/.local/share}";
       EDITOR = "nvim";
     };  # Written to start of .profile
 
@@ -206,7 +207,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
   ### Enable zsh configuration
   programs.zsh = {
     enable = true;
-    dotDir = "${config.xdg.configHome}/zsh";
 
     autocd = true;
     defaultKeymap = "viins";
@@ -214,8 +214,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
       LANG = "en_US.UTF-8";
       LC_ALL = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
-      XDG_CONFIG_HOME = "\${XDG_CONFIG_HOME:-$HOME/.config}";
-      XDG_DATA_HOME = "\${XDG_DATA_HOME:-$HOME/.local/share}";
       EDITOR = "nvim";
     };
 
@@ -603,6 +601,6 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
 
   # The state version is required and should stay at the version you
   # originally installed.
-  home.stateVersion = "25.11";
+  home.stateVersion = "26.05";
 }
 
