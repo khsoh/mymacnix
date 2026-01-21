@@ -226,6 +226,9 @@ in {
     };
   };
 
+  environment.enableAllTerminfo = true;
+  nix.optimise.automatic = true;
+
   # Setup aliases
   environment.interactiveShellInit = ''
   alias nex="nix --extra-experimental-features nix-command"
