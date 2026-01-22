@@ -320,7 +320,7 @@ in {
   #   '';
 
   system.activationScripts.postActivation.text = lib.mkAfter ''
-    printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
+    PRINT_HEADER=1
 
     # 1. Map previous binaries to their store paths
     # We use 'find' to safely resolve every symlink in the old bin directory.
@@ -355,15 +355,18 @@ in {
         # Find the old path by looking for the package name in our map
         OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
 
-        if [ -n "$OLD_PATH" ]; then
-          if [ "$OLD_PATH" != "$NEW_PATH" ]; then
-            printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
-            echo "  └─ OLD: $OLD_PATH"
-            echo "  └─ NEW: $NEW_PATH"
-          fi
-        else
+        if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
+          printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
+          PRINT_HEADER=0
+        fi
+
+        if [ -z "$OLD_PATH" ]; then
           printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
           echo "  └─ $NEW_PATH"
+        elif [ "$OLD_PATH" != "$NEW_PATH" ]; then
+          printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+          echo "  └─ OLD: $OLD_PATH"
+          echo "  └─ NEW: $NEW_PATH"
         fi
     ''
     ) (builtins.filter (p: (str: builtins.stringLength str > 0) (getMacAppName p)) config.environment.systemPackages)}
