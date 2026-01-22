@@ -36,6 +36,12 @@ let
       contents = if builtins.pathExists appsDir then builtins.readDir appsDir else {};
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in builtins.map (a: "${topPath}/" + a) appNames;
+  getMacAppName = pkg:
+    let
+      appsDir = "${pkg}/Applications";
+      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else {};
+      appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
+    in if appNames == [] then "" else builtins.head appNames;
 
 in {
   imports = [ 
@@ -312,6 +318,56 @@ in {
   # system.activationScripts.postActivation.text = lib.mkAfter ''
   #   echo "I am in PostActivation"
   #   '';
+
+  system.activationScripts.postActivation.text = lib.mkAfter ''
+    printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
+
+    # 1. Map previous binaries to their store paths
+    # We use 'find' to safely resolve every symlink in the old bin directory.
+    # Result format: "package-name:/nix/store/hash-package-name"
+    PREV_MAP=""
+    if [ -d "/run/current-system/Applications/" ]; then
+      while IFS= read -r app_path; do
+        target=$(readlink -f "$app_path")
+
+        # Extract the package name (the part after the hash)
+        pkg_name=$(basename "$target")
+
+        # Modify target to get only the one in /nix/store
+        target=''${target%/Applications/*}
+        # Store as "name:path" for easy lookup
+        PREV_MAP="$PREV_MAP$pkg_name:$target"$'\n'
+      done < <(find /run/current-system/Applications/ -maxdepth 1 -type l)
+    fi
+
+    # Check each package in the new configuration
+    ${lib.concatMapStringsSep "\n" (pkg:
+      let
+        pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
+        appName = getMacAppName pkg;
+        newPath = "${pkg}";
+      in
+        ''
+        NEW_PATH="${newPath}"
+        APP_NAME="${appName}"
+        PKG_NAME="${pkgName}"
+
+        # Find the old path by looking for the package name in our map
+        OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
+
+        if [ -n "$OLD_PATH" ]; then
+          if [ "$OLD_PATH" != "$NEW_PATH" ]; then
+            printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+            echo "  └─ OLD: $OLD_PATH"
+            echo "  └─ NEW: $NEW_PATH"
+          fi
+        else
+          printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+          echo "  └─ $NEW_PATH"
+        fi
+    ''
+    ) (builtins.filter (p: (str: builtins.stringLength str > 0) (getMacAppName p)) config.environment.systemPackages)}
+  '';
 
 # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
