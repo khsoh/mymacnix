@@ -478,7 +478,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           ("
-          UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 3>&1 1>/dev/null 2>&3-)
+          UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
           if [ -n \"\${UPDATENIXPKGS}\" ]; then
             osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
 
