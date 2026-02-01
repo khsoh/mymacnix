@@ -3,6 +3,12 @@ let
   # Declare primary user and home
   primaryUserInfo = import ./_user.nix;
 
+  # The following is example of fixing specific packages to an earlier nixpkgs revision
+  # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
+  pkgs-pinned = import (builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/ed142ab.tar.gz";
+  }) {};
+
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
@@ -106,7 +112,7 @@ in {
     [ vim
       neovim
       python3
-      (pkgs.callPackage <agenix/pkgs/agenix.nix> {})
+      (callPackage <agenix/pkgs/agenix.nix> {})
 
       ### The following are for kickstart.nvim
       ripgrep
@@ -155,6 +161,7 @@ in {
 
       vlc-bin
       audacity
+      #pkgs-pinned.audacity
       ttyplot
       fastfetch
       zig
@@ -372,7 +379,7 @@ in {
     ) (builtins.filter (p: (str: builtins.stringLength str > 0) (getMacAppName p)) config.environment.systemPackages)}
   '';
 
-# Used for backwards compatibility, please read the changelog before changing.
+  # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
 

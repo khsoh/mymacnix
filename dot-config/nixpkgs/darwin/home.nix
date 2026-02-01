@@ -171,12 +171,11 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     # enable = true;
 
     target = "${config.xdg.configHome}/nvim";
-    #source = ../nvim;
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev="d16d76aaf089a3156fa726f3f1d4d23a30ca46dc";
-      sha256="sha256-Vso8ufrlN/eEhe86tfsAzEhxm7o8OO1018/+Qc1E1GM=";
+      rev="1910456e034c9d6c2872ffe6a1b889d88359ccbf";
+      sha256="sha256-QwHplo5klriLjoX98qD24uJfQ+staZZBHRDS8dg4/jc=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
@@ -478,8 +477,9 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "-l"
           "-c"
           ("
+          LASTUPDATENIXPKGS=\$(cat ~/log/detectNixUpdates.log 2>/dev/null)
           UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
-          if [ -n \"\${UPDATENIXPKGS}\" ]; then
+          if [ -n \"$UPDATENIXPKGS\" ] && [ \"$UPDATENIXPKGS\" != \"$LASTUPDATENIXPKGS\" ]; then
             osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
 
             # COMMENTED OUT OPTION TO SEND MESSAGE VIA EMAIL
@@ -502,6 +502,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
             fi
           " + "
           fi
+          echo \"$UPDATENIXPKGS\" > ~/log/detectNixUpdates.log
           ")
           ];
         RunAtLoad = true;
