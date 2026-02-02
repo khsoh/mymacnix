@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <GitCommitRef>"
+    exit 1
+fi
 OWNER="NixOS"
 REPO="nixpkgs"
 REF=$1
