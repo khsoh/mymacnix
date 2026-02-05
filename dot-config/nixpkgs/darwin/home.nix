@@ -154,8 +154,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-# use .kitty-wrapped as the process to resize for Nix-based install
-launch --type overlay zsh -c "resize_app .kitty-wrapped"
+launch --type overlay zsh -c "resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
@@ -521,7 +520,7 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           try
             tell application \"/Applications/Nix Apps/kitty.app\" to activate
             delay 8
-            run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
+            run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \"kitty\" }
           on error errMsg number errNumber
             log \"Error (\" & errNumber & \"): \" & errMsg
             tell application \"Terminal\"
