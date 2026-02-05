@@ -83,6 +83,12 @@ in {
     source = ./scpt/resize_app.scpt;
   };
 
+  home.file.waitdisplink = {
+    ## AppleScript file to wait for DisplayLink Manager to start
+    target = "${config.xdg.configHome}/scpt/waitdisplink.scpt";
+    source = ./scpt/waitdisplink.scpt;
+  };
+
   ## Generate list of public keys file in pubkeys.nix
   home.file."pubkeys.nix" = {
     ## The defaults are commented out
@@ -154,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "resize_app kitty"
+launch --type overlay zsh -c "osascript ${config.xdg.configHome}/scpt/waitdisplink.scpt && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
@@ -518,29 +524,7 @@ launch --type overlay zsh -c "resize_app kitty"
           "osascript"
           "-e" "
           try
-            set XID to id of application \"DisplayLink Manager\"
-            set startTime to (current date)
-
-            repeat
-              tell application \"System Events\"
-                if exists (every process whose bundle identifier is XID) then
-                  exit repeat
-                end if
-              end tell
-
-              if ((current date) - startTime) > 60 then
-                log \"Timed out waiting for DisplayLink Manager\"
-                exit repeat
-              end if
-              delay 1
-            end repeat
-          on error
-            -- No display link manager application installed - just continue
-          end try
-          try
             tell application \"/Applications/Nix Apps/kitty.app\" to activate
-            delay 2
-            run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \"kitty\" }
           on error errMsg number errNumber
             log \"Error (\" & errNumber & \"): \" & errMsg
             tell application \"Terminal\"
