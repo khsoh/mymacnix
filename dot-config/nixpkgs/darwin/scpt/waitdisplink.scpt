@@ -1,9 +1,9 @@
 #!/usr/bin/osascript
 
-set XID to id of application "DisplayLink Manager"
-set startTime to (current date)
-
 try
+    set XID to id of application "DisplayLink Manager"
+    set startTime to (current date)
+
     repeat
         tell application "System Events"
             if exists (every process whose bundle identifier is XID) then
