@@ -529,6 +529,7 @@ launch --type overlay zsh -c "resize_app kitty"
               end tell
 
               if ((current date) - startTime) > 60 then
+                log \"Timed out waiting for DisplayLink Manager\"
                 exit repeat
               end if
               delay 1
