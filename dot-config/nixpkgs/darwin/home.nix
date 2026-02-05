@@ -518,9 +518,26 @@ launch --type overlay zsh -c "resize_app kitty"
           "osascript"
           "-e" "
           try
+            set XID to id of application \"DisplayLink Manager\"
+            set startTime to (current date)
+
+            repeat
+              tell application \"System Events\"
+                if exists (every process whose bundle identifier is XID) then
+                  exit repeat
+                end if
+              end tell
+
+              if ((current date) - startTime) > 60 then
+                exit repeat
+              end if
+              delay 1
+            end repeat
+          on error
+            -- No display link manager application installed - just continue
+          end try
+          try
             tell application \"/Applications/Nix Apps/kitty.app\" to activate
-            delay 8
-            run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \"kitty\" }
           on error errMsg number errNumber
             log \"Error (\" & errNumber & \"): \" & errMsg
             tell application \"Terminal\"
