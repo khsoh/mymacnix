@@ -539,6 +539,8 @@ launch --type overlay zsh -c "resize_app kitty"
           end try
           try
             tell application \"/Applications/Nix Apps/kitty.app\" to activate
+            delay 2
+            run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \"kitty\" }
           on error errMsg number errNumber
             log \"Error (\" & errNumber & \"): \" & errMsg
             tell application \"Terminal\"
