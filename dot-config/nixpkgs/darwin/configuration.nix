@@ -95,6 +95,9 @@ in {
     "discord"
     "google-chrome"
   ];
+  nixpkgs.config.permittedInsecurePackages = [
+    "google-chrome-144.0.7559.97"
+  ];
 
   # Setup user specific logfile rotation for all users
   environment.etc = builtins.listToAttrs
