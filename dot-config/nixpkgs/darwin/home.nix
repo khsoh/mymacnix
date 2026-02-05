@@ -160,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "osascript ${config.xdg.configHome}/scpt/waitdisplink.scpt && resize_app kitty"
+launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitdisplink.scpt && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
