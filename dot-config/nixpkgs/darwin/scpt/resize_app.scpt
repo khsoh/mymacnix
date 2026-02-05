@@ -10,6 +10,9 @@ on run argv
     set XAPP to "Terminal"
     set XFRACTION to 0.5
     set YFRACTION to 1.0
+    if class of argv is not list then
+        set argv to {XAPP} -- Manually set your debug value here
+    end if
 
     if count of argv > 0 then
         set XAPP to item 1 of argv as text
@@ -61,9 +64,10 @@ on run argv
         set botry to (item 4 of terminalSize * YFRACTION) as integer
     end if
 
+    set XID to id of application XAPP
     tell application "System Events"
         set found to false
-        repeat with theProcess in (processes where name is XAPP)
+        repeat with theProcess in (processes where bundle identifier is XID)
             set theProcess to theProcess
             set found to true
             exit repeat
