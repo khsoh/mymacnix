@@ -83,10 +83,10 @@ in {
     source = ./scpt/resize_app.scpt;
   };
 
-  home.file.waitdisplink = {
+  home.file.waitapp = {
     ## AppleScript file to wait for DisplayLink Manager to start
-    target = "${config.xdg.configHome}/scpt/waitdisplink.scpt";
-    source = ./scpt/waitdisplink.scpt;
+    target = "${config.xdg.configHome}/scpt/waitapp.scpt";
+    source = ./scpt/waitapp.scpt;
   };
 
   ## Generate list of public keys file in pubkeys.nix
@@ -160,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitdisplink.scpt && resize_app kitty"
+launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitapp.scpt \"com.displaylink.DisplayLinkUserAgent\" && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
