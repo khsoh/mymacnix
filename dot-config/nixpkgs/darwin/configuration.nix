@@ -350,7 +350,16 @@ in {
       done < <(find /run/current-system/Applications/ -maxdepth 1 -type l)
     fi
 
-    # Check each package in the new configuration
+    # --- Fix macOS Launch Services for Nix Apps ---
+    # This forces macOS to recognize the app bundle immediately after rebuild
+    echo "Registering apps in /Applications/Nix Apps with Launch Services..."
+    LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+
+    if [ -d "/Applications/Nix Apps/kitty.app" ]; then
+      $LSREGISTER -f "/Applications/Nix Apps/kitty.app"
+    fi
+
+    # --- Check each package in the new configuration
     ${lib.concatMapStringsSep "\n" (pkg:
       let
         pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
