@@ -174,8 +174,8 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev="e1271b9565841e151a463f7190ae4c9850cc9a47";
-      sha256="sha256-o0OVqDs+RlfbZJDJI44z/di825V/3ipZCdd0Y5cHUIM=";
+      rev="52e7d1c81fc9241973bfff6fc16cfa34175270b8";
+      sha256="sha256-axmOvvewLPM6nXhByptdw3B8A9o+1ng3hD4kmN9muqw=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
@@ -519,10 +519,11 @@ launch --type overlay zsh -c "resize_app .kitty-wrapped"
           "osascript"
           "-e" "
           try
-            tell application \"/run/current-system/sw/bin/kitty\" to activate
+            tell application \"/Applications/Nix Apps/kitty.app\" to activate
             delay 8
             run script \"${config.xdg.configHome}/scpt/resize_app.scpt\" with parameters { \".kitty-wrapped\" }
-          on error errMsg
+          on error errMsg number errNumber
+            log \"Error (\" & errNumber & \"): \" & errMsg
             tell application \"Terminal\"
               if not (exists window 1) then reopen
               activate
