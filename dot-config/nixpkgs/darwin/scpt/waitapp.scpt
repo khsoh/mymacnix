@@ -4,17 +4,15 @@ on run argv
     if (count of argv) is 0 then
         return
     end if
-    #set XAPP to item 1 of argv as text
-    set XID to item 1 of argv as text
+    set XAPP to item 1 of argv as text
 
     try
-        #set XID to id of app XAPP
+        set XID to id of app XAPP
         set startTime to (current date)
 
         repeat
             tell application "System Events"
                 if exists (every process whose bundle identifier is XID) then
-                    log "found app " & XID
                     exit repeat
                 end if
             end tell
@@ -25,7 +23,7 @@ on run argv
         end repeat
     on error
         -- No display link manager application installed - just continue
-        log "No app " & XID
+        log "App " & XAPP & " is not executing"
     end try
 
 end run

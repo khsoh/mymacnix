@@ -160,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitapp.scpt \"com.displaylink.DisplayLinkUserAgent\" && resize_app kitty"
+launch --type overlay zsh -c "{ [ -z \"$(mdfind \"kMDItemFSName == 'DisplayLink Manager.app'\")\" ] || ${config.xdg.configHome}/scpt/waitapp.scpt \"DisplayLink Manager\"; } && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
