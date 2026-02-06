@@ -80,13 +80,13 @@ in {
   home.file.resize_app = {
     ## AppleScript file to resize app
     target = "${config.xdg.configHome}/jxa/resize_app.js";
-    source = ./scpt/resize_app.js;
+    source = ./jxa/resize_app.js;
   };
 
   home.file.waitapp = {
     ## JavaScript (JXA) file to wait for DisplayLink Manager to start
     target = "${config.xdg.configHome}/jxa/waitapp.js";
-    source = ./scpt/waitapp.js;
+    source = ./jxa/waitapp.js;
   };
 
   ## Generate list of public keys file in pubkeys.nix
