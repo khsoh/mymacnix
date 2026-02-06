@@ -4,6 +4,6 @@
 # Otherwise, the 3 arguments are the app name, fractional width and height of the main
 # display.
 resize_app() {
-    osascript ~/.config/scpt/resize_app.scpt $@
+    ~/.config/jxa/resize_app.js $@
 }
 

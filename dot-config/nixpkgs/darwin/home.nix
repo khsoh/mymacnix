@@ -79,13 +79,13 @@ in {
 
   home.file.resize_app = {
     ## AppleScript file to resize app
-    target = "${config.xdg.configHome}/scpt/resize_app.scpt";
-    source = ./scpt/resize_app.scpt;
+    target = "${config.xdg.configHome}/jxa/resize_app.js";
+    source = ./scpt/resize_app.js;
   };
 
   home.file.waitapp = {
     ## JavaScript (JXA) file to wait for DisplayLink Manager to start
-    target = "${config.xdg.configHome}/scpt/waitapp.js";
+    target = "${config.xdg.configHome}/jxa/waitapp.js";
     source = ./scpt/waitapp.js;
   };
 
@@ -160,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitapp.js 'DisplayLink Manager.app' && resize_app kitty"
+launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
