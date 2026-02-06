@@ -6,6 +6,12 @@ on run argv
     end if
     set XAPP to item 1 of argv as text
 
+    set query to "kMDItemFSName == " & quoted form of XAPP & " && kMDItemKind == 'Application'"
+    set result to do shell script "mdfind " & quoted form of query
+    if result is "" then
+        return
+    end if
+
     try
         set XID to id of app XAPP
         set startTime to (current date)
