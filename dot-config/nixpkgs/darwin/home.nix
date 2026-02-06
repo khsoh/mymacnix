@@ -84,9 +84,9 @@ in {
   };
 
   home.file.waitapp = {
-    ## AppleScript file to wait for DisplayLink Manager to start
-    target = "${config.xdg.configHome}/scpt/waitapp.scpt";
-    source = ./scpt/waitapp.scpt;
+    ## JavaScript (JXA) file to wait for DisplayLink Manager to start
+    target = "${config.xdg.configHome}/scpt/waitapp.js";
+    source = ./scpt/waitapp.js;
   };
 
   ## Generate list of public keys file in pubkeys.nix
@@ -160,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitapp.scpt 'DisplayLink Manager.app' && resize_app kitty"
+launch --type overlay zsh -c "${config.xdg.configHome}/scpt/waitapp.js 'DisplayLink Manager.app' && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
