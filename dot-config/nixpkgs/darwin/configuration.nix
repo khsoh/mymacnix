@@ -350,14 +350,7 @@ in {
       done < <(find /run/current-system/Applications/ -maxdepth 1 -type l)
     fi
 
-    # --- Fix macOS Launch Services for Nix Apps ---
-    # This forces macOS to recognize the app bundle immediately after rebuild
-    echo "Registering apps in /Applications/Nix Apps with Launch Services..."
     LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
-
-    if [ -d "/Applications/Nix Apps/kitty.app" ]; then
-      $LSREGISTER -f "/Applications/Nix Apps/kitty.app"
-    fi
 
     # --- Check each package in the new configuration
     ${lib.concatMapStringsSep "\n" (pkg:
@@ -379,6 +372,7 @@ in {
           PRINT_HEADER=0
         fi
 
+
         if [ -z "$OLD_PATH" ]; then
           printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
           echo "  └─ $NEW_PATH"
@@ -386,6 +380,13 @@ in {
           printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
           echo "  └─ OLD: $OLD_PATH"
           echo "  └─ NEW: $NEW_PATH"
+        fi
+
+        if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
+          # --- Fix macOS Launch Services for Nix Apps ---
+          # This forces macOS to recognize the app bundle immediately after rebuild
+          echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
+          $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
         fi
     ''
     ) (builtins.filter (p: (str: builtins.stringLength str > 0) (getMacAppName p)) config.environment.systemPackages)}
