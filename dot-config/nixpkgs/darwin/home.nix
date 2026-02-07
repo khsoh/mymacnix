@@ -484,6 +484,7 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           (''
           LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
           UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
+          LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
           if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
             osascript -l JavaScript <<EOF
               var app = Application.currentApplication();
@@ -491,17 +492,12 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
               app.displayNotification("$UPDATENIXPKGS", { withTitle: 'New nix channel updates' });
           EOF
 
-          '' + lib.optionalString (osConfig.machineInfo.hostname == "MacBook-Pro") 
-          ''
             IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
             if [ -n "$IMSGID" ]; then
-              osascript -l JavaScript <<EOF1
-                var msgApp = Application('Messages');
-                app.send("$UPDATENIXPKGS", { to: app.buddies.whose({ handle: "$IMSGID"})[0] });
+              osascript <<EOF1
+                tell application "Messages" to send "$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS" to buddy $IMSGID
           EOF1
             fi
-          '' +
-          ''
           fi
           echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
           '')
