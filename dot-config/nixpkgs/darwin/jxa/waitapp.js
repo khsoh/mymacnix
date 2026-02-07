@@ -34,7 +34,7 @@ function run(argv) {
             if (xproc.length > 0) {
                 return;
             }
-            $.NSThread.sleepForTimeInterval(1.0);
+            delay(1);
         } while (new Date() < endTime);
 
         console.log(`${XAPP} is not executing`);
