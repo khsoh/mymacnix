@@ -481,34 +481,30 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          ("
-          LASTUPDATENIXPKGS=\$(cat ~/log/detectNixUpdates.log 2>/dev/null)
-          UPDATENIXPKGS=\$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
-          if [ -n \"$UPDATENIXPKGS\" ] && [ \"$UPDATENIXPKGS\" != \"$LASTUPDATENIXPKGS\" ]; then
-            osascript -e \"display notification \\\"\${UPDATENIXPKGS}\\\" with title \\\"New nix channel updates\\\"\"
+          (''
+          LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
+          UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
+          if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+            osascript -l JavaScript <<EOF
+              var app = Application.currentApplication();
+              app.includeStandardAdditions = true;
+              app.displayNotification("$UPDATENIXPKGS", { withTitle: 'New nix channel updates' });
+          EOF
 
-            # COMMENTED OUT OPTION TO SEND MESSAGE VIA EMAIL
-            # osascript -e \"
-            #   set emailSubject to \\\"New nix channel updates\\\"
-            #   set emailBody to \\\"\${UPDATENIXPKGS}\\\"
-            #   tell application \\\"Mail\\\"
-            #     set newMessage to make new outgoing message with properties {subject:emailSubject, content:emailBody, visible:false}
-            #     tell newMessage
-            #       make new to recipient with properties {address:$IMSGID}
-            #     end tell
-            #
-            #     send newMessage
-            #   end tell
-            # \"
-          " + lib.optionalString (osConfig.machineInfo.hostname == "MacBook-Pro") "
-            IMSGID=\$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
-            if [ -n \"$IMSGID\" ]; then
-              osascript -e \"tell application \\\"Messages\\\" to send \\\"\${UPDATENIXPKGS}\\\" to buddy $IMSGID\"
+          '' + lib.optionalString (osConfig.machineInfo.hostname == "MacBook-Pro") 
+          ''
+            IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
+            if [ -n "$IMSGID" ]; then
+              osascript -l JavaScript <<EOF1
+                var msgApp = Application('Messages');
+                app.send("$UPDATENIXPKGS", { to: app.buddies.whose({ handle: "$IMSGID"})[0] });
+          EOF1
             fi
-          " + "
+          '' +
+          ''
           fi
-          echo \"$UPDATENIXPKGS\" > ~/log/detectNixUpdates.log
-          ")
+          echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
+          '')
           ];
         RunAtLoad = true;
         StartInterval = 60*20;
@@ -522,19 +518,33 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
         Label = "org.nixos.user.LoginStartTerminal";
         ProgramArguments = [
           "osascript"
-          "-e" "
-          try
-            tell application \"/Applications/Nix Apps/kitty.app\" to activate
-          on error errMsg number errNumber
-            log \"Error (\" & errNumber & \"): \" & errMsg
-            tell application \"Terminal\"
-              if not (exists window 1) then reopen
-              activate
-              set winID to id of window 1
-              do script \"tmux 2>/dev/null\" in window id winID
-            end tell
-          end try
-          "
+          "-l"
+          "JavaScript"
+          "-e"
+          ''
+          try {
+            // Use the path to target the specific Kitty installation
+            Application("/Applications/Nix Apps/kitty.app").activate();
+          } catch (err) {
+            // err contains the message;
+            console.log("Error: " + err?.message);
+
+            const terminal = Application("Terminal");
+
+            // Reopen Terminal if no windows exist
+            if (terminal.windows.length === 0) {
+              terminal.reopen();
+            }
+
+            terminal.activate();
+
+            // Get the ID of the front window
+            const winID = terminal.windows[0].id();
+
+            // Execute the command in that specific window
+            terminal.doScript("tmux 2>/dev/null", { in: terminal.windows.id(winID) });
+          }
+          ''
           ];
         RunAtLoad = true;
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.loginterm.log";
