@@ -496,13 +496,9 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
             if [ -n "$IMSGID" ]; then
               osascript -l JavaScript <<EOF1
                 const Messages = Application('Messages');
-                const mChats = Messages.chats.whose({ id: { _endsWith: $IMSGID } });
-
-                if (mChats) {
-                  const targetChat = mChats().find(c => c.participants().length == 1);
-                  if (targetChat) {
-                    Messages.send("$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS", { to: targetChat });
-                  }
+                const person = Messages.participants.whose({ handle: $IMSGID });
+                if (person.length > 0) {
+                  Messages.send("$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS", { to: person[0] });
                 }
           EOF1
             fi
