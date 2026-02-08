@@ -383,15 +383,15 @@ in {
         fi
 
         if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
-          # --- Fix macOS Launch Services for Nix Apps ---
-          # This forces macOS to recognize the app bundle immediately after rebuild
-          echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
-          $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
-
           # Reset permissions for kitty
           if [[ "$APP_NAME" == "kitty.app" ]]; then
             tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "/Applications/Nix Apps/$APP_NAME")"
           fi
+
+          # --- Fix macOS Launch Services for Nix Apps ---
+          # This forces macOS to recognize the app bundle immediately after rebuild
+          echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
+          $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
         fi
     ''
     ) (builtins.filter (p: (str: builtins.stringLength str > 0) (getMacAppName p)) config.environment.systemPackages)}
