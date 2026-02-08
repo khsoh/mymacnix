@@ -494,8 +494,16 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
 
             IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
             if [ -n "$IMSGID" ]; then
-              osascript <<EOF1
-                tell application "Messages" to send "$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS" to buddy $IMSGID
+              osascript -l JavaScript <<EOF1
+                const Messages = Application('Messages');
+                const mChats = Messages.chats.whose({ id: { _endsWith: $IMSGID } });
+
+                if (mChats) {
+                  const targetChat = mChats().find(c => c.participants().length == 1);
+                  if (targetChat) {
+                    Messages.send("$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS", { to: targetChat });
+                  }
+                }
           EOF1
             fi
           fi
