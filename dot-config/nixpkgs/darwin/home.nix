@@ -160,7 +160,7 @@ cd ~/github
 layout splits
 launch zsh
 launch --location hsplit zsh
-launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && resize_app kitty"
+launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && sleep 2 && resize_app kitty"
       '';
   };
   home.file.kittyBackdrop = {
