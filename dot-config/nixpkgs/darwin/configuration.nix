@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   # Declare primary user and home
   primaryUserInfo = import ./_user.nix;
@@ -7,7 +12,7 @@ let
   # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
   pkgs-pinned = import (builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/ed142ab.tar.gz";
-  }) {};
+  }) { };
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
@@ -20,15 +25,20 @@ let
   # a top-level nix package
   # a home-manager nix package
   # a homebrew installed package
-  nixAppInstalled = (name : builtins.elem name 
-    (builtins.map lib.getName config.environment.systemPackages));
-  hmNixAppInstalled = (name : builtins.elem name 
-    (builtins.map lib.getName config.home-manager.users.${primaryUserInfo.name}.home.packages));
-  brewAppInstalled = (name: builtins.elem name
-    (builtins.map (brew: if builtins.isAttrs brew then brew.name else brew)
-      (config.homebrew.brews ++ config.homebrew.casks ++ config.homebrew.whalebrews ++
-      (builtins.attrNames config.homebrew.masApps))
-    ));
+  pkgInstalled = pkg: builtins.elem pkg config.environment.systemPackages;
+  hmpkgInstalled =
+    pkg: builtins.elem pkg config.home-manager.users.${primaryUserInfo.name}.home.packages;
+
+  getName = item: if builtins.isAttrs item then item.name else item;
+  brewAppInstalled =
+    name:
+    (builtins.any (x: getName x == name) config.homebrew.brews)
+    # Check formulae
+    || (builtins.any (x: getName x == name) config.homebrew.casks)
+    # Check casks
+    || (builtins.any (x: getName x == name) config.homebrew.whalebrews)
+    # Check whalebrews
+    || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
 
   nixAppPath = "/Applications/Nix Apps";
   hmNixAppPath = "~/Applications/Home Manager Apps";
@@ -36,27 +46,31 @@ let
   ## Function to generate the path of the Mac App Bundle name from the nix package in the form of a list:
   # E.g. [ "/Applications/Nix Apps/abc.app" ].
   # It will return an empty list [] if no Mac App Bundle name is found.
-  getMacBundleAppName = pkg: topPath:
+  getMacBundleAppName =
+    pkg: topPath:
     let
       appsDir = "${pkg}/Applications";
-      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else {};
+      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
-    in builtins.map (a: "${topPath}/" + a) appNames;
-  getMacAppName = pkg:
+    in
+    builtins.map (a: "${topPath}/" + a) appNames;
+  getMacAppName =
+    pkg:
     let
       appsDir = "${pkg}/Applications";
-      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else {};
+      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
-    in if appNames == [] then "" else builtins.head appNames;
+    in
+    if appNames == [ ] then "" else builtins.head appNames;
 
-in {
-  imports = [ 
-    <home-manager/nix-darwin> 
+in
+{
+  imports = [
+    <home-manager/nix-darwin>
     <agenix/modules/age.nix>
     ./brews.nix
     ./machine.nix
-    ];
-
+  ];
 
   ######### Configuration of modules #########
 
@@ -70,58 +84,67 @@ in {
   home-manager.useUserPackages = true;
 
   ## Apply home-manager configuration for all users
-  home-manager.users = lib.attrsets.genAttrs
-    (builtins.map (o: o.name) hmUsers)
-    (_: import ./home.nix );
+  home-manager.users = lib.attrsets.genAttrs (builtins.map (o: o.name) hmUsers) (
+    _: import ./home.nix
+  );
 
   ##### end home-manager configuration
 
   ######### End configuration of modules #########
 
-
   ## The following is needed by home-manager to set the
   ##  home.username and home.homeDirectory attributes
-  users.users = builtins.listToAttrs
-    (builtins.map (o: { inherit (o) name; value = o; }) hmUsers);
+  users.users = builtins.listToAttrs (
+    builtins.map (o: {
+      inherit (o) name;
+      value = o;
+    }) hmUsers
+  );
 
-  fonts.packages = with pkgs;
-  [
+  fonts.packages = with pkgs; [
     nerd-fonts.fira-mono
   ];
 
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-    "1password-cli"
-    "1password"
-    "discord"
-    "google-chrome"
-  ];
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "1password-cli"
+      "1password"
+      "discord"
+      "google-chrome"
+    ];
   nixpkgs.config.permittedInsecurePackages = [
     "google-chrome-144.0.7559.97"
   ];
 
   # Setup user specific logfile rotation for all users
-  environment.etc = builtins.listToAttrs
-    (builtins.map (o: {
+  environment.etc = builtins.listToAttrs (
+    builtins.map (o: {
       name = "newsyslog.d/${o.name}.conf";
       value = {
         text = ''
           ${o.home}/log/*.log      644  5  1024  *  NJ
-          '';
-      }; }) hmUsers);
+        '';
+      };
+    }) hmUsers
+  );
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
-  environment.systemPackages = with pkgs;
-    [ vim
+  environment.systemPackages =
+    with pkgs;
+    [
+      vim
       neovim
       python3
-      (callPackage <agenix/pkgs/agenix.nix> {})
+      (callPackage <agenix/pkgs/agenix.nix> { })
 
       ### The following are for kickstart.nvim
       ripgrep
       unzip
       wget
       fd
+      nixfmt
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
@@ -146,7 +169,7 @@ in {
       rectangle
       _1password-cli
       _1password-gui
-### Sample demo to use overrideAttrs to embed a postPhase in the installation
+      ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];
       #   mypostrun = ''
@@ -158,7 +181,7 @@ in {
       cargo
       mupdf
       exiftool
-# The following packages are to support neovim-related builds
+      # The following packages are to support neovim-related builds
       go
       nodejs_22
 
@@ -170,15 +193,18 @@ in {
       zig
       btop
 
-# The following packages that could not be installed because these are marked as broken
+      # The following packages that could not be installed because these are marked as broken
       # handbrake
 
-# The following packages that could not be installed because these cannot be executed
+      # The following packages that could not be installed because these cannot be executed
       # _1password-gui
 
-    ] ++ lib.lists.flatten (lib.lists.optionals (!config.machineInfo.is_vm) [
-      kitty
-    ]);
+    ]
+    ++ lib.lists.flatten (
+      lib.lists.optionals (!config.machineInfo.is_vm) [
+        kitty
+      ]
+    );
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
@@ -191,7 +217,7 @@ in {
     serviceConfig = {
       # The Label is required for launchd
       Label = "org.nixos.makeRootChannelsPublic";
-      
+
       # ProgramArguments defines what command to run.
       # We use a shell command to execute all the steps sequentially.
       ProgramArguments = [
@@ -214,10 +240,10 @@ in {
       # or if a change is somehow missed, though WatchPaths is generally reliable.
       ThrottleInterval = 10;
 
-       # Run once when the daemon loads (at boot)
+      # Run once when the daemon loads (at boot)
       RunAtLoad = true;
       # Do not keep the process alive; launchd will restart it when the file changes
-      KeepAlive = false;     
+      KeepAlive = false;
     };
   };
 
@@ -227,7 +253,10 @@ in {
       # The Label is required for launchd
       Label = "org.nixos.darwin.generateMachineInfo";
       # Set 'exec' to the absolute path of the generated script in the Nix store
-      ProgramArguments = [ "/etc/nix-darwin/generate_machine_info.sh" "/etc/nix-darwin/machine-info.nix" ];
+      ProgramArguments = [
+        "/etc/nix-darwin/generate_machine_info.sh"
+        "/etc/nix-darwin/machine-info.nix"
+      ];
 
       # Monitor this file for modifications
       WatchPaths = [
@@ -247,34 +276,34 @@ in {
 
   # Setup aliases
   environment.interactiveShellInit = ''
-  alias nex="nix --extra-experimental-features nix-command"
-  alias nds="nix --extra-experimental-features nix-command derivation show"
-  alias enix="nix --extra-experimental-features nix-command"
-  alias nie="nix-instantiate --eval"
-  alias drb="sudo -H darwin-rebuild build"
-  alias drs="sudo -H darwin-rebuild switch"
-  alias drlg="sudo -H darwin-rebuild --list-generations"
-  alias ..="cd .."
-  ${pkgs.fastfetch}/bin/fastfetch
+    alias nex="nix --extra-experimental-features nix-command"
+    alias nds="nix --extra-experimental-features nix-command derivation show"
+    alias enix="nix --extra-experimental-features nix-command"
+    alias nie="nix-instantiate --eval"
+    alias drb="sudo -H darwin-rebuild build"
+    alias drs="sudo -H darwin-rebuild switch"
+    alias drlg="sudo -H darwin-rebuild --list-generations"
+    alias ..="cd .."
+    ${pkgs.fastfetch}/bin/fastfetch
   '';
 
   # Auto upgrade nix package
   nix.package = pkgs.nix;
 
   # Create /etc/zshrc that loads the nix-darwin environment.
-  programs.zsh.enable = true;  # default shell on catalina
+  programs.zsh.enable = true; # default shell on catalina
   # programs.fish.enable = true;
 
   programs.zsh.promptInit = ''
-  [[ -f ${./zshprompt} ]] && source ${./zshprompt}
+    [[ -f ${./zshprompt} ]] && source ${./zshprompt}
   '';
 
   # Create /etc/bashrc
   programs.bash.enable = true;
   programs.bash.interactiveShellInit = ''
-  [[ -f ${./bashprompt} ]] && source ${./bashprompt}
+    [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
-  
+
   #!!!! Removed by nix-darwin commit 1d9f622
   # # For /etc/hosts - do not publicize contents for security reasons
   # networking.hostFiles = [ "/etc/hosts.private" ];
@@ -295,7 +324,7 @@ in {
                                   /run/current-system/sw/bin/nix-collect-garbage ^--delete-older-than [0-9]+d$, \
                                   /run/current-system/sw/bin/nix-store --gc, \
                                   /usr/bin/sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db SELECT\ *\ FROM\ access*
-    '';
+  '';
 
   system.primaryUser = primaryUserInfo.name;
 
@@ -304,10 +333,12 @@ in {
     showMissionControlGestureEnabled = true;
     persistent-apps = [
       "/System/Applications/Apps.app"
-    ] ++
-      lib.lists.optionals (nixAppInstalled pkgs.kitty.pname) getMacBundleAppName pkgs.kitty nixAppPath ++
-      lib.lists.optionals (nixAppInstalled pkgs.google-chrome.pname) getMacBundleAppName pkgs.google-chrome nixAppPath ++
-      lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
+    ]
+    ++ lib.lists.optionals (pkgInstalled pkgs.kitty) getMacBundleAppName pkgs.kitty nixAppPath
+    ++
+      lib.lists.optionals (pkgInstalled pkgs.google-chrome) getMacBundleAppName pkgs.google-chrome
+        nixAppPath
+    ++ lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
   };
   system.defaults.trackpad = {
     TrackpadFourFingerPinchGesture = 2;
@@ -317,8 +348,8 @@ in {
     TrackpadThreeFingerDrag = true;
     TrackpadThreeFingerHorizSwipeGesture = 1;
   };
-##### Sample code for system.activationScripts.*.text - this is undocumented
-###     stuff from nix-darwin
+  ##### Sample code for system.activationScripts.*.text - this is undocumented
+  ###     stuff from nix-darwin
   # system.activationScripts.preActivation.text = ''
   #   if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
   #     echo "Installing Homebrew"
@@ -353,48 +384,56 @@ in {
     LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
     # --- Check each package in the new configuration
-    ${lib.concatMapStringsSep "\n" (pkg:
-      let
-        pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
-        appName = getMacAppName pkg;
-        newPath = "${pkg}";
-      in
+    ${lib.concatMapStringsSep "\n"
+      (
+        pkg:
+        let
+          pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
+          appName = getMacAppName pkg;
+          newPath = "${pkg}";
+        in
         ''
-        NEW_PATH="${newPath}"
-        APP_NAME="${appName}"
-        PKG_NAME="${pkgName}"
+          NEW_PATH="${newPath}"
+          APP_NAME="${appName}"
+          PKG_NAME="${pkgName}"
 
-        # Find the old path by looking for the package name in our map
-        OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
+          # Find the old path by looking for the package name in our map
+          OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
 
-        if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
-          printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
-          PRINT_HEADER=0
-        fi
-
-
-        if [ -z "$OLD_PATH" ]; then
-          printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
-          echo "  └─ $NEW_PATH"
-        elif [ "$OLD_PATH" != "$NEW_PATH" ]; then
-          printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
-          echo "  └─ OLD: $OLD_PATH"
-          echo "  └─ NEW: $NEW_PATH"
-        fi
-
-        if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
-          # Reset permissions for kitty
-          if [[ "$APP_NAME" == "kitty.app" ]]; then
-            tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "/Applications/Nix Apps/$APP_NAME")"
+          if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
+            printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
+            PRINT_HEADER=0
           fi
 
-          # --- Fix macOS Launch Services for Nix Apps ---
-          # This forces macOS to recognize the app bundle immediately after rebuild
-          echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
-          $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
-        fi
-    ''
-    ) (builtins.filter (p: (str: builtins.stringLength str > 0) (getMacAppName p)) config.environment.systemPackages)}
+
+          if [ -z "$OLD_PATH" ]; then
+            printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+            echo "  └─ $NEW_PATH"
+          elif [ "$OLD_PATH" != "$NEW_PATH" ]; then
+            printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+            echo "  └─ OLD: $OLD_PATH"
+            echo "  └─ NEW: $NEW_PATH"
+          fi
+
+          if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
+            # Reset permissions for kitty
+            if [[ "$APP_NAME" == "kitty.app" ]]; then
+              tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "/Applications/Nix Apps/$APP_NAME")"
+            fi
+
+            # --- Fix macOS Launch Services for Nix Apps ---
+            # This forces macOS to recognize the app bundle immediately after rebuild
+            echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
+            $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
+          fi
+        ''
+      )
+      (
+        builtins.filter (
+          p: (str: builtins.stringLength str > 0) (getMacAppName p)
+        ) config.environment.systemPackages
+      )
+    }
   '';
 
   # Used for backwards compatibility, please read the changelog before changing.

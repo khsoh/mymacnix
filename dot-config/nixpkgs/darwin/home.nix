@@ -1,4 +1,10 @@
-{ config, osConfig, pkgs, lib, ... }:
+{
+  config,
+  osConfig,
+  pkgs,
+  lib,
+  ...
+}:
 let
   homecfg = config.home;
   onepasscfg = config.onepassword;
@@ -9,11 +15,13 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  pkgInstalled = (name : builtins.elem name 
-    (lib.unique (builtins.map lib.getName (osConfig.environment.systemPackages ++ homecfg.packages))));
-  nixAppInstalled = (name : builtins.elem name 
-    (builtins.map lib.getName osConfig.environment.systemPackages));
-in {
+  pkgInstalled =
+    pkg:
+    (builtins.elem pkg osConfig.environment.systemPackages) || (builtins.elem pkg homecfg.packages);
+
+  gpkgInstalled = pkg: (builtins.elem pkg osConfig.environment.systemPackages);
+in
+{
   imports = [
     <agenix/modules/age-home.nix>
     ./usermod
@@ -32,19 +40,19 @@ in {
   age.secrets."armored-secrets.json" = {
     file = /. + "${config.xdg.configHome}/nixpkgs/secrets/armored-secrets.json.age";
 
-# path should be a string expression (in quotes), not a path expression
-# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    # path should be a string expression (in quotes), not a path expression
+    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
     path = "${config.xdg.configHome}/nix/armored-secrets.json";
 
-# The default is true if not specified.  We want to make sure that
-# the "file" (decrypted secret) is symlinked and not generated directly into
-# that location
+    # The default is true if not specified.  We want to make sure that
+    # the "file" (decrypted secret) is symlinked and not generated directly into
+    # that location
     symlink = true;
 
-# The following are needed to ensure the decrypted secret has the correct permission
+    # The following are needed to ensure the decrypted secret has the correct permission
     mode = "600";
 
-# Note that the owner and group attribute are absent from home-manager module
+    # Note that the owner and group attribute are absent from home-manager module
     #owner = "${username}";
     #group = "staff";
   };
@@ -53,19 +61,19 @@ in {
   age.secrets."mac-raise2.json" = {
     file = /. + "${config.xdg.configHome}/nixpkgs/secrets/mac-raise2.json.age";
 
-# path should be a string expression (in quotes), not a path expression
-# IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    # path should be a string expression (in quotes), not a path expression
+    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
     path = "${homecfg.homeDirectory}/Dygma/mac-raise2.json";
 
-# The default is true if not specified.  We want to make sure that
-# the "file" (decrypted secret) is symlinked and not generated directly into
-# that location
+    # The default is true if not specified.  We want to make sure that
+    # the "file" (decrypted secret) is symlinked and not generated directly into
+    # that location
     symlink = true;
 
-# The following are needed to ensure the decrypted secret has the correct permission
+    # The following are needed to ensure the decrypted secret has the correct permission
     mode = "600";
 
-# Note that the owner and group attribute are absent from home-manager module
+    # Note that the owner and group attribute are absent from home-manager module
     #owner = "${username}";
     #group = "staff";
   };
@@ -100,7 +108,7 @@ in {
         "${sshcfg.userssh_pubkey}"
         "${sshcfg.nixidssh_pubkey}"
       ]
-      '';
+    '';
 
   };
 
@@ -112,7 +120,7 @@ in {
     text = ''
       ${default_git_email} namespaces="git" ${sshcfg.userssh_pubkey}
       ${default_git_email} namespaces="git" ${sshcfg.nixidssh_pubkey}
-      '';
+    '';
   };
 
   home.file.tmux = {
@@ -124,8 +132,8 @@ in {
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "tmuxconf";
-      rev="cd93e8f43024f2527fd673f8397c99bd69497604";
-      sha256="sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
+      rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
+      sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
@@ -135,7 +143,7 @@ in {
   #   ## The defaults are commented out
   #
   #   # Enable kitty config if kitty is installed in Nix or homebrew
-  #   enable = pkgInstalled "kitty" ||
+  #   enable = pkgInstalled pkgs.kitty ||
   #     lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
   #
   #   target = "${config.xdg.configHome}/kitty";
@@ -151,22 +159,22 @@ in {
   # };
   home.file.kittyStartup = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = pkgInstalled "kitty" ||
-      lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
+    enable =
+      pkgInstalled pkgs.kitty || lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
 
     target = "${config.xdg.configHome}/kitty/startup.conf";
     text = ''
-cd ~/github
-layout splits
-launch zsh
-launch --location hsplit zsh
-launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && sleep 2 && resize_app kitty"
-      '';
+      cd ~/github
+      layout splits
+      launch zsh
+      launch --location hsplit zsh
+      launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && sleep 2 && resize_app kitty"
+    '';
   };
   home.file.kittyBackdrop = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = pkgInstalled "kitty" ||
-      lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
+    enable =
+      pkgInstalled pkgs.kitty || lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
     target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
     source = ./totoro-dimmed.jpeg;
   };
@@ -179,8 +187,8 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev="52e7d1c81fc9241973bfff6fc16cfa34175270b8";
-      sha256="sha256-axmOvvewLPM6nXhByptdw3B8A9o+1ng3hD4kmN9muqw=";
+      rev = "54ce86388b59980cae7892892b9b924fc918bd74";
+      sha256 = "sha256-TcTV8GijzlgrBC2ThhuT+mvUpDFhT18VSFVBQ3ci86Q=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
@@ -202,7 +210,7 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
       LANG = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
-    };  # Written to start of .profile
+    }; # Written to start of .profile
 
     # Written to end of .profile
     profileExtra = builtins.readFile ./bash/profile-extra;
@@ -238,44 +246,47 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
   };
 
   ### Enable ssh configuration
-  programs.ssh = if onepasscfg.sshsign_pgm_present then
-    {
-      enable = true;
-      enableDefaultConfig = false;
-      matchBlocks."*" = {
-        addKeysToAgent = "no";
-        forwardAgent = false;
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+  programs.ssh =
+    if onepasscfg.sshsign_pgm_present then
+      {
+        enable = true;
+        enableDefaultConfig = false;
+        matchBlocks."*" = {
+          addKeysToAgent = "no";
+          forwardAgent = false;
+          compression = false;
+          serverAliveInterval = 0;
+          serverAliveCountMax = 3;
+          hashKnownHosts = false;
+          userKnownHostsFile = "~/.ssh/known_hosts";
+          controlMaster = "no";
+          controlPath = "~/.ssh/master-%r@%n:%p";
+          controlPersist = "no";
+        };
+        extraConfig = ''
+          IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        '';
+      }
+    else
+      {
+        enable = true;
+        enableDefaultConfig = false;
+        matchBlocks."*" = {
+          addKeysToAgent = "yes";
+          forwardAgent = false;
+          compression = false;
+          serverAliveInterval = 0;
+          serverAliveCountMax = 3;
+          hashKnownHosts = false;
+          userKnownHostsFile = "~/.ssh/known_hosts";
+          controlMaster = "no";
+          controlPath = "~/.ssh/master-%r@%n:%p";
+          controlPersist = "no";
+        };
+        extraConfig = ''
+          IdentityFile ${sshcfg.NIXIDPKFILE}
+        '';
       };
-      extraConfig = ''
-        IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-      '';
-    } else {
-      enable = true;
-      enableDefaultConfig = false;
-      matchBlocks."*" = {
-        addKeysToAgent = "yes";
-        forwardAgent = false;
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
-      };
-      extraConfig = ''
-        IdentityFile ${sshcfg.NIXIDPKFILE}
-      '';
-    };
 
   ### Enable git configuration
   programs.git = {
@@ -300,16 +311,21 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
         };
       };
-      rerere = { enabled = true; };
-      rebase = { updateRefs = true; };
+      rerere = {
+        enabled = true;
+      };
+      rebase = {
+        updateRefs = true;
+      };
 
-      credential = {} // 
-        lib.optionalAttrs ghcfg.enable {
+      credential =
+        { }
+        // lib.optionalAttrs ghcfg.enable {
           "https://github.com" = {
             username = ghcfg.username;
           };
-        } // 
-        lib.optionalAttrs glcfg.enable {
+        }
+        // lib.optionalAttrs glcfg.enable {
           "https://gitlab.com" = {
             username = glcfg.username;
           };
@@ -318,56 +334,78 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
 
     includes = [
     ]
-    ++ lib.lists.optionals (ghcfg.enable && 
-        builtins.stringLength ghcfg.noreply_email > 0 &&
-        ghcfg.noreply_email != config.programs.git.userEmail)
-    [
-      #### The following specify noreply email for github repos
-      {
-        condition = "hasconfig:remote.*.url:git@github.com:*/**";
-        contents = {
-          user = { email = ghcfg.noreply_email; };
-        };
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://github.com/**";
-        contents = {
-          user = { email = ghcfg.noreply_email; };
-        };
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://*@github.com/**";
-        contents = {
-          user = { email = ghcfg.noreply_email; };
-        };
-      }
-    ]
-    ++ lib.lists.optionals (glcfg.enable && 
-        builtins.stringLength glcfg.noreply_email > 0 &&
-        glcfg.noreply_email != config.programs.git.userEmail)
-    [
-      #### The following specify noreply email for gitlab repos
-      {
-        condition = "hasconfig:remote.*.url:git@gitlab.com:*/**";
-        contents = {
-          user = { email = glcfg.noreply_email; };
-        };
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://gitlab.com/**";
-        contents = {
-          user = { email = glcfg.noreply_email; };
-        };
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://*@gitlab.com/**";
-        contents = {
-          user = { email = glcfg.noreply_email; };
-        };
-      }
-    ];
+    ++
+      lib.lists.optionals
+        (
+          ghcfg.enable
+          && builtins.stringLength ghcfg.noreply_email > 0
+          && ghcfg.noreply_email != config.programs.git.userEmail
+        )
+        [
+          #### The following specify noreply email for github repos
+          {
+            condition = "hasconfig:remote.*.url:git@github.com:*/**";
+            contents = {
+              user = {
+                email = ghcfg.noreply_email;
+              };
+            };
+          }
+          {
+            condition = "hasconfig:remote.*.url:https://github.com/**";
+            contents = {
+              user = {
+                email = ghcfg.noreply_email;
+              };
+            };
+          }
+          {
+            condition = "hasconfig:remote.*.url:https://*@github.com/**";
+            contents = {
+              user = {
+                email = ghcfg.noreply_email;
+              };
+            };
+          }
+        ]
+    ++
+      lib.lists.optionals
+        (
+          glcfg.enable
+          && builtins.stringLength glcfg.noreply_email > 0
+          && glcfg.noreply_email != config.programs.git.userEmail
+        )
+        [
+          #### The following specify noreply email for gitlab repos
+          {
+            condition = "hasconfig:remote.*.url:git@gitlab.com:*/**";
+            contents = {
+              user = {
+                email = glcfg.noreply_email;
+              };
+            };
+          }
+          {
+            condition = "hasconfig:remote.*.url:https://gitlab.com/**";
+            contents = {
+              user = {
+                email = glcfg.noreply_email;
+              };
+            };
+          }
+          {
+            condition = "hasconfig:remote.*.url:https://*@gitlab.com/**";
+            contents = {
+              user = {
+                email = glcfg.noreply_email;
+              };
+            };
+          }
+        ];
 
-    lfs = { enable = true; };
+    lfs = {
+      enable = true;
+    };
     ##### THE FOLLOWING IS GENERATED BY lfs.enable = true
     # [filter "lfs"]
     #    clean = "git-lfs clean -- %f"
@@ -379,15 +417,16 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
       format = "ssh";
       key = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey;
       signByDefault = true;
-    } // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
+    }
+    // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
       signer = onepasscfg.SSHSIGN_PROGRAM;
     };
 
   };
 
   programs.kitty = {
-    enable = true;
-    package = lib.mkIf (nixAppInstalled "kitty") null;
+    enable = gpkgInstalled pkgs.kitty;
+    package = lib.mkIf (gpkgInstalled pkgs.kitty) null;
     font = {
       name = "FiraMono Nerd Font Mono";
       size = 18;
@@ -441,8 +480,8 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
     };
     settings = {
       bold_font = "auto";
-      italic_font  = "auto";
-      bold_italic_font  = "auto";
+      italic_font = "auto";
+      bold_italic_font = "auto";
       inactive_text_alpha = 0.5;
       background_opacity = 0.85;
       background_blur = 20;
@@ -482,45 +521,45 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           "-l"
           "-c"
           ''
-          LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
-          UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
-          LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-          if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
-            export UPDATENIXPKGS
-            osascript -l JavaScript <<EOF
-              var app = Application.currentApplication();
-              app.includeStandardAdditions = true;
-              var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
+            LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
+            UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
+            LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+            if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+              export UPDATENIXPKGS
+              osascript -l JavaScript <<EOF
+                var app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+                var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
 
-              updateText = updateText ? String(updateText) : "No updates found";
+                updateText = updateText ? String(updateText) : "No updates found";
 
-              app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
-          EOF
+                app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
+            EOF
 
-            IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
-            if [ -n "$IMSGID" ]; then
-              MSGSTR=$(cat <<MYMSG
-          $LOCALHOSTNAME nix-channel updates:
-          $UPDATENIXPKGS
-          MYMSG
-          )
-              export MSGSTR
-              osascript -l JavaScript <<EOF1
-                const Messages = Application('Messages');
-                const person = Messages.participants.whose({ handle: $IMSGID });
-                if (person.length > 0) {
-                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
-                  updateText = updateText ? String(updateText) : "No updates found";
-                  Messages.send(updateText, { to: person[0] });
-                }
-          EOF1
+              IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
+              if [ -n "$IMSGID" ]; then
+                MSGSTR=$(cat <<MYMSG
+            $LOCALHOSTNAME nix-channel updates:
+            $UPDATENIXPKGS
+            MYMSG
+            )
+                export MSGSTR
+                osascript -l JavaScript <<EOF1
+                  const Messages = Application('Messages');
+                  const person = Messages.participants.whose({ handle: $IMSGID });
+                  if (person.length > 0) {
+                    var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
+                    updateText = updateText ? String(updateText) : "No updates found";
+                    Messages.send(updateText, { to: person[0] });
+                  }
+            EOF1
+              fi
             fi
-          fi
-          echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
+            echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
           ''
-          ];
+        ];
         RunAtLoad = true;
-        StartInterval = 60*20;
+        StartInterval = 60 * 20;
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
       };
@@ -535,30 +574,30 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           "JavaScript"
           "-e"
           ''
-          try {
-            // Use the path to target the specific Kitty installation
-            Application("/Applications/Nix Apps/kitty.app").activate();
-          } catch (err) {
-            // err contains the message;
-            console.log("Error: " + err?.message);
+            try {
+              // Use the path to target the specific Kitty installation
+              Application("/Applications/Nix Apps/kitty.app").activate();
+            } catch (err) {
+              // err contains the message;
+              console.log("Error: " + err?.message);
 
-            const terminal = Application("Terminal");
+              const terminal = Application("Terminal");
 
-            // Reopen Terminal if no windows exist
-            if (terminal.windows.length === 0) {
-              terminal.reopen();
+              // Reopen Terminal if no windows exist
+              if (terminal.windows.length === 0) {
+                terminal.reopen();
+              }
+
+              terminal.activate();
+
+              // Get the ID of the front window
+              const winID = terminal.windows[0].id();
+
+              // Execute the command in that specific window
+              terminal.doScript("tmux 2>/dev/null", { in: terminal.windows.id(winID) });
             }
-
-            terminal.activate();
-
-            // Get the ID of the front window
-            const winID = terminal.windows[0].id();
-
-            // Execute the command in that specific window
-            terminal.doScript("tmux 2>/dev/null", { in: terminal.windows.id(winID) });
-          }
           ''
-          ];
+        ];
         RunAtLoad = true;
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.loginterm.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.logintermError.log";
@@ -598,9 +637,12 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
            >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
            >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
            >&2 echo \"Completed TPM plugin updates\"
-          "];
+          "
+        ];
         RunAtLoad = true;
-        KeepAlive = { SuccessfulExit = false; };
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdate.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdateError.log";
       };
@@ -618,9 +660,11 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           ${pkgs.neovim}/bin/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" 
           >&2 echo \"\"
           "
-          ];
+        ];
         RunAtLoad = true;
-        KeepAlive = { SuccessfulExit = false; };
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
         StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdate.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateError.log";
       };
@@ -631,4 +675,3 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
   # originally installed.
   home.stateVersion = "26.05";
 }
-
