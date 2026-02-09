@@ -499,7 +499,11 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
 
             IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
             if [ -n "$IMSGID" ]; then
-              MSGSTR="$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS"
+              MSGSTR=$(cat <<MYMSG
+          $LOCALHOSTNAME nix-channel updates:
+          $UPDATENIXPKGS
+          MYMSG
+          )
               export MSGSTR
               osascript -l JavaScript <<EOF1
                 const Messages = Application('Messages');
