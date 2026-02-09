@@ -20,6 +20,10 @@ let
     (builtins.elem pkg osConfig.environment.systemPackages) || (builtins.elem pkg homecfg.packages);
 
   gpkgInstalled = pkg: (builtins.elem pkg osConfig.environment.systemPackages);
+
+  # Check if homebrew cask installed
+  getName = item: if builtins.isAttrs item then item.name else item;
+  caskInstalled = name: (builtins.any (x: getName x == name) osConfig.homebrew.casks);
 in
 {
   imports = [
@@ -143,9 +147,7 @@ in
   #   ## The defaults are commented out
   #
   #   # Enable kitty config if kitty is installed in Nix or homebrew
-  #   enable = pkgInstalled pkgs.kitty ||
-  #     lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
-  #
+  #   enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
   #   target = "${config.xdg.configHome}/kitty";
   #   #source = ../kitty;
   #   source = pkgs.fetchFromGitHub {
@@ -159,8 +161,7 @@ in
   # };
   home.file.kittyStartup = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable =
-      pkgInstalled pkgs.kitty || lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
+    enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
 
     target = "${config.xdg.configHome}/kitty/startup.conf";
     text = ''
@@ -173,8 +174,7 @@ in
   };
   home.file.kittyBackdrop = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable =
-      pkgInstalled pkgs.kitty || lib.lists.any (cask: cask.name == "kitty") osConfig.homebrew.casks;
+    enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
     target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
     source = ./totoro-dimmed.jpeg;
   };
