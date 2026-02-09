@@ -481,30 +481,39 @@ launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLi
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          (''
+          ''
           LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
           UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
           LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
           if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+            export UPDATENIXPKGS
             osascript -l JavaScript <<EOF
               var app = Application.currentApplication();
               app.includeStandardAdditions = true;
-              app.displayNotification("$UPDATENIXPKGS", { withTitle: 'New nix channel updates' });
+              var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
+
+              updateText = updateText ? String(updateText) : "No updates found";
+
+              app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
           EOF
 
             IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
             if [ -n "$IMSGID" ]; then
+              MSGSTR="$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS"
+              export MSGSTR
               osascript -l JavaScript <<EOF1
                 const Messages = Application('Messages');
                 const person = Messages.participants.whose({ handle: $IMSGID });
                 if (person.length > 0) {
-                  Messages.send("$LOCALHOSTNAME nix-channel updates:\n$UPDATENIXPKGS", { to: person[0] });
+                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
+                  updateText = updateText ? String(updateText) : "No updates found";
+                  Messages.send(updateText, { to: person[0] });
                 }
           EOF1
             fi
           fi
           echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
-          '')
+          ''
           ];
         RunAtLoad = true;
         StartInterval = 60*20;
