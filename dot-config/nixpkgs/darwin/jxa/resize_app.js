@@ -33,17 +33,39 @@ function run(argv) {
         return;
     }
 
+    var app = Application.currentApplication();
+    app.includeStandardAdditions = true;
+    var bootTime = app.doShellScript('sysctl -n kern.boottime | awk \'{print $4}\' | tr -d ,');
+    var now = 0;
+    var secondsSinceBoot = 0;
+    var xproc = null;
+    var found = false;
+
     const XID = Application(XAPP).id();
     var sys = Application('System Events');
-    var xproc = sys.processes.whose({ bundleIdentifier: XID });
-    if (xproc.length == 0) {
-        // Cannot find process
-        console.log(`${new Date()}: Failed to find process for app ${XAPP} with id ${XID}`);
-        return;
+    while (secondsSinceBoot < 150) {
+        xproc = sys.processes.whose({ bundleIdentifier: XID });
+
+        now = Math.floor(Date.now() / 1000);
+        secondsSinceBoot = now - parseInt(bootTime);
+        console.log(`Uptime : ${secondsSinceBoot} seconds`);
+
+        if (xproc.length == 0) {
+            // Cannot find process
+            console.log(`${new Date()}: Failed to find process for app ${XAPP} with id ${XID}`);
+            delay(1);
+            continue;
+        }
+        if (xproc[0].windows.length == 0) {
+            // Cannot find its window
+            console.log(`${new Date()}: Failed to find windows for app ${XAPP} with id ${XID}`);
+            delay(1);
+            continue;
+        }
+        found = true;
+        break;
     }
-    if (xproc[0].windows.length == 0) {
-        // Cannot find its window
-        console.log(`${new Date()}: Failed to find windows for app ${XAPP} with id ${XID}`);
+    if (!found) {
         return;
     }
     xproc[0].windows[0].position = [TOPLEFTX, TOPLEFTY];
