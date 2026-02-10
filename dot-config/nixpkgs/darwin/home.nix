@@ -169,7 +169,7 @@ in
       layout splits
       launch zsh
       launch --location hsplit zsh
-      launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && sleep 2 && resize_app kitty"
+      launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty"
     '';
   };
   home.file.kittyBackdrop = {
