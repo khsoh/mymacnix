@@ -52,7 +52,7 @@ function run(argv) {
     var xproc = sys.processes.whose({ bundleIdentifier: XID });
     if (xproc.length == 0 || xproc[0].windows.length == 0) {
         // Cannot find process or its window
-        console.log(`${new Date()}: Failed to find process`);
+        console.log(`${new Date()}: Failed to find process for app ${XAPP} with id ${XID}`);
         return;
     }
     xproc[0].windows[0].position = [TOPLEFTX, TOPLEFTY];
