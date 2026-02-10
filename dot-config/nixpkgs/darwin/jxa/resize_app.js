@@ -11,6 +11,7 @@
 
 ObjC.import('AppKit');
 ObjC.import('Foundation');
+ObjC.import('CoreGraphics');
 
 function run(argv) {
     const XAPP = argv.length == 0 ? "Terminal" : argv[0];
@@ -21,49 +22,29 @@ function run(argv) {
     var botrx = 0;
     var botry = 0;
 
-    var app = Application.currentApplication();
-    app.includeStandardAdditions = true;
+    // Define max displays to fetch
+    var maxDisplays = 32;
+    var activeDisplays = Ref(); // JXA's native way to handle pointers
+    var displayCount = Ref();
 
-    // 2. Run the shell script and store the JSON string result
-    var jsonString = app.doShellScript("system_profiler SPDisplaysDataType -json");
+    // Pass references to the native C function
+    // This populates 'activeDisplays' with an array of IDs
+    $.CGGetActiveDisplayList(maxDisplays, activeDisplays, displayCount);
 
-    // 3. Parse the JSON string into a native JavaScript object
-    var jsonRecord = JSON.parse(jsonString);
-
-    // 4. Access the specific property (SPDisplaysDataType)
-    var spdisplays = jsonRecord.SPDisplaysDataType;
-
-    // To get the number of displays (counting items in the array)
-    var displayCount = spdisplays.length;
-
-    if (displayCount > 0) {
-        // This segment for handling multiple displays
-        const fdispdrv = spdisplays[0].spdisplays_ndrvs.find(d => d?.spdisplays_main == "spdisplays_yes");
-        if (!fdispdrv) {
-            return;
+    for (var i = 0; i < displayCount[0]; i++) {
+        var dID = activeDisplays[i];
+        if ($.CGDisplayIsMain(dID) != 1) {
+            continue;
         }
-        const dispres = fdispdrv._spdisplays_resolution.match(/(\d+)\s+x\s+(\d+)/);
-        botrx = parseInt(parseInt(dispres[1]) * XFRACTION);
-        botry = parseInt(parseInt(dispres[2]) * YFRACTION);
+        botrx = parseInt($.CGDisplayPixelsWide(dID) * XFRACTION);
+        botry = parseInt($.CGDisplayPixelsHigh(dID) * YFRACTION);
         const theMenuBarHeight = $.NSMenu.menuBarHeight;
 
         TOPLEFTY = theMenuBarHeight + 1 + TOPLEFTY;
-        const Finder = Application("Finder");
-
-        // 2. Get the bounds [left, top, right, bottom]
-        const terminalSize = Finder.desktop.window.bounds();
-    } else {
-        // 1. Initialize Finder
-        const Finder = Application("Finder");
-
-        // 2. Get the bounds { x, y, width, height }
-        const terminalSize = Finder.desktop.window.bounds();
-
-        // 3. Perform the calculations
-        TOPLEFTX = terminalSize.x;
-        TOPLEFTY = Math.floor(terminalSize.y + 1 + TOPLEFTY);
-        botrx    = Math.floor(terminalSize.width * XFRACTION);
-        botry    = Math.floor(terminalSize.height * YFRACTION);
+    }
+    if (botrx == 0) {
+        console.log("Failed to find monitor");
+        return;
     }
 
     const XID = Application(XAPP).id();
@@ -71,9 +52,11 @@ function run(argv) {
     var xproc = sys.processes.whose({ bundleIdentifier: XID });
     if (xproc.length == 0 || xproc[0].windows.length == 0) {
         // Cannot find process or its window
+        console.log(`${new Date()}: Failed to find process`);
         return;
     }
     xproc[0].windows[0].position = [TOPLEFTX, TOPLEFTY];
     xproc[0].windows[0].size = [botrx, botry];
+    console.log(`${new Date()}: Found ${XAPP} process to resize`);
 }
 
