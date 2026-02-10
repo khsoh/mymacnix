@@ -24,8 +24,9 @@ function run(argv) {
 
     // Define max displays to fetch
     var maxDisplays = 32;
-    var activeDisplays = Ref(); // JXA's native way to handle pointers
+    var activeDisplays = new Uint32Array(maxDisplays); // JXA's native way to handle pointers
     var displayCount = Ref();
+    var mainID = 0;
 
     // Pass references to the native C function
     // This populates 'activeDisplays' with an array of IDs
@@ -36,11 +37,9 @@ function run(argv) {
         if ($.CGDisplayIsMain(dID) != 1) {
             continue;
         }
+        mainID = dID;
         botrx = parseInt($.CGDisplayPixelsWide(dID) * XFRACTION);
         botry = parseInt($.CGDisplayPixelsHigh(dID) * YFRACTION);
-        const theMenuBarHeight = $.NSMenu.menuBarHeight;
-
-        TOPLEFTY = theMenuBarHeight + 1 + TOPLEFTY;
     }
     if (botrx == 0) {
         console.log("Failed to find monitor");
@@ -50,13 +49,18 @@ function run(argv) {
     const XID = Application(XAPP).id();
     var sys = Application('System Events');
     var xproc = sys.processes.whose({ bundleIdentifier: XID });
-    if (xproc.length == 0 || xproc[0].windows.length == 0) {
-        // Cannot find process or its window
+    if (xproc.length == 0) {
+        // Cannot find process
         console.log(`${new Date()}: Failed to find process for app ${XAPP} with id ${XID}`);
+        return;
+    }
+    if (xproc[0].windows.length == 0) {
+        // Cannot find its window
+        console.log(`${new Date()}: Failed to find windows for app ${XAPP} with id ${XID}`);
         return;
     }
     xproc[0].windows[0].position = [TOPLEFTX, TOPLEFTY];
     xproc[0].windows[0].size = [botrx, botry];
-    console.log(`${new Date()}: Found ${XAPP} process to resize`);
+    console.log(`${new Date()}: Found ${XAPP} process to resize on display ${mainID} to ${botrx} x ${botry} pixels at ${TOPLEFTX}, ${TOPLEFTY}`);
 }
 
