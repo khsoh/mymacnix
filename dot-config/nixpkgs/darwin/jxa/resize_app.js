@@ -11,7 +11,6 @@
 
 ObjC.import('AppKit');
 ObjC.import('Foundation');
-ObjC.import('CoreGraphics');
 
 function run(argv) {
     const XAPP = argv.length == 0 ? "Terminal" : argv[0];
@@ -23,24 +22,12 @@ function run(argv) {
     var botry = 0;
 
     // Define max displays to fetch
-    var maxDisplays = 32;
-    var activeDisplays = new Uint32Array(maxDisplays); // JXA's native way to handle pointers
-    var displayCount = Ref();
-    var mainID = 0;
+    const screens = $.NSScreen.screens.js;
 
-    // Pass references to the native C function
-    // This populates 'activeDisplays' with an array of IDs
-    $.CGGetActiveDisplayList(maxDisplays, activeDisplays, displayCount);
+    // Primary display is always at index 0
+    botrx = parseInt(screens[0].frame.size.width * XFRACTION);
+    botry = parseInt(screens[0].frame.size.height * YFRACTION);
 
-    for (var i = 0; i < displayCount[0]; i++) {
-        var dID = activeDisplays[i];
-        if ($.CGDisplayIsMain(dID) != 1) {
-            continue;
-        }
-        mainID = dID;
-        botrx = parseInt($.CGDisplayPixelsWide(dID) * XFRACTION);
-        botry = parseInt($.CGDisplayPixelsHigh(dID) * YFRACTION);
-    }
     if (botrx == 0) {
         console.log("Failed to find monitor");
         return;
@@ -61,6 +48,6 @@ function run(argv) {
     }
     xproc[0].windows[0].position = [TOPLEFTX, TOPLEFTY];
     xproc[0].windows[0].size = [botrx, botry];
-    console.log(`${new Date()}: Found ${XAPP} process to resize on display ${mainID} to ${botrx} x ${botry} pixels at ${TOPLEFTX}, ${TOPLEFTY}`);
+    console.log(`${new Date()}: Found ${XAPP} process to resize on primary display to ${botrx} x ${botry} pixels at ${TOPLEFTX}, ${TOPLEFTY}`);
 }
 
