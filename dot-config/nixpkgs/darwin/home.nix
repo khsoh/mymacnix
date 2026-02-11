@@ -176,7 +176,13 @@ in
     # Enable kitty config if kitty is installed in Nix or homebrew
     enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
     target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
-    source = ./totoro-dimmed.jpeg;
+    source = ./kitty/totoro-dimmed.jpeg;
+  };
+  home.file.kitty_tabbar_py = {
+    # Enable kitty config if kitty is installed in Nix or homebrew
+    enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
+    target = "${config.xdg.configHome}/kitty/tab_bar.py";
+    source = ./kitty/tab_bar.py;
   };
 
   home.file.nvim = {
