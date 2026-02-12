@@ -508,6 +508,9 @@ in
 
       startup_session = "startup.conf";
     };
+    extraConfig = ''
+      scrollback_pager sh -c "FILE=$(mktemp /tmp/kitty_scrollback.XXXXXX) && chmod 600 \$FILE && ${pkgs.neovim}/bin/nvim --noplugin -c 'set clipboard=unnamedplus signcolumn=no showtabline=0' -c \"silent write! \$FILE | te cat \$FILE\" -c 'autocmd VimLeave * silent! !rm \$FILE'"
+    '';
     shellIntegration = {
       enableZshIntegration = true;
     };
