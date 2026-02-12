@@ -196,9 +196,6 @@ in
       # The following packages that could not be installed because these are marked as broken
       # handbrake
 
-      # The following packages that could not be installed because these cannot be executed
-      # _1password-gui
-
     ]
     ++ lib.lists.flatten (
       lib.lists.optionals (!config.machineInfo.is_vm) [
