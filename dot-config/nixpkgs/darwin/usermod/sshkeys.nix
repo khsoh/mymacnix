@@ -3,11 +3,23 @@ let
   homeDir = config.home.homeDirectory;
   sshcfg = config.sshkeys;
 
-  read_pubkey = (filepresent: pubkeyfile: lib.mkMerge [ (lib.mkIf filepresent (builtins.concatStringsSep " "
-      (lib.lists.take 2 (builtins.filter (e: !(builtins.isList e))
-        (builtins.split "[[:space:]\n]+" (builtins.readFile pubkeyfile))))))
-    (lib.mkIf (!filepresent) "")]);
-in {
+  read_pubkey = (
+    filepresent: pubkeyfile:
+    lib.mkMerge [
+      (lib.mkIf filepresent (
+        builtins.concatStringsSep " " (
+          lib.lists.take 2 (
+            builtins.filter (e: !(builtins.isList e)) (
+              builtins.split "[[:space:]\n]+" (builtins.readFile pubkeyfile)
+            )
+          )
+        )
+      ))
+      (lib.mkIf (!filepresent) "")
+    ]
+  );
+in
+{
   ## SSH private and public keys for the user and Nix
   # It is possible to build system without a user private keyfile.
   # This is to build for systems running on a VM - so that the
@@ -22,7 +34,7 @@ in {
   # The options <*>file_present are readOnly flags to indicate whether
   # the specified key files are present.
   # The options check_<*>file are user flags to indicate whether
-  # the specified key files must be present for the system to build 
+  # the specified key files must be present for the system to build
   # successfully.
   options.sshkeys = {
 
@@ -91,7 +103,6 @@ in {
     };
   };
 
-
   config.sshkeys = {
     userpkfile_present = builtins.pathExists sshcfg.USERPKFILE;
     userpubfile_present = builtins.pathExists sshcfg.USERPUBFILE;
@@ -105,17 +116,22 @@ in {
   ## Setup checks and asserts for the SSH private and public key files based on
   ## user configuration
   config.assertions = [
-    { assertion = (!sshcfg.check_userpkfile) || (builtins.pathExists sshcfg.USERPKFILE);
+    {
+      assertion = (!sshcfg.check_userpkfile) || (builtins.pathExists sshcfg.USERPKFILE);
       message = "The user ssh private key file ${sshcfg.USERPKFILE} is absent - this file must be present to build";
     }
-    { assertion = (!sshcfg.check_userpubfile) || (builtins.pathExists sshcfg.USERPUBFILE);
+    {
+      assertion = (!sshcfg.check_userpubfile) || (builtins.pathExists sshcfg.USERPUBFILE);
       message = "The user ssh public key file ${sshcfg.USERPUBFILE} is absent - this file must be present to build";
     }
-    { assertion = (!sshcfg.check_nixidpkfile) || (builtins.pathExists sshcfg.NIXIDPKFILE);
+    {
+      assertion = (!sshcfg.check_nixidpkfile) || (builtins.pathExists sshcfg.NIXIDPKFILE);
       message = "The NIXID ssh private key file ${sshcfg.NIXIDPKFILE} is absent - this file must be present to build";
     }
-    { assertion = (!sshcfg.check_nixidpubfile) || (builtins.pathExists sshcfg.NIXIDPUBFILE);
+    {
+      assertion = (!sshcfg.check_nixidpubfile) || (builtins.pathExists sshcfg.NIXIDPUBFILE);
       message = "The NIXID ssh public key file ${sshcfg.NIXIDPUBFILE} is absent - this file must be present to build";
     }
   ];
 }
+# vim: set ts=2 sw=2 et ft=nix:

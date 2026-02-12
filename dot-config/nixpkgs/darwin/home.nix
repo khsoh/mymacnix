@@ -684,3 +684,4 @@ in
   # originally installed.
   home.stateVersion = "26.05";
 }
+# vim: set ts=2 sw=2 et ft=nix:

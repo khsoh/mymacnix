@@ -32,3 +32,4 @@
   # gitlab.enable = true;   # Default
   # gitlab.noreply_email is assigned to global config email if not specified
 }
+# vim: set ts=2 sw=2 et ft=nix:

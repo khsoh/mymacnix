@@ -1,6 +1,7 @@
 let
   pubkeys = import ./pubkeys.nix;
-in {
+in
+{
   "armored-secrets.json.age" = {
     publicKeys = pubkeys;
     armor = true;
@@ -10,3 +11,4 @@ in {
     armor = true;
   };
 }
+# vim: set ts=2 sw=2 et ft=nix:

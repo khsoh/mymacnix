@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   HOMEDIR = "/Users/${config.system.primaryUser}";
   CaskMasDir = "${HOMEDIR}/.config/CaskMasApps/";
@@ -26,23 +31,33 @@ let
   CaskInstalled = (n: builtins.pathExists (CASKROOM + "/${n}"));
 
   ## Formulae to install
-  FORMULAE = if builtins.pathExists formulaenix then
-    import formulaenix ++ import commonformulaenix
-  else [];
+  FORMULAE =
+    if builtins.pathExists formulaenix then import formulaenix ++ import commonformulaenix else [ ];
 
   ## Casks are machine dependent
-  USERCASKS = if (!config.machineInfo.is_vm) && builtins.pathExists casksnix then
-    import casksnix ++ import commoncasksnix
-  else import defaultcasksnix;
+  USERCASKS =
+    if (!config.machineInfo.is_vm) && builtins.pathExists casksnix then
+      import casksnix ++ import commoncasksnix
+    else
+      import defaultcasksnix;
 
-  MASAPPS = if (!config.machineInfo.is_vm) && builtins.pathExists masappsnix then
-    lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
-  else import defaultmasappsnix;
+  MASAPPS =
+    if (!config.machineInfo.is_vm) && builtins.pathExists masappsnix then
+      lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
+    else
+      import defaultmasappsnix;
 
-  caskOptions = [ "name" "args" "greedy" ];
-  BrewCask = (casks:
-    builtins.map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e)
-    (builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks));
+  caskOptions = [
+    "name"
+    "args"
+    "greedy"
+  ];
+  BrewCask = (
+    casks:
+    builtins.map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e) (
+      builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks
+    )
+  );
 
   # Get the mas-cli package version
   masdir = config.homebrew.brewPrefix + "/../Cellar/mas";
@@ -54,24 +69,24 @@ let
   baseDirExists = builtins.pathExists masdir && isDir masdir;
 
   # Function to find the newest version string
-  findLatestVersion = dirPath:
+  findLatestVersion =
+    dirPath:
     let
       # Read directory contents and keep only directories (which are version names)
-      versions = builtins.filter ( (name: (isDir (dirPath + "/${name}")) &&
-        (builtins.pathExists (dirPath + "/${name}/bin/mas"))) )
-        (builtins.attrNames (builtins.readDir dirPath));
+      versions = builtins.filter (
+        (name: (isDir (dirPath + "/${name}")) && (builtins.pathExists (dirPath + "/${name}/bin/mas")))
+      ) (builtins.attrNames (builtins.readDir dirPath));
 
       # Sort versions to find the latest one.
       # The compareVersions function returns 1 if the first arg is newer, -1 if older, 0 if same.
       # We use lib.sort with a custom comparator to sort in descending order (latest first).
-      sortedVersions = lib.sort (a: b:
-        if lib.strings.compareVersions a b == 1 then -1 else 1
-      ) versions;
+      sortedVersions = lib.sort (a: b: if lib.strings.compareVersions a b == 1 then -1 else 1) versions;
 
       # The latest version is the head of the sorted list
-      latestVersion = if builtins.length sortedVersions > 0 then builtins.elemAt sortedVersions 0 else null;
+      latestVersion =
+        if builtins.length sortedVersions > 0 then builtins.elemAt sortedVersions 0 else null;
     in
-      latestVersion;
+    latestVersion;
 
   # Get the latest version string if the base directory exists
   latestMasVersion = if baseDirExists then findLatestVersion masdir else null;
@@ -79,28 +94,30 @@ let
   masLatestCannotUpdateVersion = "3.1.0";
 
   # Compare the latest version with masLatestCannotUpdateVersion
-  isNewerThanTarget = if latestMasVersion != null then
-    lib.strings.compareVersions latestMasVersion masLatestCannotUpdateVersion == 1
-  else
-    false;
+  isNewerThanTarget =
+    if latestMasVersion != null then
+      lib.strings.compareVersions latestMasVersion masLatestCannotUpdateVersion == 1
+    else
+      false;
 
   ## Allow update with mas-cli under any of the following conditions
   # 1. mas is not installed OR
   # 2. if installed mas is newer than target version
   canUpdateWithMas = (latestMasVersion == null) || isNewerThanTarget;
 
-in {
+in
+{
 
   mas.canUpdate = canUpdateWithMas;
 
   warnings = lib.mkIf (!builtins.pathExists casksnix && !config.machineInfo.is_vm) [
     ''
-    Using default-casks.nix and default-masapps.nix for 
-    Homebrew casks and masapps.
+      Using default-casks.nix and default-masapps.nix for 
+      Homebrew casks and masapps.
 
-    To build Homebrew casks and masapps specifically for
-    ths machine, create and configure casks.nix and masapps.nix 
-    in ${CaskMasDir}.
+      To build Homebrew casks and masapps specifically for
+      ths machine, create and configure casks.nix and masapps.nix 
+      in ${CaskMasDir}.
     ''
   ];
 
@@ -129,8 +146,8 @@ in {
   homebrew.onActivation.cleanup = "zap";
 
   ## Check for mas oudated if mas-cli currently cannot update from App Store
-  system.activationScripts.homebrew.text = lib.mkAfter (lib.optionalString (!config.mas.canUpdate)
-    ''
+  system.activationScripts.homebrew.text = lib.mkAfter (
+    lib.optionalString (!config.mas.canUpdate) ''
       sudo -u ${config.homebrew.user} TERM=xterm-256color -i ${pkgs.bash}/bin/bash <<'EOF'
         BOLD="$(tput bold)"
         RED="$(tput setaf 1)"
@@ -140,6 +157,7 @@ in {
         mas outdated || true
         printf "$ESC"
       EOF
-    '');
+    ''
+  );
 }
-
+# vim: set ts=2 sw=2 et ft=nix:

@@ -1,8 +1,14 @@
-{ config, osConfig, lib, ... }:
+{
+  config,
+  osConfig,
+  lib,
+  ...
+}:
 let
   onepasscfg = config.onepassword;
   sshcfg = config.sshkeys;
-in {
+in
+{
 
   config.warnings = lib.mkIf (!onepasscfg.sshsign_pgm_present && !osConfig.machineInfo.is_vm) [
     ''
@@ -24,9 +30,9 @@ in {
     };
   };
 
-
   config.onepassword = {
     SSHSIGN_PROGRAM = "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
     sshsign_pgm_present = builtins.pathExists onepasscfg.SSHSIGN_PROGRAM;
   };
 }
+# vim: set ts=2 sw=2 et ft=nix:
