@@ -107,13 +107,20 @@ in
     # enable = true;
 
     target = ".config/nixpkgs/secrets/pubkeys.nix";
-    text = ''
-      [
-        "${sshcfg.userssh_pubkey}"
-        "${sshcfg.nixidssh_pubkey}"
-      ]
-    '';
-
+    text =
+      let
+        allKeys = [
+          sshcfg.userssh_pubkey
+          sshcfg.nixidssh_pubkey
+        ];
+        validKeys = builtins.filter (k: k != "") allKeys;
+        content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
+      in
+      ''
+        [
+          ${content}
+        ]
+      '';
   };
 
   home.file.gitAllowedSigners = {
@@ -678,6 +685,17 @@ in
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateError.log";
       };
     };
+  };
+
+  home.activation = {
+    start1Password = lib.mkIf (pkgInstalled pkgs._1password-gui) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
+          printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
+          /usr/bin/open -a "1Password" --args --silent
+        fi
+      ''
+    );
   };
 
   # The state version is required and should stay at the version you
