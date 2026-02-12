@@ -20,6 +20,9 @@
   ## - nixid SSH public key file
   ## - user SSH public key file
   sshkeys.check_userpkfile = false;
+  sshkeys.check_userpubfile = false;
+  sshkeys.check_nixidpkfile = false;
+  sshkeys.check_nixidpubfile = false;
   # sshkeys.check_userpubfile = true;
   # sshkeys.check_nixidpkfile = true;
   # sshkeys.check_nixidpubfile = true;
