@@ -147,6 +147,7 @@ in
       nixfmt
 
       openssh # Install this as macOS disables use of HW security keys for SSH
+      yubikey-manager
 
       protonmail-desktop
       bitwarden-desktop
