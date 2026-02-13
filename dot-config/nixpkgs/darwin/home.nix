@@ -58,10 +58,9 @@ in
   xdg.enable = true;
 
   ##### agenix configuration
-  age.identityPaths = [
-    "${sshcfg.NIXIDPKFILE}"
-    "${sshcfg.USERPKFILE}"
-  ];
+  age.identityPaths =
+    (lib.optional sshcfg.nixidpkfile_present "${sshcfg.NIXIDPKFILE}")
+    ++ (lib.optional sshcfg.userpkfile_present "${sshcfg.USERPKFILE}");
 
   # armored-secrets stores various secret information in JSON file format
   age.secrets."armored-secrets.json" = {
@@ -763,11 +762,17 @@ in
           ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.NIXIDPKFILE} > ${sshcfg.NIXIDPUBFILE}
         fi
 
-        # 6. Get the user public key out to .ssh folder
+        # 6. Get the user keys out to .ssh if these are absent
+        if [ ! -f ${sshcfg.USERPKFILE} ]; then
+          RERUN=1
+          printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.USERPKFILE}
+          op_login
+          (/usr/bin/umask 077 && ${OPCLI} read "op://Personal/OPENSSH ED25519 Key/private key?ssh-format=openssh" --out-file "${sshcfg.USERPKFILE}")
+        fi
         if [ ! -f ${sshcfg.USERPUBFILE} ]; then
           RERUN=1
-          printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.NIXIDPUBFILE}
-          ${OPCLI} read "op://Personal/OPENSSH ED25519 Key/public key" --out-file "${sshcfg.USERPUBFILE}"
+          printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" ${sshcfg.USERPUBFILE}
+          ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.USERPKFILE} > ${sshcfg.USERPUBFILE}
         fi
 
         # 7. Request to re-run darwin-rebuild switch if new keys are generated
