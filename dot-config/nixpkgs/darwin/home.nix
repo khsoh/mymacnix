@@ -17,9 +17,26 @@ let
 
   pkgInstalled =
     pkg:
-    (builtins.elem pkg osConfig.environment.systemPackages) || (builtins.elem pkg homecfg.packages);
+    let
+      # Use pname (package name) for a more reliable string comparison
+      pkgName = if pkg ? pname then pkg.pname else pkg.name;
 
-  gpkgInstalled = pkg: (builtins.elem pkg osConfig.environment.systemPackages);
+      # Helper to check if a name exists in a list of package objects
+      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
+    in
+    (nameInList pkgName osConfig.environment.systemPackages)
+    || (nameInList pkgName config.home.packages);
+
+  gpkgInstalled =
+    pkg:
+    let
+      # Use pname (package name) for a more reliable string comparison
+      pkgName = if pkg ? pname then pkg.pname else pkg.name;
+
+      # Helper to check if a name exists in a list of package objects
+      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
+    in
+    (nameInList pkgName osConfig.environment.systemPackages);
 
   # Check if homebrew cask installed
   getName = item: if builtins.isAttrs item then item.name else item;
@@ -28,6 +45,7 @@ let
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK = "${homecfg.homeDirectory}/.1password/agent.sock";
+  onepass_installed = pkgInstalled pkgs._1password-gui;
 
 in
 {
@@ -266,47 +284,47 @@ in
   };
 
   ### Enable ssh configuration
-  programs.ssh =
-    if onepasscfg.sshsign_pgm_present then
-      {
-        enable = true;
-        enableDefaultConfig = false;
-        matchBlocks."*" = {
-          addKeysToAgent = "no";
-          forwardAgent = false;
-          compression = false;
-          serverAliveInterval = 0;
-          serverAliveCountMax = 3;
-          hashKnownHosts = false;
-          userKnownHostsFile = "~/.ssh/known_hosts";
-          controlMaster = "no";
-          controlPath = "~/.ssh/master-%r@%n:%p";
-          controlPersist = "no";
-        };
-        extraConfig = ''
-          IdentityAgent "${SSHSOCK}"
-        '';
-      }
-    else
-      {
-        enable = true;
-        enableDefaultConfig = false;
-        matchBlocks."*" = {
-          addKeysToAgent = "yes";
-          forwardAgent = false;
-          compression = false;
-          serverAliveInterval = 0;
-          serverAliveCountMax = 3;
-          hashKnownHosts = false;
-          userKnownHostsFile = "~/.ssh/known_hosts";
-          controlMaster = "no";
-          controlPath = "~/.ssh/master-%r@%n:%p";
-          controlPersist = "no";
-        };
-        extraConfig = ''
-          IdentityFile ${sshcfg.NIXIDPKFILE}
-        '';
+  programs.ssh = lib.mkMerge [
+    (lib.mkIf onepass_installed {
+      enable = true;
+      enableDefaultConfig = false;
+      matchBlocks."*" = {
+        addKeysToAgent = "no";
+        forwardAgent = false;
+        compression = false;
+        serverAliveInterval = 0;
+        serverAliveCountMax = 3;
+        hashKnownHosts = false;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        controlMaster = "no";
+        controlPath = "~/.ssh/master-%r@%n:%p";
+        controlPersist = "no";
       };
+      extraConfig = ''
+        IdentityAgent "${SSHSOCK}"
+      '';
+    })
+
+    (lib.mkIf (!onepass_installed) {
+      enable = true;
+      enableDefaultConfig = false;
+      matchBlocks."*" = {
+        addKeysToAgent = "yes";
+        forwardAgent = false;
+        compression = false;
+        serverAliveInterval = 0;
+        serverAliveCountMax = 3;
+        hashKnownHosts = false;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        controlMaster = "no";
+        controlPath = "~/.ssh/master-%r@%n:%p";
+        controlPersist = "no";
+      };
+      extraConfig = ''
+        IdentityFile ${sshcfg.NIXIDPKFILE}
+      '';
+    })
+  ];
 
   ### Enable git configuration
   programs.git = {
@@ -695,8 +713,20 @@ in
   };
 
   home.activation = {
-    start1Password = lib.mkIf (pkgInstalled pkgs._1password-gui) (
+    start1Password = lib.mkIf onepass_installed (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        RERUN=0
+        # 1. Define a 1Password login function
+        op_login() {
+          if ! ${OPCLI} whoami > /dev/null 2>&1; then
+            printf "\033[1;34m1Password is locked. Please authenticate...\033[0m\n"
+            # If app integration is on, any command triggers the prompt.
+            # We'll use 'signin' to be explicit.
+            eval $(${OPCLI} signin)
+          fi
+        }
+
+        # 2. Check that 1Password is running
         if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
           # Create the .1password directory if it does not exist
           /bin/mkdir -p "$(dirname "${SSHSOCK}")"
@@ -709,20 +739,40 @@ in
           /usr/bin/open -a "1Password" --args --silent
           /bin/sleep 2
 
-          # 1. Ensure at least one account is configured on this machine
+          # 3. Ensure at least one account is configured on this machine
           if ! ${OPCLI} account list > /dev/null 2>&1; then
             printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
             ${OPCLI} account add
           fi
 
-          # -- Comment out the following - do not really need to unlock 1Password
-          # 2. Ensure the session is unlocked (handles biometrics if enabled)
-          ## if ! ${OPCLI} whoami > /dev/null 2>&1; then
-          ##  printf "\033[1;34m1Password is locked. Please authenticate...\033[0m\n"
-            # If app integration is on, any command triggers the prompt.
-            # We'll use 'signin' to be explicit.
-          ##  eval $(${OPCLI} signin)
-          ##fi
+        fi
+
+        # 4. Confirm existence of .ssh directory
+        /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
+
+        # 5. Get the nixid keys out to .ssh if these are absent
+        if [ ! -f ${sshcfg.NIXIDPKFILE} ]; then
+          RERUN=1
+          printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.NIXIDPKFILE}
+          op_login
+          (/usr/bin/umask 077 && ${OPCLI} read "op://Personal/NIXID SSH Key/private key?ssh-format=openssh" --out-file "${sshcfg.NIXIDPKFILE}")
+        fi
+        if [ ! -f ${sshcfg.NIXIDPUBFILE} ]; then
+          RERUN=1
+          printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" ${sshcfg.NIXIDPUBFILE}
+          ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.NIXIDPKFILE} > ${sshcfg.NIXIDPUBFILE}
+        fi
+
+        # 6. Get the user public key out to .ssh folder
+        if [ ! -f ${sshcfg.USERPUBFILE} ]; then
+          RERUN=1
+          printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.NIXIDPUBFILE}
+          ${OPCLI} read "op://Personal/OPENSSH ED25519 Key/public key" --out-file "${sshcfg.USERPUBFILE}"
+        fi
+
+        # 7. Request to re-run darwin-rebuild switch if new keys are generated
+        if [ $RERUN -eq 1 ]; then
+          printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXIDPKFILE}")"
         fi
       ''
     );
