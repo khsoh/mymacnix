@@ -60,7 +60,7 @@ let
   );
 
   # Get the mas-cli package version
-  masdir = config.homebrew.brewPrefix + "/../Cellar/mas";
+  masdir = config.homebrew.prefix + "/Cellar/mas";
 
   # Check if a given path is a directory
   isDir = path: builtins.pathExists (toString path + "/.");
