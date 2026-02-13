@@ -725,20 +725,20 @@ in
           fi
         }
 
-        # 2. Check that 1Password is running
+        # 2. Create the .1password directory if it does not exist
+        /bin/mkdir -p "$(dirname "${SSHSOCK}")"
+
+        # 3. Symlink the 1Password-managed socket to the standard location
+        # Replace the source path if 1Password changes it, but this is the current macOS default
+        /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
+
+        # 4. Check that 1Password is running
         if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
-          # Create the .1password directory if it does not exist
-          /bin/mkdir -p "$(dirname "${SSHSOCK}")"
-
-          # Symlink the 1Password-managed socket to the standard location
-          # Replace the source path if 1Password changes it, but this is the current macOS default
-          /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
-
           printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
           /usr/bin/open -a "1Password" --args --silent
           /bin/sleep 2
 
-          # 3. Ensure at least one account is configured on this machine
+          # 5. Ensure at least one account is configured on this machine
           if ! ${OPCLI} account list > /dev/null 2>&1; then
             printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
             ${OPCLI} account add
@@ -746,10 +746,10 @@ in
 
         fi
 
-        # 4. Confirm existence of .ssh directory
+        # 6. Confirm existence of .ssh directory
         /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
 
-        # 5. Get the nixid keys out to .ssh if these are absent
+        # 7. Get the nixid keys out to .ssh if these are absent
         if [ ! -f ${sshcfg.NIXIDPKFILE} ]; then
           RERUN=1
           printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.NIXIDPKFILE}
@@ -762,7 +762,7 @@ in
           ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.NIXIDPKFILE} > ${sshcfg.NIXIDPUBFILE}
         fi
 
-        # 6. Get the user keys out to .ssh if these are absent
+        # 8. Get the user keys out to .ssh if these are absent
         if [ ! -f ${sshcfg.USERPKFILE} ]; then
           RERUN=1
           printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.USERPKFILE}
@@ -775,7 +775,7 @@ in
           ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.USERPKFILE} > ${sshcfg.USERPUBFILE}
         fi
 
-        # 7. Request to re-run darwin-rebuild switch if new keys are generated
+        # 9. Request to re-run darwin-rebuild switch if new keys are generated
         if [ $RERUN -eq 1 ]; then
           printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXIDPKFILE}")"
         fi
