@@ -145,6 +145,20 @@ in
       '';
   };
 
+  # Generate secret key templates
+  home.file."${sshcfg.NIXIDPKFILE}" = lib.mkIf onepass_installed {
+    target = "${sshcfg.NIXIDPKFILE}.tpl";
+    text = ''
+      {{ op://Private/NIXID SSH Key/private key?ssh-format=openssh }}
+    '';
+  };
+  home.file."${sshcfg.USERPKFILE}" = lib.mkIf onepass_installed {
+    target = "${sshcfg.USERPKFILE}.tpl";
+    text = ''
+      {{ op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh }}
+    '';
+  };
+
   home.file.gitAllowedSigners = {
     ## Generate the allowed signers file
     # enable = true;
@@ -753,8 +767,7 @@ in
         if [ ! -f ${sshcfg.NIXIDPKFILE} ]; then
           RERUN=1
           printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.NIXIDPKFILE}
-          op_login
-          (/usr/bin/umask 077 && ${OPCLI} read "op://Personal/NIXID SSH Key/private key?ssh-format=openssh" --out-file "${sshcfg.NIXIDPKFILE}")
+          ${OPCLI} inject -i "${sshcfg.NIXIDPKFILE}.tpl" -o "${sshcfg.NIXIDPKFILE}" --force
         fi
         if [ ! -f ${sshcfg.NIXIDPUBFILE} ]; then
           RERUN=1
@@ -766,8 +779,7 @@ in
         if [ ! -f ${sshcfg.USERPKFILE} ]; then
           RERUN=1
           printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.USERPKFILE}
-          op_login
-          (/usr/bin/umask 077 && ${OPCLI} read "op://Personal/OPENSSH ED25519 Key/private key?ssh-format=openssh" --out-file "${sshcfg.USERPKFILE}")
+          ${OPCLI} inject -i "${sshcfg.USERPKFILE}.tpl" -o "${sshcfg.USERPKFILE}" --force
         fi
         if [ ! -f ${sshcfg.USERPUBFILE} ]; then
           RERUN=1
