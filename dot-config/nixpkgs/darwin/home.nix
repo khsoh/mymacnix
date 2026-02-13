@@ -24,6 +24,11 @@ let
   # Check if homebrew cask installed
   getName = item: if builtins.isAttrs item then item.name else item;
   caskInstalled = name: (builtins.any (x: getName x == name) osConfig.homebrew.casks);
+
+  OPCLI = "${pkgs._1password-cli}/bin/op";
+  OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+  SSHSOCK = "${homecfg.homeDirectory}/.1password/agent.sock";
+
 in
 {
   imports = [
@@ -223,6 +228,7 @@ in
       LANG = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+      SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
     # Written to end of .profile
@@ -240,6 +246,7 @@ in
       LC_ALL = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+      SSH_AUTH_SOCK = "${SSHSOCK}";
     };
 
     profileExtra = builtins.readFile ./zsh/zprofile-extra;
@@ -277,7 +284,7 @@ in
           controlPersist = "no";
         };
         extraConfig = ''
-          IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+          IdentityAgent "${SSHSOCK}"
         '';
       }
     else
@@ -691,8 +698,31 @@ in
     start1Password = lib.mkIf (pkgInstalled pkgs._1password-gui) (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
+          # Create the .1password directory if it does not exist
+          /bin/mkdir -p "$(dirname "${SSHSOCK}")"
+
+          # Symlink the 1Password-managed socket to the standard location
+          # Replace the source path if 1Password changes it, but this is the current macOS default
+          /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
+
           printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
           /usr/bin/open -a "1Password" --args --silent
+          /bin/sleep 2
+
+          # 1. Ensure at least one account is configured on this machine
+          if ! ${OPCLI} account list > /dev/null 2>&1; then
+            printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
+            ${OPCLI} account add
+          fi
+
+          # -- Comment out the following - do not really need to unlock 1Password
+          # 2. Ensure the session is unlocked (handles biometrics if enabled)
+          ## if ! ${OPCLI} whoami > /dev/null 2>&1; then
+          ##  printf "\033[1;34m1Password is locked. Please authenticate...\033[0m\n"
+            # If app integration is on, any command triggers the prompt.
+            # We'll use 'signin' to be explicit.
+          ##  eval $(${OPCLI} signin)
+          ##fi
         fi
       ''
     );
