@@ -53,13 +53,13 @@ function run(argv) {
         if (xproc.length == 0) {
             // Cannot find process
             console.log(`${new Date()}: Failed to find process for app ${XAPP} with id ${XID}`);
-            delay(1);
+            delay(10);
             continue;
         }
         if (xproc[0].windows.length == 0) {
             // Cannot find its window
             console.log(`${new Date()}: Failed to find windows for app ${XAPP} with id ${XID}`);
-            delay(1);
+            delay(10);
             continue;
         }
         found = true;
