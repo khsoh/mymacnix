@@ -51,6 +51,11 @@ in
       type = lib.types.bool;
       readOnly = true;
     };
+    USERPKOPLOC = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      description = "Optional op:// location of user SSH key file";
+      default = null;
+    };
 
     USERPUBFILE = lib.mkOption {
       type = lib.types.path;
@@ -83,6 +88,11 @@ in
       type = lib.types.bool;
       readOnly = true;
     };
+    NIXIDPKOPLOC = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      description = "Optional op:// location of Nix system's SSH key file";
+      default = null;
+    };
 
     NIXIDPUBFILE = lib.mkOption {
       type = lib.types.path;
@@ -109,6 +119,8 @@ in
     nixidpkfile_present = builtins.pathExists sshcfg.NIXIDPKFILE;
     nixidpubfile_present = builtins.pathExists sshcfg.NIXIDPUBFILE;
 
+    NIXIDPKOPLOC = "op://Private/NIXID SSH Key";
+    USERPKOPLOC = "op://Private/OPENSSH ED25519 Key";
     userssh_pubkey = read_pubkey sshcfg.userpubfile_present sshcfg.USERPUBFILE;
     nixidssh_pubkey = read_pubkey sshcfg.nixidpubfile_present sshcfg.NIXIDPUBFILE;
   };

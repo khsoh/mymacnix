@@ -58,9 +58,10 @@ in
   xdg.enable = true;
 
   ##### agenix configuration
-  age.identityPaths =
-    (lib.optional sshcfg.nixidpkfile_present "${sshcfg.NIXIDPKFILE}")
-    ++ (lib.optional sshcfg.userpkfile_present "${sshcfg.USERPKFILE}");
+  age.identityPaths = lib.mkIf (sshcfg.nixidpkfile_present || sshcfg.userpkfile_present) (
+    lib.optional sshcfg.nixidpkfile_present "${sshcfg.NIXIDPKFILE}"
+    ++ (lib.optional sshcfg.userpkfile_present "${sshcfg.USERPKFILE}")
+  );
 
   # armored-secrets stores various secret information in JSON file format
   age.secrets."armored-secrets.json" = {
@@ -149,13 +150,13 @@ in
   home.file."${sshcfg.NIXIDPKFILE}" = lib.mkIf onepass_installed {
     target = "${sshcfg.NIXIDPKFILE}.tpl";
     text = ''
-      {{ op://Private/NIXID SSH Key/private key?ssh-format=openssh }}
+      {{ ${sshcfg.NIXIDPKOPLOC}/private key?ssh-format=openssh }}
     '';
   };
   home.file."${sshcfg.USERPKFILE}" = lib.mkIf onepass_installed {
     target = "${sshcfg.USERPKFILE}.tpl";
     text = ''
-      {{ op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh }}
+      {{ ${sshcfg.USERPKOPLOC}/private key?ssh-format=openssh }}
     '';
   };
 
@@ -739,6 +740,26 @@ in
           fi
         }
 
+        # 2. Define key installation function
+        install_keys() {
+          PKFILE=$1
+          PUBFILE=$2
+          OPLOC=$3
+          remote_fp=$(/bin/cat "''${PKFILE}.fp" 2>/dev/null || ${OPCLI} read "''${OPLOC}/fingerprint")
+          if [ ! -f "$PKFILE" ] ||
+            [ "$(${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}')" != "$remote_fp" ]; then
+            RERUN=1
+            printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" "$PKFILE"
+            ${OPCLI} inject -i "''${PKFILE}.tpl" -o "$PKFILE" --force
+          fi
+          if [ ! -f "$PUBFILE" ]; then
+            RERUN=1
+            printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" "$PUBFILE"
+            ${pkgs.openssh}/bin/ssh-keygen -y -f "$PKFILE" > "$PUBFILE"
+          fi
+          ${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}' > "''${PKFILE}.fp"
+        }
+
         # 2. Create the .1password directory if it does not exist
         /bin/mkdir -p "$(dirname "${SSHSOCK}")"
 
@@ -763,29 +784,11 @@ in
         # 6. Confirm existence of .ssh directory
         /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
 
-        # 7. Get the nixid keys out to .ssh if these are absent
-        if [ ! -f ${sshcfg.NIXIDPKFILE} ]; then
-          RERUN=1
-          printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.NIXIDPKFILE}
-          ${OPCLI} inject -i "${sshcfg.NIXIDPKFILE}.tpl" -o "${sshcfg.NIXIDPKFILE}" --force
-        fi
-        if [ ! -f ${sshcfg.NIXIDPUBFILE} ]; then
-          RERUN=1
-          printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" ${sshcfg.NIXIDPUBFILE}
-          ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.NIXIDPKFILE} > ${sshcfg.NIXIDPUBFILE}
-        fi
+        # 7. Get the nixid keys out to .ssh if these are absent or differ in fingerprint
+        install_keys "${sshcfg.NIXIDPKFILE}" "${sshcfg.NIXIDPUBFILE}" "${sshcfg.NIXIDPKOPLOC}"
 
         # 8. Get the user keys out to .ssh if these are absent
-        if [ ! -f ${sshcfg.USERPKFILE} ]; then
-          RERUN=1
-          printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" ${sshcfg.USERPKFILE}
-          ${OPCLI} inject -i "${sshcfg.USERPKFILE}.tpl" -o "${sshcfg.USERPKFILE}" --force
-        fi
-        if [ ! -f ${sshcfg.USERPUBFILE} ]; then
-          RERUN=1
-          printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" ${sshcfg.USERPUBFILE}
-          ${pkgs.openssh}/bin/ssh-keygen -y -f ${sshcfg.USERPKFILE} > ${sshcfg.USERPUBFILE}
-        fi
+        install_keys "${sshcfg.USERPKFILE}" "${sshcfg.USERPUBFILE}" "${sshcfg.USERPKOPLOC}"
 
         # 9. Request to re-run darwin-rebuild switch if new keys are generated
         if [ $RERUN -eq 1 ]; then
