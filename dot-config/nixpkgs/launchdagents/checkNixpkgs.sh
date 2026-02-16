@@ -82,7 +82,7 @@ else
       grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE) ; then
     WARNREV="(Failed last darwin-rebuild)"
   fi
-  echo "***New nixpkgs version detected for update on nixpkgs-unstable channel" >&"$OUTPUT"
+  echo "***New version detected on nixpkgs-unstable channel" >&"$OUTPUT"
   echo "  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)" >&"$OUTPUT"
   echo "  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV" >&"$OUTPUT"
 fi
@@ -100,7 +100,7 @@ for pkg in "${!NIXCHANNELS[@]}"; do
     rhash=$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
 
     if [[ "$lhash" != "$rhash" ]]; then
-      echo "***New package detected for update on $pkg channel:" >&"$OUTPUT"
+      echo "***New package detected on $pkg channel:" >&"$OUTPUT"
       echo "  ${pkg}_local_hash:  $(get_conditional_substring $lhash 8)" >&"$OUTPUT"
       echo "  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)" >&"$OUTPUT"
     else
