@@ -5,8 +5,6 @@
   ...
 }:
 let
-  isVM = config.machineInfo.is_vm;
-
   # Declare primary user and home
   primaryUserInfo = import ./_user.nix;
 
@@ -69,9 +67,6 @@ let
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in
     if appNames == [ ] then "" else builtins.head appNames;
-
-  includeKitty = pkgInstalled pkgs.kitty;
-  includeChrome = pkgInstalled pkgs.google-chrome;
 in
 {
   imports = [
@@ -211,7 +206,7 @@ in
 
     ]
     ++ lib.lists.flatten (
-      lib.lists.optionals (!isVM) [
+      lib.lists.optionals (!config.machineInfo.is_vm) [
         kitty
       ]
     );
@@ -344,8 +339,10 @@ in
     persistent-apps = [
       "/System/Applications/Apps.app"
     ]
-    ++ lib.lists.optionals includeKitty (getMacBundleAppName pkgs.kitty nixAppPath)
-    ++ lib.lists.optionals includeChrome (getMacBundleAppName pkgs.google-chrome nixAppPath)
+    ++ lib.lists.optionals (pkgInstalled pkgs.kitty) (getMacBundleAppName pkgs.kitty nixAppPath)
+    ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
+      getMacBundleAppName pkgs.google-chrome nixAppPath
+    )
     ++ lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
   };
   system.defaults.trackpad = {
