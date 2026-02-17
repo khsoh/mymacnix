@@ -241,6 +241,7 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
     exit
 fi
 
+cd "$gitfolder"
 echo "Going to list files $(pwd)  Press key to continue"
 read -k 1
 ls -l
@@ -248,13 +249,12 @@ ls -l
 echo "Going to run genusernix.sh. Exec in $(pwd)  Press key to continue"
 read -k 1
 ## Generate the primary user nix file
-$SCRIPTDIR/genusernix.sh
+./genusernix.sh
 
 ## Update the nix channels
 sudo -H nix-channel --update
 
 print_arrow "Installing nix-darwin"
-cd "$gitfolder"
 zsh -l scripts/darwin-autoinstall
 
 
