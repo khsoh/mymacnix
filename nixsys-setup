@@ -170,7 +170,7 @@ if [ $? -ne 0 ]; then
     [ -f /etc/zshenv ] && . /etc/zshenv
     [ -f /etc/zprofile ] && . /etc/zprofile
     [ -f /etc/zshrc ] && . /etc/zshrc
-    nix-shell -p git stow openssh --command '
+    NIXPKGS_ALLOW_UNFREE=1 nix-shell -p git stow openssh _1password-cli --command '
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
@@ -178,24 +178,41 @@ if [ $? -ne 0 ]; then
     ./git-remote-init.sh
     source "$gitfolder/dostow.sh"
     cd ..
+    OPSIGNIN=0
 
     killall ssh-agent
-    if [ -e ~/.ssh/nixid_ed25519 ]; then
-        eval $(ssh-agent)
-        ssh-add ~/.ssh/nixid_ed25519
-    elif [ -e ~/.ssh/id_ed25519 ]; then
+    if [ ! -f ~/.ssh/nixid_ed25519 ]; then
+        # Set umask so all new files/dirs are 700/600 automatically
+        umask 077
+        mkdir -p ~/.ssh
+
+        op signin
+        # Use the query parameter to force OpenSSH format
+        op read "op://Private/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
+        umask 022
+    fi
+    if [ ! -f ~/.ssh/nixid_ed25519.pub ]; then
+        ssh-keygen -y -f ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub
+    fi
+    eval $(ssh-agent)
+    ssh-add ~/.ssh/nixid_ed25519
+
+    if [ $(/usr/sbin/sysctl -n kern.hv_vmm_present) -eq 0 ]; then
+        # In real machine - get the id_ed25519
+        if [ ! -f ~/.ssh/id_ed25519 ]; then
+            # Set umask so all new files/dirs are 700/600 automatically
+            umask 077
+
+            op signin
+            # Use the query parameter to force OpenSSH format
+            op read "op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh" > ~/.ssh/id_ed25519
+            umask 022
+        fi
+        if [ ! -f ~/.ssh/id_ed25519.pub ]; then
+            ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
+        fi
         eval $(ssh-agent)
         ssh-add ~/.ssh/id_ed25519
-    else
-        echo "=================================="
-        echo "Preparing to use hardware security token to clone a private repo from ${REPOHOST}.com"
-        echo "=================================="
-        aptmpdir="$(mktemp -d -t aptmpdir.XXXXXX)"
-        read -n 1 -s -r -p "Plug in your security token then press any key to continue..."
-        git clone https://github.com/theseal/ssh-askpass.git "$aptmpdir"
-        export SSH_ASKPASS=$aptmpdir/ssh-askpass
-        eval $(ssh-agent)
-        ssh-add -K
     fi
     git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
     if [ ! -z ${aptmpdir+x} ]; then
