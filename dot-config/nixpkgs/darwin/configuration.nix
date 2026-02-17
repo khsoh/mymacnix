@@ -25,16 +25,7 @@ let
   # a top-level nix package
   # a home-manager nix package
   # a homebrew installed package
-  pkgInstalled =
-    pkg:
-    let
-      # Use pname (package name) for a more reliable string comparison
-      pkgName = if pkg ? pname then pkg.pname else pkg.name;
-
-      # Helper to check if a name exists in a list of package objects
-      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
-    in
-    (nameInList pkgName config.environment.systemPackages);
+  pkgInstalled = pkg: builtins.any (p: p == pkg) config.environment.systemPackages;
 
   getName = item: if builtins.isAttrs item then item.name else item;
   brewAppInstalled =
