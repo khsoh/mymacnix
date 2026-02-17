@@ -11,7 +11,20 @@ _USERINFO=$(cat <<EOF
 EOF
 )
 _USERNIX=~/.config/nixpkgs/darwin/_user.nix
+echo "in genusernix.sh"
+if [ ! -d ~/.config ]; then
+  echo "~/.config does not exist"
+elif [ ! -d ~/.config/nixpkgs ]; then
+  echo "~/.config/nixpkgs does not exist"
+elif [ ! -d ~/.config/nixpkgs/darwin ]; then
+  echo "~/.config/nixpkgs/darwin does not exist"
+elif [ ! -e ~/.config/nixpkgs/darwin/_user.nix ]; then
+  echo "~/.config/nixpkgs/darwin/_user.nix does not exist"
+fi
 
+if [[ -f $_USERNIX ]]; then
+  echo have "$_USERNIX"
+fi
 if [[ -f $_USERNIX ]] && diff $_USERNIX <(echo "$_USERINFO") >/dev/null ; then
     exit 0
 fi
