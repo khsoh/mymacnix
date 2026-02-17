@@ -242,12 +242,7 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
 fi
 
 cd "$gitfolder"
-echo "Going to list files $(pwd)  Press key to continue"
-read -k 1
-ls -l
 
-echo "Going to run genusernix.sh. Exec in $(pwd)  Press key to continue"
-read -k 1
 ## Generate the primary user nix file
 ./genusernix.sh
 
