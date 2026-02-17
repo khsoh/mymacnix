@@ -43,8 +43,6 @@ let
     # Check formulae
     || (builtins.any (x: getName x == name) config.homebrew.casks)
     # Check casks
-    || (builtins.any (x: getName x == name) config.homebrew.whalebrews)
-    # Check whalebrews
     || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
 
   nixAppPath = "/Applications/Nix Apps";
