@@ -73,11 +73,6 @@ function get_gitfolder () {
     eval "export gitfolder=$HOME/$folder"
 }
 
-if [ ! -d ~/.ssh ]; then
-    printf "${RED}~/.ssh is absent - please populate the SSH keys before proceeding${ESC}\n"
-    exit 1
-fi
-
 OPTINSTALL="all"
 BRANCH="main"
 CMDARGS=( "$@" )
