@@ -249,6 +249,13 @@ cd "$gitfolder"
 ## Update the nix channels
 sudo -H nix-channel --update
 
+## Move /etc/zshrc and /etc/bashrc files
+if [ -f /etc/zshrc ]; then
+    sudo -H mv /etc/zshrc /etc/zshrc.before-nix-darwin
+fi
+if [ -f /etc/bashrc ]; then
+    sudo -H mv /etc/bashrc /etc/bashrc.before-nix-darwin
+fi
 print_arrow "Installing nix-darwin"
 zsh -l scripts/darwin-autoinstall
 
