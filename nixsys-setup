@@ -186,7 +186,7 @@ if [ $? -ne 0 ]; then
         umask 077
         mkdir -p ~/.ssh
 
-        op signin
+        eval $(op signin)
         # Use the query parameter to force OpenSSH format
         op read "op://Private/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
         umask 022
@@ -203,7 +203,7 @@ if [ $? -ne 0 ]; then
             # Set umask so all new files/dirs are 700/600 automatically
             umask 077
 
-            op signin
+            eval $(op signin)
             # Use the query parameter to force OpenSSH format
             op read "op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh" > ~/.ssh/id_ed25519
             umask 022
