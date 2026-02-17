@@ -5,6 +5,9 @@
   ...
 }:
 let
+  isVM = config.machineInfo.is_vm;
+  includeKitty = !isVM;
+
   # Declare primary user and home
   primaryUserInfo = import ./_user.nix;
 
@@ -207,7 +210,7 @@ in
 
     ]
     ++ lib.lists.flatten (
-      lib.lists.optionals (!config.machineInfo.is_vm) [
+      lib.lists.optionals (!isVM) [
         kitty
       ]
     );
@@ -340,7 +343,7 @@ in
     persistent-apps = [
       "/System/Applications/Apps.app"
     ]
-    ++ lib.lists.optionals (pkgInstalled pkgs.kitty) getMacBundleAppName pkgs.kitty nixAppPath
+    ++ lib.lists.optionals includeKitty (getMacBundleAppName pkgs.kitty nixAppPath)
     ++
       lib.lists.optionals (pkgInstalled pkgs.google-chrome) getMacBundleAppName pkgs.google-chrome
         nixAppPath
