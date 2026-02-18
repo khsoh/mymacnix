@@ -58,6 +58,8 @@ let
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in
     if appNames == [ ] then "" else builtins.head appNames;
+
+  inVM = config.machineInfo.is_vm;
 in
 {
   imports = [
@@ -102,12 +104,16 @@ in
 
   nixpkgs.config.allowUnfreePredicate =
     pkg:
-    builtins.elem (lib.getName pkg) [
-      "1password-cli"
-      "1password"
-      "discord"
-      "google-chrome"
-    ];
+    builtins.elem (lib.getName pkg) (
+      [
+        "discord"
+        "google-chrome"
+      ]
+      ++ lib.lists.optionals (!inVM) [
+        "1password-cli"
+        "1password"
+      ]
+    );
   # nixpkgs.config.permittedInsecurePackages = [
   #   "google-chrome-144.0.7559.97"
   # ];
@@ -166,8 +172,6 @@ in
       jq
       # dhall-json  ## Remove this because the nds alias can be used instead
       rectangle
-      _1password-cli
-      _1password-gui
       ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];
@@ -196,11 +200,11 @@ in
       # handbrake
 
     ]
-    ++ lib.lists.flatten (
-      lib.lists.optionals (!config.machineInfo.is_vm) [
-        kitty
-      ]
-    );
+    ++ lib.lists.optionals (!inVM) [
+      kitty
+      _1password-cli
+      _1password-gui
+    ];
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix

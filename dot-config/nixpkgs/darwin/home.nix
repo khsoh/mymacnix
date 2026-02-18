@@ -17,26 +17,10 @@ let
 
   pkgInstalled =
     pkg:
-    let
-      # Use pname (package name) for a more reliable string comparison
-      pkgName = if pkg ? pname then pkg.pname else pkg.name;
+    (builtins.any (p: p == pkg) osConfig.environment.systemPackages)
+    || (builtins.any (p: p == pkg) config.home.packages);
 
-      # Helper to check if a name exists in a list of package objects
-      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
-    in
-    (nameInList pkgName osConfig.environment.systemPackages)
-    || (nameInList pkgName config.home.packages);
-
-  gpkgInstalled =
-    pkg:
-    let
-      # Use pname (package name) for a more reliable string comparison
-      pkgName = if pkg ? pname then pkg.pname else pkg.name;
-
-      # Helper to check if a name exists in a list of package objects
-      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
-    in
-    (nameInList pkgName osConfig.environment.systemPackages);
+  gpkgInstalled = pkg: builtins.any (p: p == pkg) osConfig.environment.systemPackages;
 
   # Check if homebrew cask installed
   getName = item: if builtins.isAttrs item then item.name else item;
@@ -47,6 +31,7 @@ let
   SSHSOCK = "${homecfg.homeDirectory}/.1password/agent.sock";
   onepass_installed = pkgInstalled pkgs._1password-gui;
 
+  inVM = osConfig.machineInfo.is_vm;
 in
 {
   imports = [
@@ -575,43 +560,48 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          ''
-            LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
-            UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
-            LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-            if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
-              export UPDATENIXPKGS
-              osascript -l JavaScript <<EOF
-                var app = Application.currentApplication();
-                app.includeStandardAdditions = true;
-                var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
+          (
+            ''
+              LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
+              UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
+              LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+              if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+                export UPDATENIXPKGS
+                osascript -l JavaScript <<EOF
+                  var app = Application.currentApplication();
+                  app.includeStandardAdditions = true;
+                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
 
-                updateText = updateText ? String(updateText) : "No updates found";
+                  updateText = updateText ? String(updateText) : "No updates found";
 
-                app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
-            EOF
-
-              IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
-              if [ -n "$IMSGID" ]; then
-                MSGSTR=$(cat <<MYMSG
-            $LOCALHOSTNAME nix-channel updates:
-            $UPDATENIXPKGS
-            MYMSG
-            )
-                export MSGSTR
-                osascript -l JavaScript <<EOF1
-                  const Messages = Application('Messages');
-                  const person = Messages.participants.whose({ handle: $IMSGID });
-                  if (person.length > 0) {
-                    var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
-                    updateText = updateText ? String(updateText) : "No updates found";
-                    Messages.send(updateText, { to: person[0] });
-                  }
-            EOF1
+                  app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
+              EOF
+            ''
+            + (lib.optionalString (inVM == 0) ''
+                IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
+                if [ -n "$IMSGID" ]; then
+                  MSGSTR=$(cat <<MYMSG
+              $LOCALHOSTNAME nix-channel updates:
+              $UPDATENIXPKGS
+              MYMSG
+              )
+                  export MSGSTR
+                  osascript -l JavaScript <<EOF1
+                    const Messages = Application('Messages');
+                    const person = Messages.participants.whose({ handle: $IMSGID });
+                    if (person.length > 0) {
+                      var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
+                      updateText = updateText ? String(updateText) : "No updates found";
+                      Messages.send(updateText, { to: person[0] });
+                    }
+              EOF1
+                fi
+            '')
+            + ''
               fi
-            fi
-            echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
-          ''
+              echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
+            ''
+          )
         ];
         RunAtLoad = true;
         StartInterval = 60 * 20;
