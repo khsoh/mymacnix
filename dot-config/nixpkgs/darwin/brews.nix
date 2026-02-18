@@ -30,6 +30,8 @@ let
   AppExists = (appName: builtins.pathExists (/Applications + "/${appName}"));
   CaskInstalled = (n: builtins.pathExists (CASKROOM + "/${n}"));
 
+  inVM = (config.machineInfo.is_vm == 1);
+
   ## Formulae to install
   FORMULAE =
     if builtins.pathExists formulaenix then import formulaenix ++ import commonformulaenix else [ ];
@@ -105,7 +107,6 @@ let
   # 2. if installed mas is newer than target version
   canUpdateWithMas = (latestMasVersion == null) || isNewerThanTarget;
 
-  inVM = (config.machineInfo.is_vm == 1);
 in
 {
 
