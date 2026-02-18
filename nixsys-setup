@@ -222,7 +222,7 @@ if [ $? -ne 0 ]; then
         mkdir -p ~/.ssh
 
         # Use the query parameter to force OpenSSH format
-        op read "op://Private/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
+        op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
         umask 022
     fi
     if [ ! -f ~/.ssh/nixid_ed25519.pub ]; then
