@@ -104,16 +104,12 @@ in
 
   nixpkgs.config.allowUnfreePredicate =
     pkg:
-    builtins.elem (lib.getName pkg) (
-      [
-        "discord"
-        "google-chrome"
-      ]
-      ++ lib.lists.optionals (!inVM) [
-        "1password-cli"
-        "1password"
-      ]
-    );
+    builtins.elem (lib.getName pkg) ([
+      "1password-cli"
+      "1password"
+      "discord"
+      "google-chrome"
+    ]);
   # nixpkgs.config.permittedInsecurePackages = [
   #   "google-chrome-144.0.7559.97"
   # ];
