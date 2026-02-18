@@ -187,12 +187,17 @@ if [ $? -ne 0 ]; then
     if [ $IS_VM -eq 1 ]; then
         # 1. Prompt to mount Guest Tools ISO
         printf "${GREEN}Install guest tools to support shared clipboard with host OS by selecting \"Virtual Machine | Drives | Install Guest Tools...\" from the UTM menu bar${ESC}\n"
-        printf "${GREEN}Press any key when you have done that${ESC}"
-        read -sn 1 keypress
-        echo ""
+
+        MNTPATH="/Volumes/GUEST TOOLS"
+        /bin/wait4path "$MNTPATH"
+
+        PKG_PATH=$(/usr/bin/find "$MNTPATH" -maxdepth 1 -name "*.pkg" -print -quit)
+        PKG_NAME=$(basename "$PKG_PATH")
+
+        echo "\"$MNTPATH\" mounted - installing package $PKG_NAME"
 
         # 2. Install the Guest Tools to share clipboard betwen VM and host OS
-        sudo -H installer -pkg /Volumes/UTM\ Guest\ Tools/macOS-Guest-Tools.pkg -target /
+        sudo -H installer -pkg "$PKG_PATH" -target /
     fi
 
     [[ ! -f ~/.ssh/nixid_ed25519 || ( $IS_VM -eq 0 && ! -f ~/.ssh/id_ed25519 ) ]] && OPSIGNIN=true || OPSIGNIN=false
@@ -203,7 +208,10 @@ if [ $? -ne 0 ]; then
             eval $(op account add --signin)
         else
             # Get account service token
-            read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
+            #read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
+            read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN
+            echo "READ: $OP_SERVICE_ACCOUNT_TOKEN"
+            export OP_SERVICE_ACCOUNT_TOKEN
         fi
     fi
 
