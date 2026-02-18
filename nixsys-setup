@@ -167,7 +167,7 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     export REPOHOST
-    export RED
+    export GREEN
     export ESC
     [ -f /etc/zshenv ] && . /etc/zshenv
     [ -f /etc/zprofile ] && . /etc/zprofile
@@ -186,8 +186,8 @@ if [ $? -ne 0 ]; then
     ## The following is required to share clipboard between VM and host OS
     if [ $IS_VM -eq 1 ]; then
         # 1. Prompt to mount Guest Tools ISO
-        printf "${RED}Install guest tools to support shared clipboard with host OS by selecting \"Virtual Machine | Drives | Install Guest Tools...\" from the UTM menu bar${ESC}\n"
-        printf "${RED}Press any key when you have done that${ESC}"
+        printf "${GREEN}Install guest tools to support shared clipboard with host OS by selecting \"Virtual Machine | Drives | Install Guest Tools...\" from the UTM menu bar${ESC}\n"
+        printf "${GREEN}Press any key when you have done that${ESC}"
         read -sn 1 keypress
         echo ""
 
