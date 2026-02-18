@@ -17,9 +17,32 @@ let
 
   pkgInstalled =
     pkg:
-    (builtins.elem pkg osConfig.environment.systemPackages) || (builtins.elem pkg config.home.packages);
+    let
+      # Safely get the lists, defaulting to empty lists if they don't exist
+      systemPkgs = osConfig.environment.systemPackages or [ ];
+      homePkgs = config.home.packages or [ ];
 
-  gpkgInstalled = pkg: builtins.any (p: p == pkg) osConfig.environment.systemPackages;
+      # helper to get package name for more reliable matching
+      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
+      targetName = getName pkg;
+
+      # Combine them into one list for a single check
+      allPkgs = systemPkgs ++ homePkgs;
+    in
+    builtins.any (p: (getName p) == targetName) allPkgs;
+
+  gpkgInstalled =
+    pkg:
+    let
+      # Safely get the lists, defaulting to empty lists if they don't exist
+      systemPkgs = osConfig.environment.systemPackages or [ ];
+
+      # helper to get package name for more reliable matching
+      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
+      targetName = getName pkg;
+
+    in
+    builtins.any (p: (getName p) == targetName) systemPkgs;
 
   # Check if homebrew cask installed
   getName = item: if builtins.isAttrs item then item.name else item;
