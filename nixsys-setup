@@ -208,10 +208,7 @@ if [ $? -ne 0 ]; then
             eval $(op account add --signin)
         else
             # Get account service token
-            #read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
-            read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN
-            echo "READ: $OP_SERVICE_ACCOUNT_TOKEN"
-            export OP_SERVICE_ACCOUNT_TOKEN
+            read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
         fi
     fi
 
