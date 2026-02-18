@@ -112,7 +112,7 @@ in
 
   mas.canUpdate = canUpdateWithMas;
 
-  warnings = lib.mkIf (!builtins.pathExists casksnix && !inVM)) [
+  warnings = lib.mkIf (!builtins.pathExists casksnix && !inVM) [
     ''
       Using default-casks.nix and default-masapps.nix for 
       Homebrew casks and masapps.
