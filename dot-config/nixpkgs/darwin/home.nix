@@ -17,8 +17,7 @@ let
 
   pkgInstalled =
     pkg:
-    (builtins.any (p: p == pkg) osConfig.environment.systemPackages)
-    || (builtins.any (p: p == pkg) config.home.packages);
+    (builtins.elem pkg osConfig.environment.systemPackages) || (builtins.elem pkg config.home.packages);
 
   gpkgInstalled = pkg: builtins.any (p: p == pkg) osConfig.environment.systemPackages;
 
