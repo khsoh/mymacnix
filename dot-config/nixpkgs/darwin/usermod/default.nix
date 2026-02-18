@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inVM = osConfig.machineInfo.is_vm;
+  inVM = (osConfig.machineInfo.is_vm == 1);
 in
 {
   imports = [

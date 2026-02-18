@@ -59,7 +59,7 @@ let
     in
     if appNames == [ ] then "" else builtins.head appNames;
 
-  inVM = config.machineInfo.is_vm;
+  inVM = (config.machineInfo.is_vm == 1);
 in
 {
   imports = [
