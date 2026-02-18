@@ -59,7 +59,7 @@ let
     in
     if appNames == [ ] then "" else builtins.head appNames;
 
-  inVM = (config.machineInfo.is_vm == 1);
+  isVM = config.machineInfo.is_vm;
 in
 {
   imports = [
@@ -196,7 +196,7 @@ in
       # handbrake
 
     ]
-    ++ lib.lists.optionals (!inVM) [
+    ++ lib.lists.optionals (isVM == 0) [
       kitty
       _1password-cli
       _1password-gui

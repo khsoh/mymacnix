@@ -53,7 +53,7 @@ let
   SSHSOCK = "${homecfg.homeDirectory}/.1password/agent.sock";
   onepass_installed = pkgInstalled pkgs._1password-gui;
 
-  inVM = (osConfig.machineInfo.is_vm == 1);
+  isVM = osConfig.machineInfo.is_vm;
 in
 {
   imports = [
@@ -599,7 +599,7 @@ in
                   app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
               EOF
             ''
-            + (lib.optionalString (!inVM) ''
+            + (lib.optionalString (isVM == 0) ''
                 IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
                 if [ -n "$IMSGID" ]; then
                   MSGSTR=$(cat <<MYMSG
