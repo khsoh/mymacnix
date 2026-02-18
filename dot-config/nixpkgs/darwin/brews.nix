@@ -36,13 +36,13 @@ let
 
   ## Casks are machine dependent
   USERCASKS =
-    if (!config.machineInfo.is_vm) && builtins.pathExists casksnix then
+    if (!inVM) && builtins.pathExists casksnix then
       import casksnix ++ import commoncasksnix
     else
       import defaultcasksnix;
 
   MASAPPS =
-    if (!config.machineInfo.is_vm) && builtins.pathExists masappsnix then
+    if (!inVM) && builtins.pathExists masappsnix then
       lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
     else
       import defaultmasappsnix;
@@ -105,12 +105,13 @@ let
   # 2. if installed mas is newer than target version
   canUpdateWithMas = (latestMasVersion == null) || isNewerThanTarget;
 
+  inVM = (config.machineInfo.is_vm == 1);
 in
 {
 
   mas.canUpdate = canUpdateWithMas;
 
-  warnings = lib.mkIf (!builtins.pathExists casksnix && !config.machineInfo.is_vm) [
+  warnings = lib.mkIf (!builtins.pathExists casksnix && !inVM)) [
     ''
       Using default-casks.nix and default-masapps.nix for 
       Homebrew casks and masapps.
