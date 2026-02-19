@@ -128,9 +128,6 @@ cat <<EOF2 > "$MINFO_FILE"
   buildGroupID = $BGROUPID;
 }
 EOF2
-
-echo "Completed building $MINFO_FILE..."
-cat "$MINFO_FILE"
 EOF
 
     # 3. Make the script executable
