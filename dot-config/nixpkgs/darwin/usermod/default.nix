@@ -1,4 +1,12 @@
-{ config, lib, ... }:
+{
+  config,
+  osConfig,
+  lib,
+  ...
+}:
+let
+  isVM = osConfig.machineInfo.is_vm;
+in
 {
   imports = [
     ./github.nix
@@ -19,10 +27,10 @@
   ## - nixid SSH private key file
   ## - nixid SSH public key file
   ## - user SSH public key file
-  sshkeys.check_userpkfile = false;
-  sshkeys.check_userpubfile = false;
-  sshkeys.check_nixidpkfile = false;
-  sshkeys.check_nixidpubfile = false;
+  sshkeys.check_userpkfile = !isVM;
+  sshkeys.check_userpubfile = !isVM;
+  sshkeys.check_nixidpkfile = true;
+  sshkeys.check_nixidpubfile = true;
   # sshkeys.check_userpubfile = true;
   # sshkeys.check_nixidpkfile = true;
   # sshkeys.check_nixidpubfile = true;

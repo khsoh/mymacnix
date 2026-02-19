@@ -119,7 +119,7 @@ in
     nixidpkfile_present = builtins.pathExists sshcfg.NIXIDPKFILE;
     nixidpubfile_present = builtins.pathExists sshcfg.NIXIDPUBFILE;
 
-    NIXIDPKOPLOC = "op://Private/NIXID SSH Key";
+    NIXIDPKOPLOC = "op://NIX Bootstrap/NIXID SSH Key";
     USERPKOPLOC = "op://Private/OPENSSH ED25519 Key";
     userssh_pubkey = read_pubkey sshcfg.userpubfile_present sshcfg.USERPUBFILE;
     nixidssh_pubkey = read_pubkey sshcfg.nixidpubfile_present sshcfg.NIXIDPUBFILE;

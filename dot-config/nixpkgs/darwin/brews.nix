@@ -30,19 +30,21 @@ let
   AppExists = (appName: builtins.pathExists (/Applications + "/${appName}"));
   CaskInstalled = (n: builtins.pathExists (CASKROOM + "/${n}"));
 
+  isVM = config.machineInfo.is_vm;
+
   ## Formulae to install
   FORMULAE =
     if builtins.pathExists formulaenix then import formulaenix ++ import commonformulaenix else [ ];
 
   ## Casks are machine dependent
   USERCASKS =
-    if (!config.machineInfo.is_vm) && builtins.pathExists casksnix then
+    if (!isVM) && builtins.pathExists casksnix then
       import casksnix ++ import commoncasksnix
     else
       import defaultcasksnix;
 
   MASAPPS =
-    if (!config.machineInfo.is_vm) && builtins.pathExists masappsnix then
+    if (!isVM) && builtins.pathExists masappsnix then
       lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
     else
       import defaultmasappsnix;
@@ -110,7 +112,7 @@ in
 
   mas.canUpdate = canUpdateWithMas;
 
-  warnings = lib.mkIf (!builtins.pathExists casksnix && !config.machineInfo.is_vm) [
+  warnings = lib.mkIf (!builtins.pathExists casksnix && (!isVM)) [
     ''
       Using default-casks.nix and default-masapps.nix for 
       Homebrew casks and masapps.

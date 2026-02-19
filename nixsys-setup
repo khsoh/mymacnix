@@ -112,7 +112,7 @@ if [ ! -f $SCRIPT_PATH ]; then
     sudo mkdir -p "$NIX_DARWIN_DIR"
 
     # 2. Write the script to the disk
-    sudo -H tee "$SCRIPT_PATH" > /dev/null <<'EOF'
+    sudo -H tee "$SCRIPT_PATH" >/dev/null <<'EOF'
 #!/usr/bin/env bash
 IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
 XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
@@ -167,10 +167,19 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     export REPOHOST
+    export GREEN
+    export ESC
     [ -f /etc/zshenv ] && . /etc/zshenv
     [ -f /etc/zprofile ] && . /etc/zprofile
     [ -f /etc/zshrc ] && . /etc/zshrc
     NIXPKGS_ALLOW_UNFREE=1 nix-shell -p git stow openssh _1password-cli --command '
+    echo "Populating ~/.ssh/known_hosts with public keys of github.com and gitlab.com"
+    umask 077
+    mkdir -p ~/.ssh
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
+    ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+    umask 022
+
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
@@ -178,17 +187,45 @@ if [ $? -ne 0 ]; then
     ./git-remote-init.sh
     source "$gitfolder/dostow.sh"
     cd ..
-    OPSIGNIN=0
+
+    IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
+
+    ## The following is required to share clipboard between VM and host OS
+    if [ $IS_VM -eq 1 ]; then
+        # 1. Prompt to mount Guest Tools ISO
+        printf "${GREEN}Install guest tools to support shared clipboard with host OS by selecting \"Virtual Machine | Drives | Install Guest Tools...\" from the UTM menu bar${ESC}\n"
+
+        MNTPATH="/Volumes/GUEST TOOLS"
+        /bin/wait4path "$MNTPATH"
+
+        PKG_PATH=$(/usr/bin/find "$MNTPATH" -maxdepth 1 -name "*.pkg" -print -quit)
+        PKG_NAME=$(basename "$PKG_PATH")
+
+        echo "\"$MNTPATH\" mounted - installing package $PKG_NAME"
+
+        # 2. Install the Guest Tools to share clipboard betwen VM and host OS
+        sudo -H installer -pkg "$PKG_PATH" -target /
+    fi
+
+    [[ ! -f ~/.ssh/nixid_ed25519 || ( $IS_VM -eq 0 && ! -f ~/.ssh/id_ed25519 ) ]] && OPSIGNIN=true || OPSIGNIN=false
+
+    if $OPSIGNIN; then
+        if [ $IS_VM -eq 0 ]; then
+            # Non-VM - login to 1Password account
+            eval $(op account add --signin)
+        else
+            # Get account service token
+            read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
+        fi
+    fi
 
     killall ssh-agent
     if [ ! -f ~/.ssh/nixid_ed25519 ]; then
         # Set umask so all new files/dirs are 700/600 automatically
         umask 077
-        mkdir -p ~/.ssh
 
-        eval $(op account add --signin)
         # Use the query parameter to force OpenSSH format
-        op read "op://Private/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
+        op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
         umask 022
     fi
     if [ ! -f ~/.ssh/nixid_ed25519.pub ]; then
@@ -197,17 +234,12 @@ if [ $? -ne 0 ]; then
     eval $(ssh-agent)
     ssh-add ~/.ssh/nixid_ed25519
 
-    if [ $(/usr/sbin/sysctl -n kern.hv_vmm_present) -eq 0 ]; then
-        # In real machine - get the id_ed25519
+    if [ $IS_VM -eq 0 ]; then
+        # In non-VM machine - get the id_ed25519
         if [ ! -f ~/.ssh/id_ed25519 ]; then
             # Set umask so all new files/dirs are 700/600 automatically
             umask 077
 
-            if ! op account list >/dev/null 2>&1; then
-                eval $(op account add --signin)
-            else
-                eval $(op signin)
-            fi
             # Use the query parameter to force OpenSSH format
             op read "op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh" > ~/.ssh/id_ed25519
             umask 022
@@ -241,14 +273,22 @@ if [[ $OPTINSTALL == "nixonly" ]]; then
     exit
 fi
 
+cd "$gitfolder"
+
 ## Generate the primary user nix file
-$SCRIPTDIR/genusernix.sh
+./genusernix.sh
 
 ## Update the nix channels
 sudo -H nix-channel --update
 
+## Move /etc/zshrc and /etc/bashrc files
+if [ -f /etc/zshrc ]; then
+    sudo -H mv /etc/zshrc /etc/zshrc.before-nix-darwin
+fi
+if [ -f /etc/bashrc ]; then
+    sudo -H mv /etc/bashrc /etc/bashrc.before-nix-darwin
+fi
 print_arrow "Installing nix-darwin"
-cd "$gitfolder"
 zsh -l scripts/darwin-autoinstall
 
 

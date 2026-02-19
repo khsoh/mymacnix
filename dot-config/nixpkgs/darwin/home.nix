@@ -18,35 +18,41 @@ let
   pkgInstalled =
     pkg:
     let
-      # Use pname (package name) for a more reliable string comparison
-      pkgName = if pkg ? pname then pkg.pname else pkg.name;
+      # Safely get the lists, defaulting to empty lists if they don't exist
+      systemPkgs = osConfig.environment.systemPackages or [ ];
+      homePkgs = osConfig.users.users.${homecfg.username}.packages or [ ];
 
-      # Helper to check if a name exists in a list of package objects
-      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
+      # helper to get package name for more reliable matching
+      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
+      targetName = getName pkg;
+
+      # Combine them into one list for a single check
+      allPkgs = systemPkgs ++ homePkgs;
     in
-    (nameInList pkgName osConfig.environment.systemPackages)
-    || (nameInList pkgName config.home.packages);
+    builtins.any (p: (getName p) == targetName) allPkgs;
 
   gpkgInstalled =
     pkg:
     let
-      # Use pname (package name) for a more reliable string comparison
-      pkgName = if pkg ? pname then pkg.pname else pkg.name;
+      # Safely get the lists, defaulting to empty lists if they don't exist
+      systemPkgs = osConfig.environment.systemPackages or [ ];
 
-      # Helper to check if a name exists in a list of package objects
-      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
+      # helper to get package name for more reliable matching
+      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
+      targetName = getName pkg;
     in
-    (nameInList pkgName osConfig.environment.systemPackages);
+    builtins.any (p: (getName p) == targetName) systemPkgs;
 
   # Check if homebrew cask installed
-  getName = item: if builtins.isAttrs item then item.name else item;
-  caskInstalled = name: (builtins.any (x: getName x == name) osConfig.homebrew.casks);
+  getBrewName = item: if builtins.isAttrs item then item.name else item;
+  caskInstalled = name: (builtins.any (x: getBrewName x == name) osConfig.homebrew.casks);
 
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK = "${homecfg.homeDirectory}/.1password/agent.sock";
   onepass_installed = pkgInstalled pkgs._1password-gui;
 
+  isVM = osConfig.machineInfo.is_vm;
 in
 {
   imports = [
@@ -205,7 +211,7 @@ in
   # };
   home.file.kittyStartup = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
+    enable = !isVM || caskInstalled "kitty";
 
     target = "${config.xdg.configHome}/kitty/startup.conf";
     text = ''
@@ -218,13 +224,13 @@ in
   };
   home.file.kittyBackdrop = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
+    enable = !isVM || caskInstalled "kitty";
     target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
     source = ./kitty/totoro-dimmed.jpeg;
   };
   home.file.kitty_tabbar_py = {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
+    enable = !isVM || caskInstalled "kitty";
     target = "${config.xdg.configHome}/kitty/tab_bar.py";
     source = ./kitty/tab_bar.py;
   };
@@ -477,8 +483,7 @@ in
   };
 
   programs.kitty = {
-    enable = gpkgInstalled pkgs.kitty;
-    package = lib.mkIf (gpkgInstalled pkgs.kitty) null;
+    enable = !isVM;
     font = {
       name = "FiraMono Nerd Font Mono";
       size = 18;
@@ -575,43 +580,48 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          ''
-            LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
-            UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
-            LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-            if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
-              export UPDATENIXPKGS
-              osascript -l JavaScript <<EOF
-                var app = Application.currentApplication();
-                app.includeStandardAdditions = true;
-                var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
+          (
+            ''
+              LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
+              UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
+              LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+              if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+                export UPDATENIXPKGS
+                osascript -l JavaScript <<EOF
+                  var app = Application.currentApplication();
+                  app.includeStandardAdditions = true;
+                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
 
-                updateText = updateText ? String(updateText) : "No updates found";
+                  updateText = updateText ? String(updateText) : "No updates found";
 
-                app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
-            EOF
-
-              IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
-              if [ -n "$IMSGID" ]; then
-                MSGSTR=$(cat <<MYMSG
-            $LOCALHOSTNAME nix-channel updates:
-            $UPDATENIXPKGS
-            MYMSG
-            )
-                export MSGSTR
-                osascript -l JavaScript <<EOF1
-                  const Messages = Application('Messages');
-                  const person = Messages.participants.whose({ handle: $IMSGID });
-                  if (person.length > 0) {
-                    var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
-                    updateText = updateText ? String(updateText) : "No updates found";
-                    Messages.send(updateText, { to: person[0] });
-                  }
-            EOF1
+                  app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
+              EOF
+            ''
+            + (lib.optionalString (!isVM) ''
+                IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
+                if [ -n "$IMSGID" ]; then
+                  MSGSTR=$(cat <<MYMSG
+              $LOCALHOSTNAME nix-channel updates:
+              $UPDATENIXPKGS
+              MYMSG
+              )
+                  export MSGSTR
+                  osascript -l JavaScript <<EOF1
+                    const Messages = Application('Messages');
+                    const person = Messages.participants.whose({ handle: $IMSGID });
+                    if (person.length > 0) {
+                      var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
+                      updateText = updateText ? String(updateText) : "No updates found";
+                      Messages.send(updateText, { to: person[0] });
+                    }
+              EOF1
+                fi
+            '')
+            + ''
               fi
-            fi
-            echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
-          ''
+              echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
+            ''
+          )
         ];
         RunAtLoad = true;
         StartInterval = 60 * 20;

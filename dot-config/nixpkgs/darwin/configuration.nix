@@ -28,23 +28,22 @@ let
   pkgInstalled =
     pkg:
     let
-      # Use pname (package name) for a more reliable string comparison
-      pkgName = if pkg ? pname then pkg.pname else pkg.name;
+      # Safely get the lists, defaulting to empty lists if they don't exist
+      systemPkgs = config.environment.systemPackages or [ ];
 
-      # Helper to check if a name exists in a list of package objects
-      nameInList = name: list: builtins.any (p: (if p ? pname then p.pname else p.name) == name) list;
+      # helper to get package name for more reliable matching
+      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
+      targetName = getName pkg;
     in
-    (nameInList pkgName config.environment.systemPackages);
+    builtins.any (p: (getName p) == targetName) systemPkgs;
 
-  getName = item: if builtins.isAttrs item then item.name else item;
+  getBrewName = item: if builtins.isAttrs item then item.name else item;
   brewAppInstalled =
     name:
-    (builtins.any (x: getName x == name) config.homebrew.brews)
+    (builtins.any (x: getBrewName x == name) config.homebrew.brews)
     # Check formulae
-    || (builtins.any (x: getName x == name) config.homebrew.casks)
+    || (builtins.any (x: getBrewName x == name) config.homebrew.casks)
     # Check casks
-    || (builtins.any (x: getName x == name) config.homebrew.whalebrews)
-    # Check whalebrews
     || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
 
   nixAppPath = "/Applications/Nix Apps";
@@ -70,6 +69,7 @@ let
     in
     if appNames == [ ] then "" else builtins.head appNames;
 
+  isVM = config.machineInfo.is_vm;
 in
 {
   imports = [
@@ -178,8 +178,6 @@ in
       jq
       # dhall-json  ## Remove this because the nds alias can be used instead
       rectangle
-      _1password-cli
-      _1password-gui
       ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];
@@ -208,11 +206,11 @@ in
       # handbrake
 
     ]
-    ++ lib.lists.flatten (
-      lib.lists.optionals (!config.machineInfo.is_vm) [
-        kitty
-      ]
-    );
+    ++ lib.lists.optionals (!isVM) [
+      kitty
+      _1password-cli
+      _1password-gui
+    ];
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
@@ -342,10 +340,10 @@ in
     persistent-apps = [
       "/System/Applications/Apps.app"
     ]
-    ++ lib.lists.optionals (pkgInstalled pkgs.kitty) getMacBundleAppName pkgs.kitty nixAppPath
-    ++
-      lib.lists.optionals (pkgInstalled pkgs.google-chrome) getMacBundleAppName pkgs.google-chrome
-        nixAppPath
+    ++ lib.lists.optionals (!isVM) (getMacBundleAppName pkgs.kitty nixAppPath)
+    ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
+      getMacBundleAppName pkgs.google-chrome nixAppPath
+    )
     ++ lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
   };
   system.defaults.trackpad = {
