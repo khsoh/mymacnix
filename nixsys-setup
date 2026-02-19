@@ -138,9 +138,6 @@ EOF
 
     # 4. Run the script *now* to create the initial machine-info.nix file
     sudo -H "$SCRIPT_PATH" "$MINFO_FILE"
-
-    echo -n "Press any key to continue..."
-    read -sn 1 keyp
 fi
 
 if [[ $DARWININSTALLED -eq 1 ]]; then

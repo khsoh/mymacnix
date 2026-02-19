@@ -27,8 +27,8 @@ in
   ## - nixid SSH private key file
   ## - nixid SSH public key file
   ## - user SSH public key file
-  sshkeys.check_userpkfile = (isVM == 0);
-  sshkeys.check_userpubfile = (isVM == 0);
+  sshkeys.check_userpkfile = !isVM;
+  sshkeys.check_userpubfile = !isVM;
   sshkeys.check_nixidpkfile = true;
   sshkeys.check_nixidpubfile = true;
   # sshkeys.check_userpubfile = true;

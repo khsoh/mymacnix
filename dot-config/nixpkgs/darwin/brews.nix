@@ -38,13 +38,13 @@ let
 
   ## Casks are machine dependent
   USERCASKS =
-    if (isVM == 0) && builtins.pathExists casksnix then
+    if (!isVM) && builtins.pathExists casksnix then
       import casksnix ++ import commoncasksnix
     else
       import defaultcasksnix;
 
   MASAPPS =
-    if (isVM == 0) && builtins.pathExists masappsnix then
+    if (!isVM) && builtins.pathExists masappsnix then
       lib.trivial.mergeAttrs (import masappsnix) (import commonmasappsnix)
     else
       import defaultmasappsnix;
@@ -112,7 +112,7 @@ in
 
   mas.canUpdate = canUpdateWithMas;
 
-  warnings = lib.mkIf (!builtins.pathExists casksnix && (isVM == 0)) [
+  warnings = lib.mkIf (!builtins.pathExists casksnix && (!isVM)) [
     ''
       Using default-casks.nix and default-masapps.nix for 
       Homebrew casks and masapps.

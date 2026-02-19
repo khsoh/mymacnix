@@ -15,13 +15,12 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  ##!!! DEBUG
   pkgInstalled =
     pkg:
     let
       # Safely get the lists, defaulting to empty lists if they don't exist
       systemPkgs = osConfig.environment.systemPackages or [ ];
-      homePkgs = config.home.packages or [ ];
+      homePkgs = osConfig.users.users.${homecfg.username}.packages or [ ];
 
       # helper to get package name for more reliable matching
       getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
@@ -30,7 +29,7 @@ let
       # Combine them into one list for a single check
       allPkgs = systemPkgs ++ homePkgs;
     in
-    builtins.any (p: (getName p) == targetName) systemPkgs;
+    builtins.any (p: (getName p) == targetName) allPkgs;
 
   gpkgInstalled =
     pkg:
@@ -41,13 +40,12 @@ let
       # helper to get package name for more reliable matching
       getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
       targetName = getName pkg;
-
     in
     builtins.any (p: (getName p) == targetName) systemPkgs;
 
   # Check if homebrew cask installed
-  getName = item: if builtins.isAttrs item then item.name else item;
-  caskInstalled = name: (builtins.any (x: getName x == name) osConfig.homebrew.casks);
+  getBrewName = item: if builtins.isAttrs item then item.name else item;
+  caskInstalled = name: (builtins.any (x: getBrewName x == name) osConfig.homebrew.casks);
 
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
@@ -600,7 +598,7 @@ in
                   app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
               EOF
             ''
-            + (lib.optionalString (isVM == 0) ''
+            + (lib.optionalString (!isVM) ''
                 IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
                 if [ -n "$IMSGID" ]; then
                   MSGSTR=$(cat <<MYMSG

@@ -25,14 +25,24 @@ let
   # a top-level nix package
   # a home-manager nix package
   # a homebrew installed package
-  pkgInstalled = pkg: builtins.any (p: p == pkg) config.environment.systemPackages;
+  pkgInstalled =
+    pkg:
+    let
+      # Safely get the lists, defaulting to empty lists if they don't exist
+      systemPkgs = config.environment.systemPackages or [ ];
 
-  getName = item: if builtins.isAttrs item then item.name else item;
+      # helper to get package name for more reliable matching
+      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
+      targetName = getName pkg;
+    in
+    builtins.any (p: (getName p) == targetName) systemPkgs;
+
+  getBrewName = item: if builtins.isAttrs item then item.name else item;
   brewAppInstalled =
     name:
-    (builtins.any (x: getName x == name) config.homebrew.brews)
+    (builtins.any (x: getBrewName x == name) config.homebrew.brews)
     # Check formulae
-    || (builtins.any (x: getName x == name) config.homebrew.casks)
+    || (builtins.any (x: getBrewName x == name) config.homebrew.casks)
     # Check casks
     || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
 
@@ -196,7 +206,7 @@ in
       # handbrake
 
     ]
-    ++ lib.lists.optionals (isVM == 0) [
+    ++ lib.lists.optionals (!isVM) [
       kitty
       _1password-cli
       _1password-gui
