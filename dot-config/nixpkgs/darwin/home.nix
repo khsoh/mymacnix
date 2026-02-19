@@ -30,7 +30,7 @@ let
       # Combine them into one list for a single check
       allPkgs = systemPkgs ++ homePkgs;
     in
-    builtins.any (p: (getName p) == targetName) homePkgs;
+    builtins.any (p: (getName p) == targetName) systemPkgs;
 
   gpkgInstalled =
     pkg:
