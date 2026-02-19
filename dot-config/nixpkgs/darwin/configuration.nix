@@ -207,7 +207,7 @@ in
 
     ]
     ++ lib.lists.optionals (!isVM) [
-      kitty
+      #kitty
       _1password-cli
       _1password-gui
     ];
@@ -340,7 +340,7 @@ in
     persistent-apps = [
       "/System/Applications/Apps.app"
     ]
-    ++ lib.lists.optionals (pkgInstalled pkgs.kitty) (getMacBundleAppName pkgs.kitty nixAppPath)
+    #++ lib.lists.optionals (pkgInstalled pkgs.kitty) (getMacBundleAppName pkgs.kitty nixAppPath)
     ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
       getMacBundleAppName pkgs.google-chrome nixAppPath
     )

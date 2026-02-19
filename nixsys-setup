@@ -176,6 +176,13 @@ if [ $? -ne 0 ]; then
     [ -f /etc/zprofile ] && . /etc/zprofile
     [ -f /etc/zshrc ] && . /etc/zshrc
     NIXPKGS_ALLOW_UNFREE=1 nix-shell -p git stow openssh _1password-cli --command '
+    echo "Populating ~/.ssh/known_hosts with public keys of github.com and gitlab.com"
+    umask 077
+    mkdir -p ~/.ssh
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
+    ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+    umask 022
+
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
@@ -219,7 +226,6 @@ if [ $? -ne 0 ]; then
     if [ ! -f ~/.ssh/nixid_ed25519 ]; then
         # Set umask so all new files/dirs are 700/600 automatically
         umask 077
-        mkdir -p ~/.ssh
 
         # Use the query parameter to force OpenSSH format
         op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
