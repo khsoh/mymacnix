@@ -15,6 +15,7 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
+  ##!!! DEBUG
   pkgInstalled =
     pkg:
     let
@@ -29,7 +30,7 @@ let
       # Combine them into one list for a single check
       allPkgs = systemPkgs ++ homePkgs;
     in
-    builtins.any (p: (getName p) == targetName) systemPkgs;
+    builtins.any (p: (getName p) == targetName) homePkgs;
 
   gpkgInstalled =
     pkg:
