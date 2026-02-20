@@ -174,11 +174,17 @@ if [ $? -ne 0 ]; then
     [ -f /etc/zshrc ] && . /etc/zshrc
     NIXPKGS_ALLOW_UNFREE=1 nix-shell -p git stow openssh _1password-cli --command '
     echo "Populating ~/.ssh/known_hosts with public keys of github.com and gitlab.com"
+    # Save current umask to set temporary umask
+    save_umask=$(umask)
     umask 077
+
+    # Populate known_hosts with public keys of github.com and gitlab.com
     mkdir -p ~/.ssh
     ssh-keyscan github.com >> ~/.ssh/known_hosts
     ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-    umask 022
+
+    # Restore original umask
+    umask "$save_umask"
 
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
@@ -221,12 +227,8 @@ if [ $? -ne 0 ]; then
 
     killall ssh-agent
     if [ ! -f ~/.ssh/nixid_ed25519 ]; then
-        # Set umask so all new files/dirs are 700/600 automatically
-        umask 077
-
         # Use the query parameter to force OpenSSH format
-        op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" > ~/.ssh/nixid_ed25519
-        umask 022
+        op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" --out-file ~/.ssh/nixid_ed25519
     fi
     if [ ! -f ~/.ssh/nixid_ed25519.pub ]; then
         ssh-keygen -y -f ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub
@@ -237,12 +239,8 @@ if [ $? -ne 0 ]; then
     if [ $IS_VM -eq 0 ]; then
         # In non-VM machine - get the id_ed25519
         if [ ! -f ~/.ssh/id_ed25519 ]; then
-            # Set umask so all new files/dirs are 700/600 automatically
-            umask 077
-
             # Use the query parameter to force OpenSSH format
-            op read "op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh" > ~/.ssh/id_ed25519
-            umask 022
+            op read "op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh" --out-file ~/.ssh/id_ed25519
         fi
         if [ ! -f ~/.ssh/id_ed25519.pub ]; then
             ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
