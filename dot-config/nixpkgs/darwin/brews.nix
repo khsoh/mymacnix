@@ -56,7 +56,7 @@ let
   ];
   BrewCask = (
     casks:
-    builtins.map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e) (
+    map (e: lib.attrsets.filterAttrs (n: v: builtins.elem n caskOptions) e) (
       builtins.filter (e: !(e ? appname) || (!AppExists e.appname) || (CaskInstalled e.name)) casks
     )
   );
@@ -76,7 +76,7 @@ let
     let
       # Read directory contents and keep only directories (which are version names)
       versions = builtins.filter (
-        (name: (isDir (dirPath + "/${name}")) && (builtins.pathExists (dirPath + "/${name}/bin/mas")))
+        name: (isDir (dirPath + "/${name}")) && (builtins.pathExists (dirPath + "/${name}/bin/mas"))
       ) (builtins.attrNames (builtins.readDir dirPath));
 
       # Sort versions to find the latest one.

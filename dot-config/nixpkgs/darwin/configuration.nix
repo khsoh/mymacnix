@@ -10,9 +10,9 @@ let
 
   # The following is example of fixing specific packages to an earlier nixpkgs revision
   # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
-  pkgs-pinned = import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/ed142ab.tar.gz";
-  }) { };
+  # pkgs-pinned = import (builtins.fetchTarball {
+  #   url = "https://github.com/NixOS/nixpkgs/archive/ed142ab.tar.gz";
+  # }) { };
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
@@ -47,7 +47,6 @@ let
     || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
 
   nixAppPath = "/Applications/Nix Apps";
-  hmNixAppPath = "~/Applications/Home Manager Apps";
 
   ## Function to generate the path of the Mac App Bundle name from the nix package in the form of a list:
   # E.g. [ "/Applications/Nix Apps/abc.app" ].
@@ -59,7 +58,7 @@ let
       contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in
-    builtins.map (a: "${topPath}/" + a) appNames;
+    map (a: "${topPath}/" + a) appNames;
   getMacAppName =
     pkg:
     let
@@ -91,9 +90,7 @@ in
   home-manager.useUserPackages = true;
 
   ## Apply home-manager configuration for all users
-  home-manager.users = lib.attrsets.genAttrs (builtins.map (o: o.name) hmUsers) (
-    _: import ./home.nix
-  );
+  home-manager.users = lib.attrsets.genAttrs (map (o: o.name) hmUsers) (_: import ./home.nix);
 
   ##### end home-manager configuration
 
@@ -126,7 +123,7 @@ in
 
   # Setup user specific logfile rotation for all users
   environment.etc = builtins.listToAttrs (
-    builtins.map (o: {
+    map (o: {
       name = "newsyslog.d/${o.name}.conf";
       value = {
         text = ''

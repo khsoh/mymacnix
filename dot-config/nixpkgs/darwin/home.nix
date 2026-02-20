@@ -31,18 +31,6 @@ let
     in
     builtins.any (p: (getName p) == targetName) allPkgs;
 
-  gpkgInstalled =
-    pkg:
-    let
-      # Safely get the lists, defaulting to empty lists if they don't exist
-      systemPkgs = osConfig.environment.systemPackages or [ ];
-
-      # helper to get package name for more reliable matching
-      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
-      targetName = getName pkg;
-    in
-    builtins.any (p: (getName p) == targetName) systemPkgs;
-
   # Check if homebrew cask installed
   getBrewName = item: if builtins.isAttrs item then item.name else item;
   caskInstalled = name: (builtins.any (x: getBrewName x == name) osConfig.homebrew.casks);
@@ -113,7 +101,7 @@ in
 
   ## User-specific aliases
   home.shellAliases = {
-    cdnix = "cd $(readlink -f ${builtins.toString ./.})";
+    cdnix = "cd $(readlink -f ${toString ./.})";
     hbb = "brew bundle";
     hbu = "brew update";
   };
