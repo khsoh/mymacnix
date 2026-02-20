@@ -102,7 +102,7 @@ in
   ## The following is needed by home-manager to set the
   ##  home.username and home.homeDirectory attributes
   users.users = builtins.listToAttrs (
-    builtins.map (o: {
+    map (o: {
       inherit (o) name;
       value = o;
     }) hmUsers
@@ -143,6 +143,7 @@ in
     [
       vim
       neovim
+      nixd # LSP for nix
       python3
       (callPackage <agenix/pkgs/agenix.nix> { })
 
