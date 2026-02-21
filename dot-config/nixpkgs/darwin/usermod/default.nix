@@ -35,6 +35,9 @@ in
   # sshkeys.check_nixidpkfile = true;
   # sshkeys.check_nixidpubfile = true;
 
+  ##### onepassword configuration
+  onepassword.sshsign_pgm_present = !isVM;
+
   ##### github configuration
   # github.enable = true;   # Default
   # github.noreply_email is assigned to global config email if not specified

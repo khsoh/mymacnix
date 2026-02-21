@@ -9,13 +9,6 @@ let
   sshcfg = config.sshkeys;
 in
 {
-
-  config.warnings = lib.mkIf (!onepasscfg.sshsign_pgm_present && !osConfig.machineInfo.is_vm) [
-    ''
-      Best to install 1Password App first before deploying the Nix configuration.
-      Will use ${sshcfg.NIXIDPKFILE} as the user SSH key for GIT signing
-    ''
-  ];
   options.onepassword = {
     SSHSIGN_PROGRAM = lib.mkOption {
       type = lib.types.str;
@@ -32,7 +25,6 @@ in
 
   config.onepassword = {
     SSHSIGN_PROGRAM = "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
-    sshsign_pgm_present = builtins.pathExists onepasscfg.SSHSIGN_PROGRAM;
   };
 }
 # vim: set ts=2 sw=2 et ft=nix:
