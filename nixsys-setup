@@ -249,9 +249,6 @@ if [ $? -ne 0 ]; then
         ssh-add ~/.ssh/id_ed25519
     fi
     git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
-    if [ ! -z ${aptmpdir+x} ]; then
-        rm -rf $aptmpdir
-    fi
 
     cd caskmasapps
     ./dostow.sh
