@@ -203,6 +203,7 @@ in
       # The following packages that could not be installed because these are marked as broken
       # handbrake
 
+      ghostty-bin
     ]
     ++ lib.lists.optionals (!isVM) [
       kitty
@@ -339,6 +340,9 @@ in
       "/System/Applications/Apps.app"
     ]
     ++ lib.lists.optionals (!isVM) (getMacBundleAppName pkgs.kitty nixAppPath)
+    ++ lib.lists.optionals (pkgInstalled pkgs.ghostty-bin) (
+      getMacBundleAppName pkgs.ghostty-bin nixAppPath
+    )
     ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
       getMacBundleAppName pkgs.google-chrome nixAppPath
     )

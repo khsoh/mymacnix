@@ -41,6 +41,9 @@ let
   onepass_installed = pkgInstalled pkgs._1password-gui;
 
   isVM = osConfig.machineInfo.is_vm;
+
+  TERMPROG =
+    if isVM then "/Applications/Nix Apps/Ghostty.app" else "/Applications/Nix Apps/kitty.app";
 in
 {
   imports = [
@@ -211,13 +214,19 @@ in
     '';
   };
   home.file.kittyBackdrop = {
-    # Enable kitty config if kitty is installed in Nix or homebrew
+    # Enable kitty backdrop if kitty is installed in Nix or homebrew
     enable = !isVM || caskInstalled "kitty";
     target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
     source = ./kitty/totoro-dimmed.jpeg;
   };
+  home.file.ghosttyBackdrop = {
+    # Enable ghostty backdrop if ghostty is installed in Nix
+    enable = pkgInstalled pkgs.ghostty-bin;
+    target = "${config.xdg.configHome}/ghostty/totoro-dimmed.jpeg";
+    source = ./kitty/totoro-dimmed.jpeg;
+  };
   home.file.kitty_tabbar_py = {
-    # Enable kitty config if kitty is installed in Nix or homebrew
+    # Enable kitty tab bar if kitty is installed in Nix or homebrew
     enable = !isVM || caskInstalled "kitty";
     target = "${config.xdg.configHome}/kitty/tab_bar.py";
     source = ./kitty/tab_bar.py;
@@ -556,6 +565,74 @@ in
     themeFile = "Catppuccin-Mocha";
   };
 
+  programs.ghostty = lib.mkIf (pkgInstalled pkgs.ghostty-bin) {
+    # Commented out items are the defaults
+    enable = true;
+    # enableBashIntegration = homecfg.shell.enableBashIntegration;
+    # enableFishIntegration = homecfg.shell.enableFishIntegration;
+    # enableZshIntegration = homecfg.shell.enableZshIntegration;
+    package = pkgs.ghostty-bin;
+    # clearDefaultKeybinds = false;
+    # installBatSyntax = true;
+    # installVimSyntax = false;
+    settings = {
+      initial-command = "${pkgs.zsh}/bin/zsh -c '${config.xdg.configHome}/jxa/waitapp.js \"DisplayLink Manager.app\" && date > ~/log/ghosttyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js ghostty >>& ~/log/ghosttyStart.log; exec ${pkgs.zsh}/bin/zsh'";
+      theme = "Catppuccin Mocha";
+      font-family = "FiraMono Nerd Font Mono";
+      font-size = 18;
+
+      ## Glassy minimalist
+      # macos-titlebar-style = "hidden";
+      # background-opacity = 0.85;
+      # background-blur-radius = 20;
+      # window-padding-x = 15;
+      # window-padding-y = 15;
+      # window-decoration = false;
+
+      ## Safari Style (Integrated Tabs)
+      # macos-titlebar-style = "tabs";
+      # window-padding-balance = true;
+      # macos-titlebar-proxy-icon = "hidden";
+      # window-padding-x = 10;
+
+      ## Transparent Float (Buttons only)
+      macos-titlebar-style = "transparent";
+      background-opacity = 0.9;
+      window-padding-y = 10;
+      split-divider-color = "#cba6f7";
+      unfocused-split-opacity = 0.6;
+      unfocused-split-fill = "#181825";
+
+      background-image = "./totoro-dimmed.jpeg";
+      background-image-opacity = 1.0;
+      #background-image-fit = "contain";
+
+      auto-update = "off";
+      keybind = [
+        "ctrl+a>h=new_split:down"
+        "ctrl+a>v=new_split:right"
+        "ctrl+h=goto_split:left"
+        "ctrl+j=goto_split:bottom"
+        "ctrl+k=goto_split:top"
+        "ctrl+l=goto_split:right"
+        "ctrl+a>c=new_tab"
+        "ctrl+a>n=next_tab"
+        "ctrl+a>p=previous_tab"
+
+        # goto tab N
+        "ctrl+a>1=goto_tab:1"
+        "ctrl+a>2=goto_tab:2"
+        "ctrl+a>3=goto_tab:3"
+        "ctrl+a>4=goto_tab:4"
+        "ctrl+a>5=goto_tab:5"
+        "ctrl+a>6=goto_tab:6"
+        "ctrl+a>7=goto_tab:7"
+        "ctrl+a>8=goto_tab:8"
+        "ctrl+a>9=goto_tab:9"
+      ];
+    };
+  };
+
   ### Setup the user-specific launch agents
   launchd.agents.activate-agenix.config.ProcessType = lib.mkForce "Standard";
   launchd.enable = true;
@@ -629,7 +706,7 @@ in
           ''
             try {
               // Use the path to target the specific Kitty installation
-              Application("/Applications/Nix Apps/kitty.app").activate();
+              Application("${TERMPROG}").activate();
             } catch (err) {
               // err contains the message;
               console.log("Error: " + err?.message);
