@@ -2,6 +2,7 @@
   config,
   osConfig,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -13,6 +14,7 @@ in
     ./gitlab.nix
     ./onepassword.nix
     ./sshkeys.nix
+    ./terminal.nix
   ];
 
   ##### sshkeys configuration
@@ -45,5 +47,8 @@ in
   ##### gitlab configuration
   # gitlab.enable = true;   # Default
   # gitlab.noreply_email is assigned to global config email if not specified
+
+  #### terminal configuration
+  terminal.package = if (!isVM) then pkgs.kitty else pkgs.ghostty-bin;
 }
 # vim: set ts=2 sw=2 et ft=nix:

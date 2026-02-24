@@ -11,6 +11,7 @@ let
   sshcfg = config.sshkeys;
   ghcfg = config.github;
   glcfg = config.gitlab;
+  termcfg = config.terminal;
 
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
@@ -44,8 +45,17 @@ let
 
   backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
 
-  TERMPROG =
-    if isVM then "/Applications/Nix Apps/Ghostty.app" else "/Applications/Nix Apps/kitty.app";
+  ## Function to generate the path of the Mac App  name from the nix package in the form of a list:
+  # E.g. "/Applications/Nix Apps/abc.app".
+  getMacAppName =
+    pkg:
+    let
+      appsDir = "${pkg}/Applications";
+      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
+      appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
+    in
+    if appNames == [ ] then "" else ("/Applications/Nix Apps/" + builtins.head appNames);
+  TERMPROG = getMacAppName termcfg.package;
 in
 {
   imports = [
@@ -208,9 +218,9 @@ in
   #   };
   #   recursive = true;
   # };
-  home.file.kittyStartup = {
+  home.file.kittyStartup = lib.mkIf (termcfg.package == pkgs.kitty || caskInstalled "kitty") {
     # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = !isVM || caskInstalled "kitty";
+    enable = true;
 
     target = "${config.xdg.configHome}/kitty/startup.conf";
     text = ''
@@ -221,15 +231,15 @@ in
       launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
     '';
   };
-  home.file.termBackdrop = {
+  home.file.termBackdrop = lib.mkIf (termcfg.package != null || caskInstalled "kitty") {
     # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
-    enable = !isVM || caskInstalled "kitty" || pkgInstalled pkgs.ghostty-bin;
+    enable = true;
     target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
     source = ./images/totoro-dimmed.jpeg;
   };
-  home.file.kitty_tabbar_py = {
+  home.file.kitty_tabbar_py = lib.mkIf (termcfg.package == pkgs.kitty || caskInstalled "kitty") {
     # Enable kitty tab bar if kitty is installed in Nix or homebrew
-    enable = !isVM || caskInstalled "kitty";
+    enable = true;
     target = "${config.xdg.configHome}/kitty/tab_bar.py";
     source = ./kitty/tab_bar.py;
   };
@@ -481,8 +491,8 @@ in
 
   };
 
-  programs.kitty = {
-    enable = !isVM;
+  programs.kitty = lib.mkIf (termcfg.package == pkgs.kitty) {
+    enable = true;
     font = {
       name = "FiraMono Nerd Font Mono";
       size = 18;
@@ -567,7 +577,7 @@ in
     themeFile = "Catppuccin-Mocha";
   };
 
-  programs.ghostty = lib.mkIf (pkgInstalled pkgs.ghostty-bin) {
+  programs.ghostty = lib.mkIf (termcfg.package == pkgs.ghostty-bin) {
     # Commented out items are the defaults
     enable = true;
     # enableBashIntegration = homecfg.shell.enableBashIntegration;

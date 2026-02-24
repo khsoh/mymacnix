@@ -69,6 +69,15 @@ let
     if appNames == [ ] then "" else builtins.head appNames;
 
   isVM = config.machineInfo.is_vm;
+
+  # 1. Get all user configurations from Home Manager
+  allHomeConfigs = builtins.attrValues config.home-manager.users;
+
+  # 2. Extract the 'termpkg' from each user, filtering out nulls
+  # We use '?' to safely check if the option exists in their home.nix
+  allTerminals = lib.unique (
+    builtins.filter (pkg: pkg != null) (map (u: u.terminal.package or null) allHomeConfigs)
+  );
 in
 {
   imports = [
@@ -203,10 +212,9 @@ in
       # The following packages that could not be installed because these are marked as broken
       # handbrake
 
-      ghostty-bin
     ]
+    ++ allTerminals
     ++ lib.lists.optionals (!isVM) [
-      kitty
       _1password-cli
       _1password-gui
     ];
@@ -339,10 +347,7 @@ in
     persistent-apps = [
       "/System/Applications/Apps.app"
     ]
-    ++ lib.lists.optionals (!isVM) (getMacBundleAppName pkgs.kitty nixAppPath)
-    ++ lib.lists.optionals (pkgInstalled pkgs.ghostty-bin) (
-      getMacBundleAppName pkgs.ghostty-bin nixAppPath
-    )
+    ++ map (p: builtins.head (getMacBundleAppName p nixAppPath)) allTerminals
     ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
       getMacBundleAppName pkgs.google-chrome nixAppPath
     )
