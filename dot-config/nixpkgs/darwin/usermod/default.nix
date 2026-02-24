@@ -49,6 +49,6 @@ in
   # gitlab.noreply_email is assigned to global config email if not specified
 
   #### terminal configuration
-  terminal.package = if (!isVM) then pkgs.kitty else pkgs.ghostty-bin;
+  terminal.package = lib.mkDefault (if (!isVM) then pkgs.kitty else pkgs.ghostty-bin);
 }
 # vim: set ts=2 sw=2 et ft=nix:
