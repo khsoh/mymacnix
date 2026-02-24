@@ -593,6 +593,24 @@ in
       font-family = "FiraMono Nerd Font Mono";
       font-size = 18;
 
+      # Match Kitty's standard text brightness
+      foreground = "#cdd6f4";
+
+      # Brighten the ANSI "white" colors (index 7 and 15)
+      palette = [
+        "7=#e0e0e0"
+        "15=#ffffff"
+      ];
+
+      # Improve text "pop" and thickness
+      alpha-blending = "linear-corrected";
+      minimum-contrast = 1.1;
+      bold-is-bright = true;
+
+      # Font Thickness
+      font-thicken = true;
+      font-thicken-strength = 120; # 0-255; higher is thicker
+
       ## Glassy minimalist
       # macos-titlebar-style = "hidden";
       # background-opacity = 0.85;
