@@ -229,7 +229,7 @@ if [ $? -ne 0 ]; then
                 else
                     echo "Invalid service account token.  Try again"
                 fi
-            while 
+            done 
         fi
     fi
 
