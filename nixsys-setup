@@ -221,7 +221,15 @@ if [ $? -ne 0 ]; then
             eval $(op account add --signin)
         else
             # Get account service token
-            read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
+            while true; do
+                read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
+                if [[ $OP_SERVICE_ACCOUNT_TOKEN == ops_* ]]; then
+                    echo "Service Account Token read"
+                    break;
+                else
+                    echo "Invalid service account token.  Try again"
+                fi
+            while 
         fi
     fi
 
@@ -229,6 +237,9 @@ if [ $? -ne 0 ]; then
     if [ ! -f ~/.ssh/nixid_ed25519 ]; then
         # Use the query parameter to force OpenSSH format
         op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" --out-file ~/.ssh/nixid_ed25519
+    fi
+    if [ -v OP_SERVICE_ACCOUNT_TOKEN ]; then
+        unset -v OP_SERVICE_ACCOUNT_TOKEN
     fi
     if [ ! -f ~/.ssh/nixid_ed25519.pub ]; then
         ssh-keygen -y -f ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub
