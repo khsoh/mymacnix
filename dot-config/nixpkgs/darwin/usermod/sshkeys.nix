@@ -3,21 +3,16 @@ let
   homeDir = config.home.homeDirectory;
   sshcfg = config.sshkeys;
 
-  read_pubkey = (
-    filepresent: pubkeyfile:
-    lib.mkMerge [
-      (lib.mkIf filepresent (
-        builtins.concatStringsSep " " (
-          lib.lists.take 2 (
-            builtins.filter (e: !(builtins.isList e)) (
-              builtins.split "[[:space:]\n]+" (builtins.readFile pubkeyfile)
-            )
-          )
-        )
-      ))
-      (lib.mkIf (!filepresent) "")
-    ]
-  );
+  read_pubkey =
+    pubkeyfile:
+    let
+      # Read the file and strip the trailing newline
+      content = lib.removeSuffix "\n" (builtins.readFile pubkeyfile);
+      # Split by spaces into a list of strings
+      parts = lib.splitString " " content;
+    in
+    # Take the first two elements and join them with a space
+    builtins.concatStringsSep " " (lib.take 2 parts);
 in
 {
   ## SSH private and public keys for the user and Nix
@@ -71,7 +66,7 @@ in
       readOnly = true;
     };
     userssh_pubkey = lib.mkOption {
-      type = lib.types.str;
+      type = lib.types.nullOr lib.types.str;
       readOnly = true;
     };
 
@@ -108,7 +103,7 @@ in
       readOnly = true;
     };
     nixidssh_pubkey = lib.mkOption {
-      type = lib.types.str;
+      type = lib.types.nullOr lib.types.str;
       readOnly = true;
     };
   };
@@ -119,10 +114,8 @@ in
     nixidpkfile_present = builtins.pathExists sshcfg.NIXIDPKFILE;
     nixidpubfile_present = builtins.pathExists sshcfg.NIXIDPUBFILE;
 
-    NIXIDPKOPLOC = "op://NIX Bootstrap/NIXID SSH Key";
-    USERPKOPLOC = "op://Private/OPENSSH ED25519 Key";
-    userssh_pubkey = read_pubkey sshcfg.userpubfile_present sshcfg.USERPUBFILE;
-    nixidssh_pubkey = read_pubkey sshcfg.nixidpubfile_present sshcfg.NIXIDPUBFILE;
+    userssh_pubkey = if sshcfg.userpubfile_present then (read_pubkey sshcfg.USERPUBFILE) else null;
+    nixidssh_pubkey = if sshcfg.nixidpubfile_present then (read_pubkey sshcfg.NIXIDPUBFILE) else null;
   };
 
   ## Setup checks and asserts for the SSH private and public key files based on

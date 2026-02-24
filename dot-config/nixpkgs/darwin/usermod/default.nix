@@ -29,8 +29,8 @@ in
   ## - user SSH public key file
   sshkeys.check_userpkfile = !isVM;
   sshkeys.check_userpubfile = !isVM;
-  sshkeys.check_nixidpkfile = true;
-  sshkeys.check_nixidpubfile = true;
+  sshkeys.NIXIDPKOPLOC = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
+  sshkeys.USERPKOPLOC = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
   # sshkeys.check_userpubfile = true;
   # sshkeys.check_nixidpkfile = true;
   # sshkeys.check_nixidpubfile = true;

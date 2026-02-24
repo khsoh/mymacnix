@@ -129,11 +129,10 @@ in
     target = ".config/nixpkgs/secrets/pubkeys.nix";
     text =
       let
-        allKeys = [
+        validKeys = builtins.filter (k: k != null) [
           sshcfg.userssh_pubkey
           sshcfg.nixidssh_pubkey
         ];
-        validKeys = builtins.filter (k: k != "") allKeys;
         content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
       in
       ''
@@ -162,10 +161,17 @@ in
     # enable = true;
 
     target = ".ssh/allowed_signers";
-    text = ''
-      ${default_git_email} namespaces="git" ${sshcfg.userssh_pubkey}
-      ${default_git_email} namespaces="git" ${sshcfg.nixidssh_pubkey}
-    '';
+    text =
+      let
+        validKeys = builtins.filter (k: k != null) [
+          sshcfg.userssh_pubkey
+          sshcfg.nixidssh_pubkey
+        ];
+        content = lib.strings.concatMapStringsSep "\n" (
+          k: "${default_git_email} namespaces=\"git\" ${k}"
+        ) validKeys;
+      in
+      "${content}\n";
   };
 
   home.file.tmux = {
@@ -470,7 +476,7 @@ in
 
     signing = {
       format = "ssh";
-      key = if onepasscfg.sshsign_pgm_present then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey;
+      key = if sshcfg.userssh_pubkey != null then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey;
       signByDefault = true;
     }
     // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
