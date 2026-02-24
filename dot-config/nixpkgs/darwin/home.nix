@@ -61,8 +61,7 @@ in
   imports = [
     <agenix/modules/age-home.nix>
     ./usermod
-  ]
-  ++ lib.optional (builtins.pathExists ./_terminal.nix) ./_terminal.nix;
+  ];
 
   ##### xdg configuration
   xdg.enable = true;

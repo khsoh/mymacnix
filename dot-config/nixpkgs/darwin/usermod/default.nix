@@ -49,6 +49,11 @@ in
   # gitlab.noreply_email is assigned to global config email if not specified
 
   #### terminal configuration
-  terminal.package = lib.mkDefault (if (!isVM) then pkgs.kitty else pkgs.ghostty-bin);
+  # Override terminal.package by writing to ~/.config/nix/_terminal.nix
+  #   { pkgs, ... }:
+  #   {
+  #     package = pkgs.ghostty-bin;
+  #   }
+  # Assign package to null if user wants to use default Terminal app
 }
 # vim: set ts=2 sw=2 et ft=nix:
