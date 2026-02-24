@@ -55,7 +55,7 @@ let
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in
     if appNames == [ ] then "" else ("/Applications/Nix Apps/" + builtins.head appNames);
-  TERMPROG = getMacAppName termcfg.package;
+  TERMPROG = if termcfg.package != null then getMacAppName termcfg.package else "Terminal.app";
 in
 {
   imports = [
