@@ -42,6 +42,8 @@ let
 
   isVM = osConfig.machineInfo.is_vm;
 
+  backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
+
   TERMPROG =
     if isVM then "/Applications/Nix Apps/Ghostty.app" else "/Applications/Nix Apps/kitty.app";
 in
@@ -219,17 +221,11 @@ in
       launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
     '';
   };
-  home.file.kittyBackdrop = {
-    # Enable kitty backdrop if kitty is installed in Nix or homebrew
-    enable = !isVM || caskInstalled "kitty";
-    target = "${config.xdg.configHome}/kitty/totoro-dimmed.jpeg";
-    source = ./kitty/totoro-dimmed.jpeg;
-  };
-  home.file.ghosttyBackdrop = {
-    # Enable ghostty backdrop if ghostty is installed in Nix
-    enable = pkgInstalled pkgs.ghostty-bin;
-    target = "${config.xdg.configHome}/ghostty/totoro-dimmed.jpeg";
-    source = ./kitty/totoro-dimmed.jpeg;
+  home.file.termBackdrop = {
+    # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
+    enable = !isVM || caskInstalled "kitty" || pkgInstalled pkgs.ghostty-bin;
+    target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
+    source = ./images/totoro-dimmed.jpeg;
   };
   home.file.kitty_tabbar_py = {
     # Enable kitty tab bar if kitty is installed in Nix or homebrew
@@ -547,7 +543,7 @@ in
       background_blur = 20;
       dynamic_background_opacity = true;
       background_image_layout = "cscaled";
-      background_image = "./totoro-dimmed.jpeg";
+      background_image = "${backdropImgPath}";
       # Setup in a similar fashion as tmux
       enabled_layouts = "splits,horizontal,vertical,fat,tall,grid";
 
@@ -609,7 +605,7 @@ in
       unfocused-split-opacity = 0.6;
       unfocused-split-fill = "#181825";
 
-      background-image = "./totoro-dimmed.jpeg";
+      background-image = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
       background-image-opacity = 1.0;
       #background-image-fit = "contain";
 
