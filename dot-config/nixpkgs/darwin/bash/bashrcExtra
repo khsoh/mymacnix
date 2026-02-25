@@ -20,5 +20,11 @@ resize_app() {
     ~/.config/jxa/resize_app.js $@
 }
 
-# Create kssh alias if running in a kitty terminal
-[ "$TERM" = "xterm-kitty" ] && alias kssh="kitten ssh"
+## Kitty terminal changes
+if [[ "$TERM" == "xterm-kitty" ]]; then
+    # Create kssh alias if running in a kitty terminal
+    alias kssh="kitten ssh"
+    # Workaround bug of bat utility in kitty terminal
+    export BAT_PAGER="env TERM=xterm-256color less -R"
+fi
+
