@@ -63,8 +63,15 @@ in
   ## user configuration
   config.assertions = [
     {
-      assertion = (!isVM) || (builtins.elem pkgs.kitty config.terminal.packages);
-      message = "kitty terminal program cannot be installed in a VM because VM does not support OpenGL drivers";
+      assertion = (!isVM) || (!builtins.elem pkgs.kitty config.terminal.packages);
+      message = ''
+        kitty terminal program cannot be installed in a VM because VM does not support OpenGL drivers.
+        Current terminal packages:
+
+        ${lib.concatMapStringsSep "\n" (name: name) (
+          map (pkg: "pkgs.${pkg.pname or "unknown"}") config.terminal.packages
+        )}
+      '';
     }
   ];
 }
