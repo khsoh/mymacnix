@@ -7,32 +7,63 @@
 }:
 let
   isVM = osConfig.machineInfo.is_vm;
-  usertermfile = /. + "${config.xdg.configHome}/nix/_terminal.nix";
-  usertermcfg =
-    if builtins.pathExists usertermfile then
-      import usertermfile { inherit pkgs; }
+  defaultTermPackages = [
+    pkgs.ghostty-bin
+  ];
+  userTermFile = "${config.xdg.configHome}/nix/_terminal.nix";
+  userTermPath = /. + "${userTermFile}";
+  userTermPackages =
+    if builtins.pathExists userTermPath then
+      import userTermPath { inherit pkgs; }
     else
-      { package = (if (!isVM) then pkgs.kitty else pkgs.ghostty-bin); };
+      defaultTermPackages;
+
+  packageNames = map (pkg: "pkgs.${pkg.pname or "unknown"}") defaultTermPackages;
+  formattedString = ''
+    { pkgs, ... }:
+    [
+      ### The default terminal packages here
+      ${lib.concatMapStringsSep "\n  " (name: name) packageNames}
+    ]
+  '';
+  activationText = ''
+    if [ ! -f "${userTermFile}" ]; then
+      $DRY_RUN_CMD mkdir -p "$(dirname "${userTermFile}")"
+      $DRY_RUN_CMD cat <<EOF > "${userTermFile}"
+    ${formattedString}
+    EOF
+    fi
+  '';
 in
 {
   ## Terminal program for user
   options.terminal = {
-    package = lib.mkPackageOption pkgs [ "ghostty-bin" "kitty" ] {
-      nullable = true;
-      default = null;
-      extraDescription = "Terminal package to install";
+    packages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      example = lib.literalExpression "[ pkgs.ghostty-bin pkgs.kitty ]";
+      description = ''
+        A list of terminal packages to install.  The first package in
+        the list is the default terminal to execute at startup.
+        Users can override the list with ~/.config/nix/_terminal.nix:
+
+        { pkgs, ... }: [ pkgs.kitty pkgs.ghostty-bin ];
+      '';
     };
   };
 
   config.terminal = {
-    package = usertermcfg.package;
+    packages = userTermPackages;
   };
+
+  config.home.activation.createTerminalTemplate = lib.hm.dag.entryAfter [
+    "writeBoundary"
+  ] activationText;
 
   ## Setup checks and asserts for the SSH private and public key files based on
   ## user configuration
   config.assertions = [
     {
-      assertion = (!isVM) || (config.terminal.package != pkgs.kitty);
+      assertion = (!isVM) || (builtins.elem pkgs.kitty config.terminal.packages);
       message = "kitty terminal program cannot be installed in a VM because VM does not support OpenGL drivers";
     }
   ];

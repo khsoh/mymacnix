@@ -75,8 +75,8 @@ let
 
   # 2. Extract the 'termpkg' from each user, filtering out nulls
   # We use '?' to safely check if the option exists in their home.nix
-  allTerminals = lib.unique (
-    builtins.filter (pkg: pkg != null) (map (u: u.terminal.package or null) allHomeConfigs)
+  allTerminalPackages = lib.unique (
+    lib.flatten (map (cfg: lib.attrByPath [ "terminal" "packages" ] [ ] cfg) allHomeConfigs)
   );
 in
 {
@@ -213,7 +213,7 @@ in
       # handbrake
 
     ]
-    ++ allTerminals
+    ++ allTerminalPackages
     ++ lib.lists.optionals (!isVM) [
       _1password-cli
       _1password-gui
@@ -347,7 +347,7 @@ in
     persistent-apps = [
       "/System/Applications/Apps.app"
     ]
-    ++ map (p: builtins.head (getMacBundleAppName p nixAppPath)) allTerminals
+    ++ map (p: builtins.head (getMacBundleAppName p nixAppPath)) allTerminalPackages
     ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
       getMacBundleAppName pkgs.google-chrome nixAppPath
     )

@@ -55,7 +55,12 @@ let
       appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in
     if appNames == [ ] then "" else ("/Applications/Nix Apps/" + builtins.head appNames);
-  TERMPROG = if termcfg.package != null then getMacAppName termcfg.package else "Terminal.app";
+
+  hasTermPackages = (builtins.length termcfg.packages) > 0;
+  hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
+  hasTermGhostty = (builtins.elem pkgs.ghostty-bin termcfg.packages);
+  TERMPROG =
+    if hasTermPackages then getMacAppName (builtins.head termcfg.packages) else "Terminal.app";
 in
 {
   imports = [
@@ -218,7 +223,7 @@ in
   #   };
   #   recursive = true;
   # };
-  home.file.kittyStartup = lib.mkIf (termcfg.package == pkgs.kitty || caskInstalled "kitty") {
+  home.file.kittyStartup = lib.mkIf (hasTermKitty || caskInstalled "kitty") {
     # Enable kitty config if kitty is installed in Nix or homebrew
     enable = true;
 
@@ -231,13 +236,13 @@ in
       launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
     '';
   };
-  home.file.termBackdrop = lib.mkIf (termcfg.package != null || caskInstalled "kitty") {
+  home.file.termBackdrop = lib.mkIf (hasTermPackages || caskInstalled "kitty") {
     # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
     enable = true;
     target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
     source = ./images/totoro-dimmed.jpeg;
   };
-  home.file.kitty_tabbar_py = lib.mkIf (termcfg.package == pkgs.kitty || caskInstalled "kitty") {
+  home.file.kitty_tabbar_py = lib.mkIf (hasTermKitty || caskInstalled "kitty") {
     # Enable kitty tab bar if kitty is installed in Nix or homebrew
     enable = true;
     target = "${config.xdg.configHome}/kitty/tab_bar.py";
@@ -491,7 +496,7 @@ in
 
   };
 
-  programs.kitty = lib.mkIf (termcfg.package == pkgs.kitty) {
+  programs.kitty = lib.mkIf hasTermKitty {
     enable = true;
     font = {
       name = "FiraMono Nerd Font Mono";
@@ -577,7 +582,7 @@ in
     themeFile = "Catppuccin-Mocha";
   };
 
-  programs.ghostty = lib.mkIf (termcfg.package == pkgs.ghostty-bin) {
+  programs.ghostty = lib.mkIf hasTermGhostty {
     # Commented out items are the defaults
     enable = true;
     # enableBashIntegration = homecfg.shell.enableBashIntegration;
@@ -734,27 +739,31 @@ in
           "JavaScript"
           "-e"
           ''
+            const TERMAPP="${TERMPROG}";
             try {
               // Use the path to target the specific Kitty installation
-              Application("${TERMPROG}").activate();
+              if (TERMAPP != "Terminal.app") {
+                Application("${TERMPROG}").activate();
+              }
             } catch (err) {
               // err contains the message;
               console.log("Error: " + err?.message);
 
-              const terminal = Application("Terminal");
-
-              // Reopen Terminal if no windows exist
-              if (terminal.windows.length === 0) {
-                terminal.reopen();
-              }
+            }
+            if (TERMAPP == "Terminal.app" || TERMAPP == "Terminal") {
+              const terminal = Application(TERMAPP);
 
               terminal.activate();
 
-              // Get the ID of the front window
-              const winID = terminal.windows[0].id();
+              // Reopen Terminal if no windows exist
+              let wins = terminal.windows();
+              if (wins.length === 0) {
+                terminal.reopen();
+                wins = terminal.windows();
+              }
 
               // Execute the command in that specific window
-              terminal.doScript("tmux 2>/dev/null", { in: terminal.windows.id(winID) });
+              terminal.doScript("tmux 2>/dev/null", { in: wins[0] });
             }
           ''
         ];
