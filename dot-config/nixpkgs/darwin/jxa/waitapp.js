@@ -9,6 +9,22 @@ console.log = function(message) {
     $.NSFileHandle.fileHandleWithStandardOutput.writeData(data);
 };
 
+// wait for Desktop to be ready
+function waitForGUI(sys) {
+    for (let attempts = 0; attempts < 30; attempts++) {
+        try {
+            // Check for Dock or Finder as a GUI readiness proxy
+            if (sys.processes["Finder"].exists()) {
+                return true;
+            }
+        } catch (e) {
+            // System Events might not be responding yet
+        }
+        delay(2);
+    }
+    return false;
+}
+
 ObjC.import('AppKit');
 
 function run(argv) {
@@ -16,6 +32,14 @@ function run(argv) {
         return;
     }
     const XAPP = argv[0];
+
+    const sys = Application('System Events');
+    if (!waitForGUI(sys)) {
+        // Timed out waiting for gui
+        console.log(`${new Date()}: Timed out waiting for GUI`);
+        return;
+    }
+
     var app = Application.currentApplication();
     app.includeStandardAdditions = true;
 
@@ -29,8 +53,7 @@ function run(argv) {
         const endTime = new Date();
         endTime.setSeconds(endTime.getSeconds() + 60);
         do {
-            var sys = Application('System Events');
-            const xproc = sys.processes.whose({ bundleIdentifier: XID });
+            const xproc = sys.processes.whose({ bundleIdentifier: XID })();
             if (xproc.length > 0) {
                 return;
             }

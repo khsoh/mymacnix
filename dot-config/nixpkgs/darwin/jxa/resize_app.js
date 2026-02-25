@@ -12,6 +12,22 @@
 ObjC.import('AppKit');
 ObjC.import('Foundation');
 
+// wait for Desktop to be ready
+function waitForGUI(sys) {
+    for (let attempts = 0; attempts < 30; attempts++) {
+        try {
+            // Check for Dock or Finder as a GUI readiness proxy
+            if (sys.processes["Finder"].exists()) {
+                return true;
+            }
+        } catch (e) {
+            // System Events might not be responding yet
+        }
+        delay(2);
+    }
+    return false;
+}
+
 function run(argv) {
     const XAPP = argv.length == 0 ? "Terminal" : argv[0];
     var XFRACTION = argv.length <= 1 ? 0.5 : parseFloat(argv[1]);
@@ -33,43 +49,56 @@ function run(argv) {
         return;
     }
 
+    const sys = Application('System Events');
+    if (!waitForGUI(sys)) {
+        // Timed out waiting for gui
+        console.log(`${new Date()}: Timed out waiting for GUI`);
+        return;
+    }
+
     var app = Application.currentApplication();
     app.includeStandardAdditions = true;
     var bootTime = app.doShellScript('sysctl -n kern.boottime | awk \'{print $4}\' | tr -d ,');
-    var now = 0;
-    var secondsSinceBoot = 0;
+    console.log(`${new Date(bootTime * 1000)}: System started`);
+
     var xproc = null;
-    var found = false;
-
+    var attempts = 0;
+    var targetWindow = null;
+    var wins = null;
+    const maxAttempts = 6;  // 6 times max
     const XID = Application(XAPP).id();
-    var sys = Application('System Events');
-    while (secondsSinceBoot < 150) {
-        xproc = sys.processes.whose({ bundleIdentifier: XID });
+    while (attempts < maxAttempts && targetWindow == null) {
+        attempts++;
 
-        now = Math.floor(Date.now() / 1000);
-        secondsSinceBoot = now - parseInt(bootTime);
-        console.log(`Uptime : ${secondsSinceBoot} seconds`);
-
+        xproc = sys.processes.whose({ bundleIdentifier: XID })();
         if (xproc.length == 0) {
             // Cannot find process
             console.log(`${new Date()}: Failed to find process for app ${XAPP} with id ${XID}`);
             delay(10);
             continue;
         }
-        if (xproc[0].windows.length == 0) {
+
+        wins = xproc[0].windows();
+
+        if (wins.length == 0) {
             // Cannot find its window
             console.log(`${new Date()}: Failed to find windows for app ${XAPP} with id ${XID}`);
             delay(10);
             continue;
         }
-        found = true;
-        break;
+
+        if (wins[0].exists()) {
+            targetWindow = wins[0];
+            break;
+        }
     }
-    if (!found) {
+
+    if (targetWindow == null) {
+        // Cannot find window
         return;
     }
-    xproc[0].windows[0].position = [TOPLEFTX, TOPLEFTY];
-    xproc[0].windows[0].size = [botrx, botry];
+    targetWindow.position = [TOPLEFTX, TOPLEFTY];
+    targetWindow.size = [botrx, botry];
     console.log(`${new Date()}: Found ${XAPP} process to resize on primary display to ${botrx} x ${botry} pixels at ${TOPLEFTX}, ${TOPLEFTY}`);
 }
 

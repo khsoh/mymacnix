@@ -11,14 +11,24 @@ console.log = function(message) {
 
 function run(argv) {
     const sys = Application('System Events');
-    var procArray = sys.processes().map(p => {
-        return {
-            name: p.name(),
-            bundleId: p.bundleIdentifier(),
-            dispName: p.displayedName(),
-            shortName: p.shortName()
-            // props: p.properties()
-        };
+
+    // Force evaluation of the process list immediately
+    const allProcs = sys.processes();
+    const procArray = [];
+
+    // Loop to get properties
+    allProcs.forEach(p => {
+        try {
+            // Call the properties as functions to fetch them
+            procArray.push({
+                name: p.name() || "Unknown",
+                bundleId: p.bundleIdentifier() || "Unknown",
+                dispName: p.displayedName() || "Unknown",
+                shortName: p.shortName() || "Unknown"
+            });
+        } catch (e) {
+            console.log(`Error in allProcs iteration: ${e?.message}`);
+        }
     });
 
     console.log(JSON.stringify(procArray, null, 2));
