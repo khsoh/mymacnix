@@ -7,9 +7,13 @@
 }:
 let
   isVM = osConfig.machineInfo.is_vm;
-  defaultTermPackages = [
-    pkgs.ghostty-bin
-  ];
+  defaultTermPackages =
+    (lib.optionals (!isVM) [
+      pkgs.kitty
+    ])
+    ++ [
+      pkgs.ghostty-bin
+    ];
   userTermFile = "${config.xdg.configHome}/nix/_terminal.nix";
   userTermPath = /. + "${userTermFile}";
   userTermPackages =
