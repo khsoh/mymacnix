@@ -48,25 +48,27 @@ let
 
   nixAppPath = "/Applications/Nix Apps";
 
-  ## Function to generate the path of the Mac App Bundle name from the nix package in the form of a list:
-  # E.g. [ "/Applications/Nix Apps/abc.app" ].
-  # It will return an empty list [] if no Mac App Bundle name is found.
-  getMacBundleAppName =
-    pkg: topPath:
-    let
-      appsDir = "${pkg}/Applications";
-      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
-      appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
-    in
-    map (a: "${topPath}/" + a) appNames;
+  ## Function to get the Mac App Name
+  # E.g. "abc.app".
+  # It will return "" if not name is found
   getMacAppName =
     pkg:
     let
       appsDir = "${pkg}/Applications";
       contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
-      appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
+      appNames = lib.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
     in
     if appNames == [ ] then "" else builtins.head appNames;
+
+  ## Function to generate the path of the Mac App Bundle name from the nix package
+  # E.g. "/Applications/Nix Apps/abc.app".
+  # It will return an empty string "" if no Mac App Bundle name is found.
+  getMacBundleAppName =
+    pkg: topPath:
+    let
+      appName = getMacAppName pkg;
+    in
+    lib.optionalString (appName != "") "${toString topPath}/${appName}";
 
   isVM = config.machineInfo.is_vm;
 
@@ -214,7 +216,7 @@ in
 
     ]
     ++ allTerminalPackages
-    ++ lib.lists.optionals (!isVM) [
+    ++ lib.optionals (!isVM) [
       _1password-cli
       _1password-gui
     ];
@@ -344,14 +346,16 @@ in
   system.defaults.dock = {
     showLaunchpadGestureEnabled = true;
     showMissionControlGestureEnabled = true;
-    persistent-apps = [
-      "/System/Applications/Apps.app"
-    ]
-    ++ map (p: builtins.head (getMacBundleAppName p nixAppPath)) allTerminalPackages
-    ++ lib.lists.optionals (pkgInstalled pkgs.google-chrome) (
-      getMacBundleAppName pkgs.google-chrome nixAppPath
-    )
-    ++ lib.lists.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app";
+    persistent-apps = lib.filter (a: a != "") (
+      [
+        "/System/Applications/Apps.app"
+      ]
+      ++ map (p: getMacBundleAppName p nixAppPath) allTerminalPackages
+      ++ lib.optional (pkgInstalled pkgs.google-chrome) (
+        getMacBundleAppName pkgs.google-chrome nixAppPath
+      )
+      ++ lib.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
+    );
   };
   system.defaults.trackpad = {
     TrackpadFourFingerPinchGesture = 2;
@@ -397,56 +401,49 @@ in
     LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
     # --- Check each package in the new configuration
-    ${lib.concatMapStringsSep "\n"
-      (
-        pkg:
-        let
-          pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
-          appName = getMacAppName pkg;
-          newPath = "${pkg}";
-        in
-        ''
-          NEW_PATH="${newPath}"
-          APP_NAME="${appName}"
-          PKG_NAME="${pkgName}"
+    ${lib.concatMapStringsSep "\n" (
+      pkg:
+      let
+        pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
+        appName = getMacAppName pkg;
+        newPath = "${pkg}";
+      in
+      ''
+        NEW_PATH="${newPath}"
+        APP_NAME="${appName}"
+        PKG_NAME="${pkgName}"
 
-          # Find the old path by looking for the package name in our map
-          OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
+        # Find the old path by looking for the package name in our map
+        OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
 
-          if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
-            printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
-            PRINT_HEADER=0
+        if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
+          printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
+          PRINT_HEADER=0
+        fi
+
+
+        if [ -z "$OLD_PATH" ]; then
+          printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+          echo "  └─ $NEW_PATH"
+        elif [ "$OLD_PATH" != "$NEW_PATH" ]; then
+          printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
+          echo "  └─ OLD: $OLD_PATH"
+          echo "  └─ NEW: $NEW_PATH"
+        fi
+
+        if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
+          # Reset permissions for kitty
+          if [[ "$APP_NAME" == "kitty.app" ]]; then
+            tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "/Applications/Nix Apps/$APP_NAME")"
           fi
 
-
-          if [ -z "$OLD_PATH" ]; then
-            printf "\033[0;31m[New]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
-            echo "  └─ $NEW_PATH"
-          elif [ "$OLD_PATH" != "$NEW_PATH" ]; then
-            printf "\033[0;31m[Modified]\033[0m %s\n" "$APP_NAME - $PKG_NAME"
-            echo "  └─ OLD: $OLD_PATH"
-            echo "  └─ NEW: $NEW_PATH"
-          fi
-
-          if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
-            # Reset permissions for kitty
-            if [[ "$APP_NAME" == "kitty.app" ]]; then
-              tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "/Applications/Nix Apps/$APP_NAME")"
-            fi
-
-            # --- Fix macOS Launch Services for Nix Apps ---
-            # This forces macOS to recognize the app bundle immediately after rebuild
-            echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
-            $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
-          fi
-        ''
-      )
-      (
-        builtins.filter (
-          p: (str: builtins.stringLength str > 0) (getMacAppName p)
-        ) config.environment.systemPackages
-      )
-    }
+          # --- Fix macOS Launch Services for Nix Apps ---
+          # This forces macOS to recognize the app bundle immediately after rebuild
+          echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
+          $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
+        fi
+      ''
+    ) (lib.filter (p: getMacAppName p != "") config.environment.systemPackages)}
   '';
 
   # Used for backwards compatibility, please read the changelog before changing.

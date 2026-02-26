@@ -26,7 +26,7 @@ in
     ./sshkeys.nix
     ./terminal.nix
   ]
-  ++ lib.optionals (builtins.pathExists usercfg) [ usercfg ];
+  ++ lib.optional (builtins.pathExists usercfg) usercfg;
 
   ##### sshkeys configuration
   config.sshkeys = {

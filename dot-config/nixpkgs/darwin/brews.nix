@@ -148,8 +148,8 @@ in
   homebrew.onActivation.cleanup = "zap";
 
   ## Check for mas oudated if mas-cli currently cannot update from App Store
-  system.activationScripts.homebrew.text = lib.mkAfter (
-    lib.optionalString (!config.mas.canUpdate) ''
+  system.activationScripts.homebrew.text = lib.mkIf (!config.mas.canUpdate) (
+    lib.mkAfter ''
       sudo -u ${config.homebrew.user} TERM=xterm-256color -i ${pkgs.bash}/bin/bash <<'EOF'
         BOLD="$(tput bold)"
         RED="$(tput setaf 1)"

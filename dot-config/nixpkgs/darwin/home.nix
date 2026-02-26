@@ -91,7 +91,7 @@ in
 
   ##### agenix configuration
   age.identityPaths = lib.mkIf (sshcfg.nixidpkfile_present || sshcfg.userpkfile_present) (
-    lib.optional sshcfg.nixidpkfile_present "${sshcfg.NIXIDPKFILE}"
+    (lib.optional sshcfg.nixidpkfile_present "${sshcfg.NIXIDPKFILE}")
     ++ (lib.optional sshcfg.userpkfile_present "${sshcfg.USERPKFILE}")
   );
 
