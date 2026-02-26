@@ -288,6 +288,8 @@ in
       LANG = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+    }
+    // lib.optionalAttrs onepass_installed {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -306,8 +308,10 @@ in
       LC_ALL = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+    }
+    // lib.optionalAttrs onepass_installed {
       SSH_AUTH_SOCK = "${SSHSOCK}";
-    };
+    }; # Written to start of .profile
 
     profileExtra = builtins.readFile ./zsh/zprofile-extra;
     initContent = builtins.readFile ./zsh/zshrc-initExtra;
