@@ -7,6 +7,16 @@
 }:
 let
   isVM = osConfig.machineInfo.is_vm;
+  homeDir = config.home.homeDirectory;
+  defaultTermPackages = [
+    pkgs.ghostty-bin
+  ]
+  ++ (lib.optionals (!isVM) [
+    pkgs.kitty
+  ]);
+
+  default_usercfg = ./default_usercfg.nix;
+  usercfg = ./usercfg.nix;
 in
 {
   imports = [
@@ -15,45 +25,61 @@ in
     ./onepassword.nix
     ./sshkeys.nix
     ./terminal.nix
-  ];
+  ]
+  ++ lib.optionals (builtins.pathExists usercfg) [ usercfg ];
 
   ##### sshkeys configuration
-  ## The locations of the SSH private and public key files
-  # sshkeys.USERPKFILE = "${homeDir}/.ssh/id_ed25519";
-  # sshkeys.USERPUBFILE = "${homeDir}/.ssh/id_ed25519.pub";
-  # sshkeys.NIXIDPKFILE = "${homeDir}/.ssh/nixid_ed25519";
-  # sshkeys.NIXIDPUBFILE = "${homeDir}/.ssh/nixid_ed25519.pub";
+  config.sshkeys = {
+    ## The locations of the SSH private and public key files
+    USERPKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
+    USERPUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
+    NIXIDPKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
+    NIXIDPUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
 
-  #### Test the presence of SSH key files
-  ### The configuration only builds if the following files exist:
-  ## - nixid SSH private key file
-  ## - nixid SSH public key file
-  ## - user SSH public key file
-  sshkeys.check_userpkfile = !isVM;
-  sshkeys.check_userpubfile = !isVM;
-  sshkeys.NIXIDPKOPLOC = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
-  sshkeys.USERPKOPLOC = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
-  # sshkeys.check_userpubfile = true;
-  # sshkeys.check_nixidpkfile = true;
-  # sshkeys.check_nixidpubfile = true;
+    #### Test the presence of SSH key files
+    ### The configuration only builds if the following files exist:
+    ## - nixid SSH private key file
+    ## - nixid SSH public key file
+    check_nixidpkfile = lib.mkDefault true;
+    check_nixidpubfile = lib.mkDefault true;
+    check_userpkfile = lib.mkDefault (!isVM);
+    check_userpubfile = lib.mkDefault (!isVM);
+
+    ## 1Password CLI op URL to SSH keys
+    NIXIDPKOPLOC = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
+    USERPKOPLOC = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
+  };
 
   ##### onepassword configuration
-  onepassword.sshsign_pgm_present = !isVM;
+  config.onepassword = {
+    sshsign_pgm_present = lib.mkDefault (!isVM);
+    SSHSIGN_PROGRAM = lib.mkDefault "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
+  };
 
   ##### github configuration
-  # github.enable = true;   # Default
-  # github.noreply_email is assigned to global config email if not specified
+  config.github = {
+    enable = lib.mkDefault true;
+    username = lib.mkDefault "khsoh";
+  };
 
   ##### gitlab configuration
-  # gitlab.enable = true;   # Default
-  # gitlab.noreply_email is assigned to global config email if not specified
+  config.gitlab = {
+    enable = lib.mkDefault true;
+    username = lib.mkDefault "khsoh";
+  };
 
   #### terminal configuration
-  # Override terminal.package by writing to ~/.config/nix/_terminal.nix
-  #   { pkgs, ... }:
-  #   {
-  #     package = pkgs.ghostty-bin;
-  #   }
-  # Assign package to null if user wants to use default Terminal app
+  config.terminal = {
+    packages = lib.mkDefault defaultTermPackages;
+  };
+
+  #### Create a default usercfg.nix in ~/.config/nix and add a symbolic link to it
+  config.home.activation.linkusercfg = lib.mkIf (!builtins.pathExists usercfg) (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      $DRY_RUN_CMD mkdir -p "${config.xdg.configHome}/nix"
+      cp "${toString default_usercfg}" "${config.xdg.configHome}/nix/usercfg.nix"
+      ln -s "${config.xdg.configHome}/nix/usercfg.nix" "${toString usercfg}"
+    ''
+  );
 }
 # vim: set ts=2 sw=2 et ft=nix:
