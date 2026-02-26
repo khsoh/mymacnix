@@ -36,10 +36,14 @@ let
   getBrewName = item: if builtins.isAttrs item then item.name else item;
   caskInstalled = name: (builtins.any (x: getBrewName x == name) osConfig.homebrew.casks);
 
+  onepass_installed = pkgInstalled pkgs._1password-gui;
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
-  SSHSOCK = "${homecfg.homeDirectory}/.1password/agent.sock";
-  onepass_installed = pkgInstalled pkgs._1password-gui;
+  SSHSOCK =
+    if onepass_installed then
+      "${homecfg.homeDirectory}/.1password/agent.sock"
+    else
+      "${homecfg.homeDirectory}/.ssh/ssh-agent.sock";
 
   isVM = osConfig.machineInfo.is_vm;
 
@@ -117,6 +121,10 @@ in
     # Note that the owner and group attribute are absent from home-manager module
     #owner = "${username}";
     #group = "staff";
+  };
+
+  services.ssh-agent = lib.mkIf (!onepass_installed) {
+    enable = true;
   };
 
   ## User-specific aliases
