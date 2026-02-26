@@ -13,7 +13,7 @@ in
   # User configuration settings for home-manager modules
   config = {
     ##### sshkeys configuration
-    # config.sshkeys = {
+    # sshkeys = {
     #   ## The locations of the SSH private and public key files
     #   USERPKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
     #   USERPUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
