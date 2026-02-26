@@ -2,17 +2,6 @@
 let
   homeDir = config.home.homeDirectory;
   sshcfg = config.sshkeys;
-
-  read_pubkey =
-    pubkeyfile:
-    let
-      # Read the file and strip the trailing newline
-      content = lib.removeSuffix "\n" (builtins.readFile pubkeyfile);
-      # Split by spaces into a list of strings
-      parts = lib.splitString " " content;
-    in
-    # Take the first two elements and join them with a space
-    builtins.concatStringsSep " " (lib.take 2 parts);
 in
 {
   ## SSH private and public keys for the user and Nix
@@ -53,7 +42,7 @@ in
     };
 
     USERPUBFILE = lib.mkOption {
-      type = lib.types.path;
+      type = lib.types.str;
       description = "Relative path to current user's public key file";
       default = "${homeDir}/.ssh/id_ed25519.pub";
     };
@@ -63,10 +52,6 @@ in
     };
     userpubfile_present = lib.mkOption {
       type = lib.types.bool;
-      readOnly = true;
-    };
-    userssh_pubkey = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
       readOnly = true;
     };
 
@@ -90,7 +75,7 @@ in
     };
 
     NIXIDPUBFILE = lib.mkOption {
-      type = lib.types.path;
+      type = lib.types.str;
       description = "Relative path to Nix system's public key file";
       default = "${homeDir}/.ssh/nixid_ed25519.pub";
     };
@@ -102,10 +87,6 @@ in
       type = lib.types.bool;
       readOnly = true;
     };
-    nixidssh_pubkey = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      readOnly = true;
-    };
   };
 
   config.sshkeys = {
@@ -113,9 +94,6 @@ in
     userpubfile_present = builtins.pathExists sshcfg.USERPUBFILE;
     nixidpkfile_present = builtins.pathExists sshcfg.NIXIDPKFILE;
     nixidpubfile_present = builtins.pathExists sshcfg.NIXIDPUBFILE;
-
-    userssh_pubkey = if sshcfg.userpubfile_present then (read_pubkey sshcfg.USERPUBFILE) else null;
-    nixidssh_pubkey = if sshcfg.nixidpubfile_present then (read_pubkey sshcfg.NIXIDPUBFILE) else null;
   };
 
   ## Setup checks and asserts for the SSH private and public key files based on

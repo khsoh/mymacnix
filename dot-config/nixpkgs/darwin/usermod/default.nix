@@ -77,8 +77,10 @@ in
   config.home.activation.linkusercfg = lib.mkIf (!builtins.pathExists usercfg) (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       $DRY_RUN_CMD mkdir -p "${config.xdg.configHome}/nix"
-      cp "${toString default_usercfg}" "${config.xdg.configHome}/nix/usercfg.nix"
-      ln -s "${config.xdg.configHome}/nix/usercfg.nix" "${toString usercfg}"
+      if [ ! -f "${config.xdg.configHome}/nix/usercfg.nix ]; then
+        cp "${toString default_usercfg}" "${config.xdg.configHome}/nix/usercfg.nix"
+      fi
+      ln -sf "${config.xdg.configHome}/nix/usercfg.nix" "${toString usercfg}"
     ''
   );
 }

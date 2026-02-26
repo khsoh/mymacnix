@@ -49,6 +49,20 @@ let
 
   backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
 
+  ## Function to extract first 2 elements of the public key file
+  readPubkey =
+    pubkeyfile:
+    let
+      # Read the file and strip the trailing newline
+      content = lib.removeSuffix "\n" (builtins.readFile pubkeyfile);
+      # Split by spaces into a list of strings
+      parts = lib.splitString " " content;
+    in
+    # Take the first two elements and join them with a space
+    builtins.concatStringsSep " " (lib.take 2 parts);
+  userssh_pubkey = if sshcfg.userpubfile_present then (readPubkey sshcfg.USERPUBFILE) else null;
+  nixidssh_pubkey = if sshcfg.nixidpubfile_present then (readPubkey sshcfg.NIXIDPUBFILE) else null;
+
   ## Function to generate the path of the Mac App  name from the nix package in the form of a list:
   # E.g. "/Applications/Nix Apps/abc.app".
   getMacAppName =
@@ -155,8 +169,8 @@ in
     text =
       let
         validKeys = builtins.filter (k: k != null) [
-          sshcfg.userssh_pubkey
-          sshcfg.nixidssh_pubkey
+          userssh_pubkey
+          nixidssh_pubkey
         ];
         content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
       in
@@ -189,8 +203,8 @@ in
     text =
       let
         validKeys = builtins.filter (k: k != null) [
-          sshcfg.userssh_pubkey
-          sshcfg.nixidssh_pubkey
+          userssh_pubkey
+          nixidssh_pubkey
         ];
         content = lib.strings.concatMapStringsSep "\n" (
           k: "${default_git_email} namespaces=\"git\" ${k}"
@@ -499,7 +513,7 @@ in
 
     signing = {
       format = "ssh";
-      key = if sshcfg.userssh_pubkey != null then sshcfg.userssh_pubkey else sshcfg.nixidssh_pubkey;
+      key = if userssh_pubkey != null then userssh_pubkey else nixidssh_pubkey;
       signByDefault = true;
     }
     // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
