@@ -135,6 +135,12 @@ in
     source = ./jxa/waitapp.js;
   };
 
+  # setting up neovide to use neovim binary
+  home.file.".config/neovide/config.toml".text = ''
+    # Ensure Neovide uses the exact Neovim binary from your Nix store
+    neovim-bin = "${pkgs.neovim}/bin/nvim"
+  '';
+
   ## Generate list of public keys file in pubkeys.nix
   home.file."pubkeys.nix" = {
     ## The defaults are commented out
@@ -254,8 +260,8 @@ in
     source = pkgs.fetchFromGitHub {
       owner = ghcfg.username;
       repo = "kickstart.nvim";
-      rev = "73b68376c61f13a6f7f7b8c00e5f0cead0a1e39b";
-      sha256 = "sha256-lldla7m55YuUqHoO/tpSCp8zFWAtxo0P5LJxZI1zlpE=";
+      rev = "55d1cac1efef1232adae2e289ab74618ea1cffcf";
+      sha256 = "sha256-gj+auppEFp1pYKKYKnKfaZs8DGzMLaG3WhElfFFjtyk=";
       #sha256 = lib.fakeSha256;
     };
     recursive = true;
@@ -645,6 +651,12 @@ in
 
       auto-update = "off";
       keybind = [
+        # Map Cmd+Shift+J to open the scrollback in Neovide (via macOS default)
+        "cmd+shift+j=write_scrollback_file:open"
+
+        # Optional: Map Cmd+Shift+K to open ONLY the current visible screen
+        "cmd+shift+k=write_screen_file:open"
+
         "ctrl+a>h=new_split:down"
         "ctrl+a>v=new_split:right"
         "ctrl+h=goto_split:left"
@@ -911,6 +923,14 @@ in
         fi
       ''
     );
+
+    set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      # Use duti to set Neovide for plain-text (.txt) files
+      # The 'all' flag applies it to editor, viewer, and shell roles
+      run ${pkgs.duti}/bin/duti -s com.neovide.neovide public.plain-text all
+      run ${pkgs.duti}/bin/duti -s com.neovide.neovide .txt all
+      run ${pkgs.duti}/bin/duti -s com.neovide.neovide .log all
+    '';
   };
 
   # The state version is required and should stay at the version you

@@ -109,6 +109,8 @@ in
     [
       vim
       neovim
+      neovide
+      duti
       nixd # LSP for nix
       python3
       (callPackage <agenix/pkgs/agenix.nix> { })
