@@ -16,27 +16,7 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  pkgInstalled =
-    pkg:
-    let
-      # Safely get the lists, defaulting to empty lists if they don't exist
-      systemPkgs = osConfig.environment.systemPackages or [ ];
-      homePkgs = osConfig.users.users.${homecfg.username}.packages or [ ];
-
-      # helper to get package name for more reliable matching
-      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
-      targetName = getName pkg;
-
-      # Combine them into one list for a single check
-      allPkgs = systemPkgs ++ homePkgs;
-    in
-    builtins.any (p: (getName p) == targetName) allPkgs;
-
-  # Check if homebrew cask installed
-  getBrewName = item: if builtins.isAttrs item then item.name else item;
-  caskInstalled = name: (builtins.any (x: getBrewName x == name) osConfig.homebrew.casks);
-
-  onepass_installed = pkgInstalled pkgs._1password-gui;
+  onepass_installed = osConfig.helpers.pkgInstalled pkgs._1password-gui;
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK =
@@ -63,22 +43,14 @@ let
   userssh_pubkey = if sshcfg.userpubfile_present then (readPubkey sshcfg.USERPUBFILE) else null;
   nixidssh_pubkey = if sshcfg.nixidpubfile_present then (readPubkey sshcfg.NIXIDPUBFILE) else null;
 
-  ## Function to generate the path of the Mac App  name from the nix package in the form of a list:
-  # E.g. "/Applications/Nix Apps/abc.app".
-  getMacAppName =
-    pkg:
-    let
-      appsDir = "${pkg}/Applications";
-      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
-      appNames = builtins.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
-    in
-    if appNames == [ ] then "" else ("/Applications/Nix Apps/" + builtins.head appNames);
-
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
   hasTermGhostty = (builtins.elem pkgs.ghostty-bin termcfg.packages);
   TERMPROG =
-    if hasTermPackages then getMacAppName (builtins.head termcfg.packages) else "Terminal.app";
+    if hasTermPackages then
+      osConfig.helpers.getMacBundleAppName (builtins.head termcfg.packages)
+    else
+      "Terminal.app";
 in
 {
   imports = [
@@ -233,7 +205,7 @@ in
   #   ## The defaults are commented out
   #
   #   # Enable kitty config if kitty is installed in Nix or homebrew
-  #   enable = pkgInstalled pkgs.kitty || caskInstalled "kitty";
+  #   enable = osConfig.helpers.pkgInstalled pkgs.kitty || osConfig.helpers.brewAppInstalled "kitty";
   #   target = "${config.xdg.configHome}/kitty";
   #   #source = ../kitty;
   #   source = pkgs.fetchFromGitHub {
@@ -245,7 +217,7 @@ in
   #   };
   #   recursive = true;
   # };
-  home.file.kittyStartup = lib.mkIf (hasTermKitty || caskInstalled "kitty") {
+  home.file.kittyStartup = lib.mkIf (hasTermKitty || osConfig.helpers.brewAppInstalled "kitty") {
     # Enable kitty config if kitty is installed in Nix or homebrew
     enable = true;
 
@@ -258,13 +230,13 @@ in
       launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
     '';
   };
-  home.file.termBackdrop = lib.mkIf (hasTermPackages || caskInstalled "kitty") {
+  home.file.termBackdrop = lib.mkIf (hasTermPackages || osConfig.helpers.brewAppInstalled "kitty") {
     # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
     enable = true;
     target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
     source = ./images/totoro-dimmed.jpeg;
   };
-  home.file.kitty_tabbar_py = lib.mkIf (hasTermKitty || caskInstalled "kitty") {
+  home.file.kitty_tabbar_py = lib.mkIf (hasTermKitty || osConfig.helpers.brewAppInstalled "kitty") {
     # Enable kitty tab bar if kitty is installed in Nix or homebrew
     enable = true;
     target = "${config.xdg.configHome}/kitty/tab_bar.py";

@@ -21,55 +21,6 @@ let
     primaryUserInfo
   ];
 
-  ## Functions to detect if app is installed as:
-  # a top-level nix package
-  # a home-manager nix package
-  # a homebrew installed package
-  pkgInstalled =
-    pkg:
-    let
-      # Safely get the lists, defaulting to empty lists if they don't exist
-      systemPkgs = config.environment.systemPackages or [ ];
-
-      # helper to get package name for more reliable matching
-      getName = p: p.pname or (builtins.parseDrvName p.name).name or "";
-      targetName = getName pkg;
-    in
-    builtins.any (p: (getName p) == targetName) systemPkgs;
-
-  getBrewName = item: if builtins.isAttrs item then item.name else item;
-  brewAppInstalled =
-    name:
-    (builtins.any (x: getBrewName x == name) config.homebrew.brews)
-    # Check formulae
-    || (builtins.any (x: getBrewName x == name) config.homebrew.casks)
-    # Check casks
-    || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
-
-  nixAppPath = "/Applications/Nix Apps";
-
-  ## Function to get the Mac App Name
-  # E.g. "abc.app".
-  # It will return "" if not name is found
-  getMacAppName =
-    pkg:
-    let
-      appsDir = "${pkg}/Applications";
-      contents = if builtins.pathExists appsDir then builtins.readDir appsDir else { };
-      appNames = lib.filter (n: builtins.match ".*\\.app$" n != null) (builtins.attrNames contents);
-    in
-    if appNames == [ ] then "" else builtins.head appNames;
-
-  ## Function to generate the path of the Mac App Bundle name from the nix package
-  # E.g. "/Applications/Nix Apps/abc.app".
-  # It will return an empty string "" if no Mac App Bundle name is found.
-  getMacBundleAppName =
-    pkg: topPath:
-    let
-      appName = getMacAppName pkg;
-    in
-    lib.optionalString (appName != "") "${toString topPath}/${appName}";
-
   isVM = config.machineInfo.is_vm;
 
   # 1. Get all user configurations from Home Manager
@@ -83,6 +34,7 @@ let
 in
 {
   imports = [
+    ./globals.nix
     <home-manager/nix-darwin>
     <agenix/modules/age.nix>
     ./brews.nix
@@ -350,11 +302,11 @@ in
       [
         "/System/Applications/Apps.app"
       ]
-      ++ map (p: getMacBundleAppName p nixAppPath) allTerminalPackages
-      ++ lib.optional (pkgInstalled pkgs.google-chrome) (
-        getMacBundleAppName pkgs.google-chrome nixAppPath
+      ++ map (p: config.helpers.getMacBundleAppName p) allTerminalPackages
+      ++ lib.optional (config.helpers.pkgInstalled pkgs.google-chrome) (
+        config.helpers.getMacBundleAppName pkgs.google-chrome
       )
-      ++ lib.optional (brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
+      ++ lib.optional (config.helpers.brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
     );
   };
   system.defaults.trackpad = {
@@ -405,7 +357,7 @@ in
       pkg:
       let
         pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
-        appName = getMacAppName pkg;
+        appName = config.helpers.getMacAppName pkg;
         newPath = "${pkg}";
       in
       ''
@@ -443,7 +395,7 @@ in
           $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
         fi
       ''
-    ) (lib.filter (p: getMacAppName p != "") config.environment.systemPackages)}
+    ) (lib.filter (p: config.helpers.getMacAppName p != "") config.environment.systemPackages)}
   '';
 
   # Used for backwards compatibility, please read the changelog before changing.
