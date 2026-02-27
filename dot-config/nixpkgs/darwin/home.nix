@@ -16,11 +16,11 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  onepass_installed = osConfig.helpers.pkgInstalled pkgs._1password-gui;
+  onepassword_enable = config.onepassword.enable;
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK =
-    if onepass_installed then
+    if onepassword_enable then
       "${homecfg.homeDirectory}/.1password/agent.sock"
     else
       "${homecfg.homeDirectory}/.ssh/ssh-agent.sock";
@@ -109,7 +109,7 @@ in
     #group = "staff";
   };
 
-  services.ssh-agent = lib.mkIf (!onepass_installed) {
+  services.ssh-agent = lib.mkIf (!onepassword_enable) {
     enable = true;
   };
 
@@ -154,13 +154,13 @@ in
   };
 
   # Generate secret key templates
-  home.file."${sshcfg.NIXIDPKFILE}" = lib.mkIf onepass_installed {
+  home.file."${sshcfg.NIXIDPKFILE}" = lib.mkIf onepassword_enable {
     target = "${sshcfg.NIXIDPKFILE}.tpl";
     text = ''
       {{ ${sshcfg.NIXIDPKOPLOC}/private key?ssh-format=openssh }}
     '';
   };
-  home.file."${sshcfg.USERPKFILE}" = lib.mkIf onepass_installed {
+  home.file."${sshcfg.USERPKFILE}" = lib.mkIf onepassword_enable {
     target = "${sshcfg.USERPKFILE}.tpl";
     text = ''
       {{ ${sshcfg.USERPKOPLOC}/private key?ssh-format=openssh }}
@@ -275,7 +275,7 @@ in
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
     }
-    // lib.optionalAttrs onepass_installed {
+    // lib.optionalAttrs onepassword_enable {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -295,7 +295,7 @@ in
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
     }
-    // lib.optionalAttrs onepass_installed {
+    // lib.optionalAttrs onepassword_enable {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -317,7 +317,7 @@ in
 
   ### Enable ssh configuration
   programs.ssh = lib.mkMerge [
-    (lib.mkIf onepass_installed {
+    (lib.mkIf onepassword_enable {
       enable = true;
       enableDefaultConfig = false;
       matchBlocks."*" = {
@@ -337,7 +337,7 @@ in
       '';
     })
 
-    (lib.mkIf (!onepass_installed) {
+    (lib.mkIf (!onepassword_enable) {
       enable = true;
       enableDefaultConfig = false;
       matchBlocks."*" = {
@@ -488,7 +488,7 @@ in
       key = if userssh_pubkey != null then userssh_pubkey else nixidssh_pubkey;
       signByDefault = true;
     }
-    // lib.optionalAttrs onepasscfg.sshsign_pgm_present {
+    // lib.optionalAttrs onepasscfg.enable {
       signer = onepasscfg.SSHSIGN_PROGRAM;
     };
 
@@ -839,7 +839,7 @@ in
   };
 
   home.activation = {
-    start1Password = lib.mkIf onepass_installed (
+    start1Password = lib.mkIf onepassword_enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         RERUN=0
         # 1. Define a 1Password login function

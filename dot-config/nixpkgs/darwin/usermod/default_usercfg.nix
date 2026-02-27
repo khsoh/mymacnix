@@ -36,8 +36,8 @@ in
 
     ##### onepassword configuration
     # onepassword = {
-    #   sshsign_pgm_present = lib.mkDefault (!isVM);
-    #   SSHSIGN_PROGRAM = lib.mkDefault "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
+    #    enable = lib.mkDefault (!isVM);
+    #    SSHSIGN_PROGRAM = lib.mkDefault "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
     # };
 
     ##### github configuration

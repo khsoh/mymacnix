@@ -31,6 +31,9 @@ let
   allTerminalPackages = lib.unique (
     lib.flatten (map (cfg: lib.attrByPath [ "terminal" "packages" ] [ ] cfg) allHomeConfigs)
   );
+
+  # 3. Get the onepassword.enable setting of all user packages
+  install_onepassword = builtins.any (cfg: cfg.onepassword.enable) allHomeConfigs;
 in
 {
   imports = [
@@ -168,7 +171,7 @@ in
 
     ]
     ++ allTerminalPackages
-    ++ lib.optionals (!isVM) [
+    ++ lib.optionals (install_onepassword) [
       _1password-cli
       _1password-gui
     ];

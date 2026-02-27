@@ -2,25 +2,22 @@
   config,
   osConfig,
   lib,
+  pkgs,
   ...
 }:
-let
-  isVM = osConfig.machineInfo.is_vm;
-in
 {
   options.onepassword = {
     SSHSIGN_PROGRAM = lib.mkOption {
       type = lib.types.str;
+      default = "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
       description = "Relative path to current user's secret key file";
-      default = "/Applications/Nix Apps/1Password.app/Contents/MacOS/op-ssh-sign";
     };
 
-    ## This is readOnly to determine if the SSHSIGN_PROGRAM is present
-    sshsign_pgm_present = lib.mkOption {
+    enable = lib.mkOption {
       type = lib.types.bool;
+      default = !osConfig.machineInfo.is_vm;
       description = ''
-        Indicate if 1Password signing program is present.  This is only installed 
-        if non-VM machines.
+        Indicate whether to install 1Password and CLI program
       '';
     };
   };
