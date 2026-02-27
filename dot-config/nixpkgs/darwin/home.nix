@@ -925,11 +925,12 @@ in
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      idneovide=$(/usr/bin/osascript -e 'id of app "${Helpers.getMacAppName pkgs.neovide}"')
       # Use duti to set Neovide for plain-text (.txt) files
       # The 'all' flag applies it to editor, viewer, and shell roles
-      run ${pkgs.duti}/bin/duti -s com.neovide.neovide public.plain-text all
-      run ${pkgs.duti}/bin/duti -s com.neovide.neovide .txt all
-      run ${pkgs.duti}/bin/duti -s com.neovide.neovide .log all
+      run ${pkgs.duti}/bin/duti -s $idneovide public.plain-text all
+      run ${pkgs.duti}/bin/duti -s $idneovide .txt all
+      run ${pkgs.duti}/bin/duti -s $idneovide .log all
     '';
   };
 
