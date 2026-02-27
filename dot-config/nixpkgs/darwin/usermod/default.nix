@@ -16,7 +16,11 @@ let
   ]);
 
   default_usercfg = ./default_usercfg.nix;
-  usercfg = ./usercfg.nix;
+  default_usercfgFile = toString default_usercfg;
+
+  usercfgTarget = ./usercfg.nix; # This will be a symbolic link to the usercfgSourceFile
+  usercfgTargetFile = toString usercfgTarget;
+  usercfgSourceFile = "${config.xdg.configHome}/nix/usercfg.nix";
 in
 {
   imports = [
@@ -26,7 +30,7 @@ in
     ./sshkeys.nix
     ./terminal.nix
   ]
-  ++ lib.optional (builtins.pathExists usercfg) usercfg;
+  ++ lib.optional (builtins.pathExists usercfgTarget) usercfgTarget;
 
   ##### sshkeys configuration
   config.sshkeys = {
@@ -74,13 +78,15 @@ in
   };
 
   #### Create a default usercfg.nix in ~/.config/nix and add a symbolic link to it
-  config.home.activation.linkusercfg = lib.mkIf (!builtins.pathExists usercfg) (
+  config.home.activation.linkusercfg = lib.mkIf (!builtins.pathExists usercfgTarget) (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      $DRY_RUN_CMD mkdir -p "${config.xdg.configHome}/nix"
-      if [ ! -f "${config.xdg.configHome}/nix/usercfg.nix ]; then
-        cp "${toString default_usercfg}" "${config.xdg.configHome}/nix/usercfg.nix"
+      noteEcho "Linking user configuration settings to ${usercfgSourceFile}"
+      run mkdir -p "$(dirname "${usercfgSourceFile}")"
+      if [ ! -f "${usercfgSourceFile}" ]; then
+        noteEcho "Missing ${usercfgSourceFile}: Creating default from ${default_usercfgFile}"
+        run cp "${default_usercfgFile}" "${usercfgSourceFile}"
       fi
-      ln -sf "${config.xdg.configHome}/nix/usercfg.nix" "${toString usercfg}"
+      run ln -sf "${usercfgSourceFile}" "${usercfgTargetFile}"
     ''
   );
 }
