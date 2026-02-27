@@ -34,6 +34,9 @@ let
 
   # 3. Get the onepassword.enable setting of all user packages
   install_onepassword = builtins.any (cfg: cfg.onepassword.enable) allHomeConfigs;
+
+  # Shortcut to get helper functions
+  Helpers = config.helpers;
 in
 {
   imports = [
@@ -305,11 +308,11 @@ in
       [
         "/System/Applications/Apps.app"
       ]
-      ++ map (p: config.helpers.getMacBundleAppName p) allTerminalPackages
-      ++ lib.optional (config.helpers.pkgInstalled pkgs.google-chrome) (
-        config.helpers.getMacBundleAppName pkgs.google-chrome
+      ++ map (p: Helpers.getMacBundleAppName p) allTerminalPackages
+      ++ lib.optional (Helpers.pkgInstalled pkgs.google-chrome) (
+        Helpers.getMacBundleAppName pkgs.google-chrome
       )
-      ++ lib.optional (config.helpers.brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
+      ++ lib.optional (Helpers.brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
     );
   };
   system.defaults.trackpad = {
@@ -360,7 +363,7 @@ in
       pkg:
       let
         pkgName = pkg.pname or (builtins.parseDrvName pkg.name).name;
-        appName = config.helpers.getMacAppName pkg;
+        appName = Helpers.getMacAppName pkg;
         newPath = "${pkg}";
       in
       ''
@@ -398,7 +401,7 @@ in
           $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
         fi
       ''
-    ) (lib.filter (p: config.helpers.getMacAppName p != "") config.environment.systemPackages)}
+    ) (lib.filter (p: Helpers.getMacAppName p != "") config.environment.systemPackages)}
   '';
 
   # Used for backwards compatibility, please read the changelog before changing.

@@ -48,9 +48,12 @@ let
   hasTermGhostty = (builtins.elem pkgs.ghostty-bin termcfg.packages);
   TERMPROG =
     if hasTermPackages then
-      osConfig.helpers.getMacBundleAppName (builtins.head termcfg.packages)
+      Helpers.getMacBundleAppName (builtins.head termcfg.packages)
     else
       "Terminal.app";
+
+  # Shortcut to get helper functions
+  Helpers = osConfig.helpers;
 in
 {
   imports = [
@@ -205,7 +208,7 @@ in
   #   ## The defaults are commented out
   #
   #   # Enable kitty config if kitty is installed in Nix or homebrew
-  #   enable = osConfig.helpers.pkgInstalled pkgs.kitty || osConfig.helpers.brewAppInstalled "kitty";
+  #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
   #   target = "${config.xdg.configHome}/kitty";
   #   #source = ../kitty;
   #   source = pkgs.fetchFromGitHub {
@@ -217,7 +220,7 @@ in
   #   };
   #   recursive = true;
   # };
-  home.file.kittyStartup = lib.mkIf (hasTermKitty || osConfig.helpers.brewAppInstalled "kitty") {
+  home.file.kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
     # Enable kitty config if kitty is installed in Nix or homebrew
     enable = true;
 
@@ -230,13 +233,13 @@ in
       launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
     '';
   };
-  home.file.termBackdrop = lib.mkIf (hasTermPackages || osConfig.helpers.brewAppInstalled "kitty") {
+  home.file.termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
     # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
     enable = true;
     target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
     source = ./images/totoro-dimmed.jpeg;
   };
-  home.file.kitty_tabbar_py = lib.mkIf (hasTermKitty || osConfig.helpers.brewAppInstalled "kitty") {
+  home.file.kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
     # Enable kitty tab bar if kitty is installed in Nix or homebrew
     enable = true;
     target = "${config.xdg.configHome}/kitty/tab_bar.py";

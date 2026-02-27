@@ -1,6 +1,7 @@
 { lib, config, ... }:
 let
   getBrewName = item: if builtins.isAttrs item then item.name else item;
+  Globals = config.globals;
 in
 {
   options.globals = {
@@ -34,7 +35,7 @@ in
         let
           appName = config.helpers.getMacAppName pkg;
         in
-        lib.optionalString (appName != "") "${config.globals.nixAppsPath}/${appName}";
+        lib.optionalString (appName != "") "${Globals.nixAppsPath}/${appName}";
 
       ## Checks if package is installed within environment.system.packages
       pkgInstalled =
