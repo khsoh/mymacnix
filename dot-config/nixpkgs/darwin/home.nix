@@ -121,291 +121,151 @@ in
     hbu = "brew update";
   };
 
-  # home.file =
-  #   (lib.mkIf onepassword_enable (
-  #     # Generate secret key templates
-  #     lib.mapAttrs (name: value: {
-  #       target = "${value.PKFILE}.tpl";
-  #       text = ''
-  #         {{ ${value.OPURI}/private key?ssh-format=openssh }}
-  #       '';
-  #     }) sshcfg
-  #   ))
-  #   // {
-  #     resize_app = {
-  #       ## AppleScript file to resize app
-  #       target = "${config.xdg.configHome}/jxa/resize_app.js";
-  #       source = ./jxa/resize_app.js;
-  #     };
-  #
-  #     waitapp = {
-  #       ## JavaScript (JXA) file to wait for DisplayLink Manager to start
-  #       target = "${config.xdg.configHome}/jxa/waitapp.js";
-  #       source = ./jxa/waitapp.js;
-  #     };
-  #
-  #     # setting up neovide to use neovim binary
-  #     ".config/neovide/config.toml".text = ''
-  #       # Ensure Neovide uses the exact Neovim binary from your Nix store
-  #       neovim-bin = "${pkgs.neovim}/bin/nvim"
-  #     '';
-  #
-  #     ## Generate list of public keys file in pubkeys.nix
-  #     "pubkeys.nix" = {
-  #       ## The defaults are commented out
-  #       # enable = true;
-  #
-  #       target = ".config/nixpkgs/secrets/pubkeys.nix";
-  #       text =
-  #         let
-  #           validKeys = builtins.filter (k: k != null) [
-  #             userssh_pubkey
-  #             nixidssh_pubkey
-  #           ];
-  #           content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
-  #         in
-  #         ''
-  #           [
-  #             ${content}
-  #           ]
-  #         '';
-  #     };
-  #
-  #     gitAllowedSigners = {
-  #       ## Generate the allowed signers file
-  #       # enable = true;
-  #
-  #       target = ".ssh/allowed_signers";
-  #       text =
-  #         let
-  #           validKeys = builtins.filter (k: k != null) [
-  #             userssh_pubkey
-  #             nixidssh_pubkey
-  #           ];
-  #           content = lib.strings.concatMapStringsSep "\n" (
-  #             k: "${default_git_email} namespaces=\"git\" ${k}"
-  #           ) validKeys;
-  #         in
-  #         "${content}\n";
-  #     };
-  #
-  #     tmux = {
-  #       ## The defaults are commented out
-  #       # enable = true;
-  #
-  #       target = "${config.xdg.configHome}/tmux";
-  #       #source = ../tmux;
-  #       source = pkgs.fetchFromGitHub {
-  #         owner = ghcfg.username;
-  #         repo = "tmuxconf";
-  #         rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
-  #         sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
-  #         #sha256 = lib.fakeSha256;
-  #       };
-  #       recursive = true;
-  #     };
-  #
-  #     # kitty = {
-  #     #   ## The defaults are commented out
-  #     #
-  #     #   # Enable kitty config if kitty is installed in Nix or homebrew
-  #     #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
-  #     #   target = "${config.xdg.configHome}/kitty";
-  #     #   #source = ../kitty;
-  #     #   source = pkgs.fetchFromGitHub {
-  #     #     owner = ghcfg.username;
-  #     #     repo = "kittyconf";
-  #     #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
-  #     #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
-  #     #     #sha256 = lib.fakeSha256;
-  #     #   };
-  #     #   recursive = true;
-  #     # };
-  #     kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-  #       # Enable kitty config if kitty is installed in Nix or homebrew
-  #       enable = true;
-  #
-  #       target = "${config.xdg.configHome}/kitty/startup.conf";
-  #       text = ''
-  #         cd ~/github
-  #         layout splits
-  #         launch zsh
-  #         launch --location hsplit zsh
-  #         launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
-  #       '';
-  #     };
-  #     termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
-  #       # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
-  #       enable = true;
-  #       target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
-  #       source = ./images/totoro-dimmed.jpeg;
-  #     };
-  #     kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-  #       # Enable kitty tab bar if kitty is installed in Nix or homebrew
-  #       enable = true;
-  #       target = "${config.xdg.configHome}/kitty/tab_bar.py";
-  #       source = ./kitty/tab_bar.py;
-  #     };
-  #
-  #     nvim = {
-  #       ## The defaults are commented out
-  #       # enable = true;
-  #
-  #       target = "${config.xdg.configHome}/nvim";
-  #       source = pkgs.fetchFromGitHub {
-  #         owner = ghcfg.username;
-  #         repo = "kickstart.nvim";
-  #         rev = "55d1cac1efef1232adae2e289ab74618ea1cffcf";
-  #         sha256 = "sha256-gj+auppEFp1pYKKYKnKfaZs8DGzMLaG3WhElfFFjtyk=";
-  #         #sha256 = lib.fakeSha256;
-  #       };
-  #       recursive = true;
-  #     };
-  #   };
+  home.file = lib.mkMerge [
+    (lib.mkIf onepassword_enable (
+      lib.mapAttrs' (
+        name: value:
+        lib.nameValuePair "${value.PKFILE}" {
+          target = "${value.PKFILE}.tpl";
+          text = ''
+            {{ ${value.OPURI}/private key?ssh-format=openssh }}
+          '';
+        }
+      ) sshcfg
+    ))
 
-  # Generate secret key templates
-  home.file."${sshcfg.NIXID.PKFILE}" = lib.mkIf onepassword_enable {
-    target = "${sshcfg.NIXID.PKFILE}.tpl";
-    text = ''
-      {{ ${sshcfg.NIXID.OPURI}/private key?ssh-format=openssh }}
-    '';
-  };
-  home.file."${sshcfg.USER.PKFILE}" = lib.mkIf onepassword_enable {
-    target = "${sshcfg.USER.PKFILE}.tpl";
-    text = ''
-      {{ ${sshcfg.USER.OPURI}/private key?ssh-format=openssh }}
-    '';
-  };
+    {
+      resize_app = {
+        ## AppleScript file to resize app
+        target = "${config.xdg.configHome}/jxa/resize_app.js";
+        source = ./jxa/resize_app.js;
+      };
 
-  home.file.resize_app = {
-    ## AppleScript file to resize app
-    target = "${config.xdg.configHome}/jxa/resize_app.js";
-    source = ./jxa/resize_app.js;
-  };
+      waitapp = {
+        ## JavaScript (JXA) file to wait for DisplayLink Manager to start
+        target = "${config.xdg.configHome}/jxa/waitapp.js";
+        source = ./jxa/waitapp.js;
+      };
 
-  home.file.waitapp = {
-    ## JavaScript (JXA) file to wait for DisplayLink Manager to start
-    target = "${config.xdg.configHome}/jxa/waitapp.js";
-    source = ./jxa/waitapp.js;
-  };
-
-  # setting up neovide to use neovim binary
-  home.file.".config/neovide/config.toml".text = ''
-    # Ensure Neovide uses the exact Neovim binary from your Nix store
-    neovim-bin = "${pkgs.neovim}/bin/nvim"
-  '';
-
-  ## Generate list of public keys file in pubkeys.nix
-  home.file."pubkeys.nix" = {
-    ## The defaults are commented out
-    # enable = true;
-
-    target = ".config/nixpkgs/secrets/pubkeys.nix";
-    text =
-      let
-        validKeys = builtins.filter (k: k != null) [
-          userssh_pubkey
-          nixidssh_pubkey
-        ];
-        content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
-      in
-      ''
-        [
-          ${content}
-        ]
+      # setting up neovide to use neovim binary
+      ".config/neovide/config.toml".text = ''
+        # Ensure Neovide uses the exact Neovim binary from your Nix store
+        neovim-bin = "${pkgs.neovim}/bin/nvim"
       '';
-  };
 
-  home.file.gitAllowedSigners = {
-    ## Generate the allowed signers file
-    # enable = true;
+      ## Generate list of public keys file in pubkeys.nix
+      "pubkeys.nix" = {
+        ## The defaults are commented out
+        # enable = true;
 
-    target = ".ssh/allowed_signers";
-    text =
-      let
-        validKeys = builtins.filter (k: k != null) [
-          userssh_pubkey
-          nixidssh_pubkey
-        ];
-        content = lib.strings.concatMapStringsSep "\n" (
-          k: "${default_git_email} namespaces=\"git\" ${k}"
-        ) validKeys;
-      in
-      "${content}\n";
-  };
+        target = ".config/nixpkgs/secrets/pubkeys.nix";
+        text =
+          let
+            validKeys = builtins.filter (k: k != null) [
+              userssh_pubkey
+              nixidssh_pubkey
+            ];
+            content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
+          in
+          ''
+            [
+              ${content}
+            ]
+          '';
+      };
 
-  home.file.tmux = {
-    ## The defaults are commented out
-    # enable = true;
+      gitAllowedSigners = {
+        ## Generate the allowed signers file
+        # enable = true;
 
-    target = "${config.xdg.configHome}/tmux";
-    #source = ../tmux;
-    source = pkgs.fetchFromGitHub {
-      owner = ghcfg.username;
-      repo = "tmuxconf";
-      rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
-      sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
-      #sha256 = lib.fakeSha256;
-    };
-    recursive = true;
-  };
+        target = ".ssh/allowed_signers";
+        text =
+          let
+            validKeys = builtins.filter (k: k != null) [
+              userssh_pubkey
+              nixidssh_pubkey
+            ];
+            content = lib.strings.concatMapStringsSep "\n" (
+              k: "${default_git_email} namespaces=\"git\" ${k}"
+            ) validKeys;
+          in
+          "${content}\n";
+      };
 
-  # home.file.kitty = {
-  #   ## The defaults are commented out
-  #
-  #   # Enable kitty config if kitty is installed in Nix or homebrew
-  #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
-  #   target = "${config.xdg.configHome}/kitty";
-  #   #source = ../kitty;
-  #   source = pkgs.fetchFromGitHub {
-  #     owner = ghcfg.username;
-  #     repo = "kittyconf";
-  #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
-  #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
-  #     #sha256 = lib.fakeSha256;
-  #   };
-  #   recursive = true;
-  # };
-  home.file.kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-    # Enable kitty config if kitty is installed in Nix or homebrew
-    enable = true;
+      tmux = {
+        ## The defaults are commented out
+        # enable = true;
 
-    target = "${config.xdg.configHome}/kitty/startup.conf";
-    text = ''
-      cd ~/github
-      layout splits
-      launch zsh
-      launch --location hsplit zsh
-      launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
-    '';
-  };
-  home.file.termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
-    # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
-    enable = true;
-    target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
-    source = ./images/totoro-dimmed.jpeg;
-  };
-  home.file.kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-    # Enable kitty tab bar if kitty is installed in Nix or homebrew
-    enable = true;
-    target = "${config.xdg.configHome}/kitty/tab_bar.py";
-    source = ./kitty/tab_bar.py;
-  };
+        target = "${config.xdg.configHome}/tmux";
+        #source = ../tmux;
+        source = pkgs.fetchFromGitHub {
+          owner = ghcfg.username;
+          repo = "tmuxconf";
+          rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
+          sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
+          #sha256 = lib.fakeSha256;
+        };
+        recursive = true;
+      };
 
-  home.file.nvim = {
-    ## The defaults are commented out
-    # enable = true;
+      # home.file.kitty = {
+      #   ## The defaults are commented out
+      #
+      #   # Enable kitty config if kitty is installed in Nix or homebrew
+      #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
+      #   target = "${config.xdg.configHome}/kitty";
+      #   #source = ../kitty;
+      #   source = pkgs.fetchFromGitHub {
+      #     owner = ghcfg.username;
+      #     repo = "kittyconf";
+      #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
+      #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
+      #     #sha256 = lib.fakeSha256;
+      #   };
+      #   recursive = true;
+      # };
+      kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+        # Enable kitty config if kitty is installed in Nix or homebrew
+        enable = true;
 
-    target = "${config.xdg.configHome}/nvim";
-    source = pkgs.fetchFromGitHub {
-      owner = ghcfg.username;
-      repo = "kickstart.nvim";
-      rev = "55d1cac1efef1232adae2e289ab74618ea1cffcf";
-      sha256 = "sha256-gj+auppEFp1pYKKYKnKfaZs8DGzMLaG3WhElfFFjtyk=";
-      #sha256 = lib.fakeSha256;
-    };
-    recursive = true;
-  };
+        target = "${config.xdg.configHome}/kitty/startup.conf";
+        text = ''
+          cd ~/github
+          layout splits
+          launch zsh
+          launch --location hsplit zsh
+          launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
+        '';
+      };
+      termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
+        # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
+        enable = true;
+        target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
+        source = ./images/totoro-dimmed.jpeg;
+      };
+      kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+        # Enable kitty tab bar if kitty is installed in Nix or homebrew
+        enable = true;
+        target = "${config.xdg.configHome}/kitty/tab_bar.py";
+        source = ./kitty/tab_bar.py;
+      };
+
+      nvim = {
+        ## The defaults are commented out
+        # enable = true;
+
+        target = "${config.xdg.configHome}/nvim";
+        source = pkgs.fetchFromGitHub {
+          owner = ghcfg.username;
+          repo = "kickstart.nvim";
+          rev = "55d1cac1efef1232adae2e289ab74618ea1cffcf";
+          sha256 = "sha256-gj+auppEFp1pYKKYKnKfaZs8DGzMLaG3WhElfFFjtyk=";
+          #sha256 = lib.fakeSha256;
+        };
+        recursive = true;
+      };
+    }
+  ];
 
   ### Enable bash configuration
   programs.bash = {
