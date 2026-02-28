@@ -505,6 +505,7 @@ in
 
   programs.kitty = lib.mkIf hasTermKitty {
     enable = true;
+    package = if Helpers.pkgInstalled pkgs.kitty then null else pkgs.kitty;
     font = {
       name = "FiraMono Nerd Font Mono";
       size = 18;
@@ -595,7 +596,7 @@ in
     # enableBashIntegration = homecfg.shell.enableBashIntegration;
     # enableFishIntegration = homecfg.shell.enableFishIntegration;
     # enableZshIntegration = homecfg.shell.enableZshIntegration;
-    package = pkgs.ghostty-bin;
+    package = if Helpers.pkgInstalled pkgs.ghostty-bin then null else pkgs.ghostty-bin;
     # clearDefaultKeybinds = false;
     # installBatSyntax = true;
     # installVimSyntax = false;
