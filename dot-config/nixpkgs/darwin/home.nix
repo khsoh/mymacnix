@@ -65,10 +65,7 @@ in
   xdg.enable = true;
 
   ##### agenix configuration
-  age.identityPaths = lib.mkIf (sshcfg.NIXID ? PKFILE || sshcfg.USER ? PKFILE) (
-    (lib.optional (sshcfg.NIXID ? PKFILE) "${sshcfg.NIXID.PKFILE}")
-    ++ (lib.optional (sshcfg.USER ? PKFILE) "${sshcfg.USER.PKFILE}")
-  );
+  age.identityPaths = lib.mapAttrsToList (name: value: "${value.PKFILE}") sshcfg;
 
   # armored-secrets stores various secret information in JSON file format
   age.secrets."armored-secrets.json" = {
@@ -124,6 +121,162 @@ in
     hbu = "brew update";
   };
 
+  # home.file =
+  #   (lib.mkIf onepassword_enable (
+  #     # Generate secret key templates
+  #     lib.mapAttrs (name: value: {
+  #       target = "${value.PKFILE}.tpl";
+  #       text = ''
+  #         {{ ${value.OPURI}/private key?ssh-format=openssh }}
+  #       '';
+  #     }) sshcfg
+  #   ))
+  #   // {
+  #     resize_app = {
+  #       ## AppleScript file to resize app
+  #       target = "${config.xdg.configHome}/jxa/resize_app.js";
+  #       source = ./jxa/resize_app.js;
+  #     };
+  #
+  #     waitapp = {
+  #       ## JavaScript (JXA) file to wait for DisplayLink Manager to start
+  #       target = "${config.xdg.configHome}/jxa/waitapp.js";
+  #       source = ./jxa/waitapp.js;
+  #     };
+  #
+  #     # setting up neovide to use neovim binary
+  #     ".config/neovide/config.toml".text = ''
+  #       # Ensure Neovide uses the exact Neovim binary from your Nix store
+  #       neovim-bin = "${pkgs.neovim}/bin/nvim"
+  #     '';
+  #
+  #     ## Generate list of public keys file in pubkeys.nix
+  #     "pubkeys.nix" = {
+  #       ## The defaults are commented out
+  #       # enable = true;
+  #
+  #       target = ".config/nixpkgs/secrets/pubkeys.nix";
+  #       text =
+  #         let
+  #           validKeys = builtins.filter (k: k != null) [
+  #             userssh_pubkey
+  #             nixidssh_pubkey
+  #           ];
+  #           content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
+  #         in
+  #         ''
+  #           [
+  #             ${content}
+  #           ]
+  #         '';
+  #     };
+  #
+  #     gitAllowedSigners = {
+  #       ## Generate the allowed signers file
+  #       # enable = true;
+  #
+  #       target = ".ssh/allowed_signers";
+  #       text =
+  #         let
+  #           validKeys = builtins.filter (k: k != null) [
+  #             userssh_pubkey
+  #             nixidssh_pubkey
+  #           ];
+  #           content = lib.strings.concatMapStringsSep "\n" (
+  #             k: "${default_git_email} namespaces=\"git\" ${k}"
+  #           ) validKeys;
+  #         in
+  #         "${content}\n";
+  #     };
+  #
+  #     tmux = {
+  #       ## The defaults are commented out
+  #       # enable = true;
+  #
+  #       target = "${config.xdg.configHome}/tmux";
+  #       #source = ../tmux;
+  #       source = pkgs.fetchFromGitHub {
+  #         owner = ghcfg.username;
+  #         repo = "tmuxconf";
+  #         rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
+  #         sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
+  #         #sha256 = lib.fakeSha256;
+  #       };
+  #       recursive = true;
+  #     };
+  #
+  #     # kitty = {
+  #     #   ## The defaults are commented out
+  #     #
+  #     #   # Enable kitty config if kitty is installed in Nix or homebrew
+  #     #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
+  #     #   target = "${config.xdg.configHome}/kitty";
+  #     #   #source = ../kitty;
+  #     #   source = pkgs.fetchFromGitHub {
+  #     #     owner = ghcfg.username;
+  #     #     repo = "kittyconf";
+  #     #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
+  #     #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
+  #     #     #sha256 = lib.fakeSha256;
+  #     #   };
+  #     #   recursive = true;
+  #     # };
+  #     kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+  #       # Enable kitty config if kitty is installed in Nix or homebrew
+  #       enable = true;
+  #
+  #       target = "${config.xdg.configHome}/kitty/startup.conf";
+  #       text = ''
+  #         cd ~/github
+  #         layout splits
+  #         launch zsh
+  #         launch --location hsplit zsh
+  #         launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
+  #       '';
+  #     };
+  #     termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
+  #       # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
+  #       enable = true;
+  #       target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
+  #       source = ./images/totoro-dimmed.jpeg;
+  #     };
+  #     kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+  #       # Enable kitty tab bar if kitty is installed in Nix or homebrew
+  #       enable = true;
+  #       target = "${config.xdg.configHome}/kitty/tab_bar.py";
+  #       source = ./kitty/tab_bar.py;
+  #     };
+  #
+  #     nvim = {
+  #       ## The defaults are commented out
+  #       # enable = true;
+  #
+  #       target = "${config.xdg.configHome}/nvim";
+  #       source = pkgs.fetchFromGitHub {
+  #         owner = ghcfg.username;
+  #         repo = "kickstart.nvim";
+  #         rev = "55d1cac1efef1232adae2e289ab74618ea1cffcf";
+  #         sha256 = "sha256-gj+auppEFp1pYKKYKnKfaZs8DGzMLaG3WhElfFFjtyk=";
+  #         #sha256 = lib.fakeSha256;
+  #       };
+  #       recursive = true;
+  #     };
+  #   };
+
+  # Generate secret key templates
+  home.file."${sshcfg.NIXID.PKFILE}" = lib.mkIf onepassword_enable {
+    target = "${sshcfg.NIXID.PKFILE}.tpl";
+    text = ''
+      {{ ${sshcfg.NIXID.OPURI}/private key?ssh-format=openssh }}
+    '';
+  };
+  home.file."${sshcfg.USER.PKFILE}" = lib.mkIf onepassword_enable {
+    target = "${sshcfg.USER.PKFILE}.tpl";
+    text = ''
+      {{ ${sshcfg.USER.OPURI}/private key?ssh-format=openssh }}
+    '';
+  };
+
   home.file.resize_app = {
     ## AppleScript file to resize app
     target = "${config.xdg.configHome}/jxa/resize_app.js";
@@ -161,20 +314,6 @@ in
           ${content}
         ]
       '';
-  };
-
-  # Generate secret key templates
-  home.file."${sshcfg.NIXID.PKFILE}" = lib.mkIf onepassword_enable {
-    target = "${sshcfg.NIXID.PKFILE}.tpl";
-    text = ''
-      {{ ${sshcfg.NIXID.OPURI}/private key?ssh-format=openssh }}
-    '';
-  };
-  home.file."${sshcfg.USER.PKFILE}" = lib.mkIf onepassword_enable {
-    target = "${sshcfg.USER.PKFILE}.tpl";
-    text = ''
-      {{ ${sshcfg.USER.OPURI}/private key?ssh-format=openssh }}
-    '';
   };
 
   home.file.gitAllowedSigners = {
@@ -857,73 +996,77 @@ in
 
   home.activation = {
     start1Password = lib.mkIf onepassword_enable (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        RERUN=0
-        # 1. Define a 1Password login function
-        op_login() {
-          if ! ${OPCLI} whoami > /dev/null 2>&1; then
-            printf "\033[1;34m1Password is locked. Please authenticate...\033[0m\n"
-            # If app integration is on, any command triggers the prompt.
-            # We'll use 'signin' to be explicit.
-            eval $(${OPCLI} signin)
+      lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        ''
+          RERUN=0
+          # 1. Define a 1Password login function
+          op_login() {
+            if ! ${OPCLI} whoami > /dev/null 2>&1; then
+              printf "\033[1;34m1Password is locked. Please authenticate...\033[0m\n"
+              # If app integration is on, any command triggers the prompt.
+              # We'll use 'signin' to be explicit.
+              eval $(${OPCLI} signin)
+            fi
+          }
+
+          # 2. Define key installation function
+          install_keys() {
+            PKFILE=$1
+            PUBFILE=$2
+            OPURI=$3
+            remote_fp=$(/bin/cat "''${PKFILE}.fp" 2>/dev/null || ${OPCLI} read "''${OPURI}/fingerprint")
+            if [ ! -f "$PKFILE" ] ||
+              [ "$(${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}')" != "$remote_fp" ]; then
+              RERUN=1
+              printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" "$PKFILE"
+              ${OPCLI} inject -i "''${PKFILE}.tpl" -o "$PKFILE" --force
+            fi
+            if [ ! -f "$PUBFILE" ]; then
+              RERUN=1
+              printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" "$PUBFILE"
+              ${pkgs.openssh}/bin/ssh-keygen -y -f "$PKFILE" > "$PUBFILE"
+            fi
+            ${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}' > "''${PKFILE}.fp"
+          }
+
+          # 2. Create the .1password directory if it does not exist
+          /bin/mkdir -p "$(dirname "${SSHSOCK}")"
+
+          # 3. Symlink the 1Password-managed socket to the standard location
+          # Replace the source path if 1Password changes it, but this is the current macOS default
+          /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
+
+          # 4. Check that 1Password is running
+          if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
+            printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
+            /usr/bin/open -a "1Password" --args --silent
+            /bin/sleep 2
+
+            # 5. Ensure at least one account is configured on this machine
+            if ! ${OPCLI} account list > /dev/null 2>&1; then
+              printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
+              ${OPCLI} account add
+            fi
+
           fi
-        }
 
-        # 2. Define key installation function
-        install_keys() {
-          PKFILE=$1
-          PUBFILE=$2
-          OPLOC=$3
-          remote_fp=$(/bin/cat "''${PKFILE}.fp" 2>/dev/null || ${OPCLI} read "''${OPLOC}/fingerprint")
-          if [ ! -f "$PKFILE" ] ||
-            [ "$(${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}')" != "$remote_fp" ]; then
-            RERUN=1
-            printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" "$PKFILE"
-            ${OPCLI} inject -i "''${PKFILE}.tpl" -o "$PKFILE" --force
+          # 6. Confirm existence of .ssh directory
+          /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
+
+        ''
+        + lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: value: ''
+            # Generate the keys if their fingerprint differ
+            install_keys "${value.PKFILE}" "${value.PUBFILE}" "${value.OPURI}"
+          '') sshcfg
+        )
+        + ''
+          # 9. Request to re-run darwin-rebuild switch if new keys are generated
+          if [ $RERUN -eq 1 ]; then
+            printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXID.PKFILE}")"
           fi
-          if [ ! -f "$PUBFILE" ]; then
-            RERUN=1
-            printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" "$PUBFILE"
-            ${pkgs.openssh}/bin/ssh-keygen -y -f "$PKFILE" > "$PUBFILE"
-          fi
-          ${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}' > "''${PKFILE}.fp"
-        }
-
-        # 2. Create the .1password directory if it does not exist
-        /bin/mkdir -p "$(dirname "${SSHSOCK}")"
-
-        # 3. Symlink the 1Password-managed socket to the standard location
-        # Replace the source path if 1Password changes it, but this is the current macOS default
-        /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
-
-        # 4. Check that 1Password is running
-        if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
-          printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
-          /usr/bin/open -a "1Password" --args --silent
-          /bin/sleep 2
-
-          # 5. Ensure at least one account is configured on this machine
-          if ! ${OPCLI} account list > /dev/null 2>&1; then
-            printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
-            ${OPCLI} account add
-          fi
-
-        fi
-
-        # 6. Confirm existence of .ssh directory
-        /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
-
-        # 7. Get the nixid keys out to .ssh if these are absent or differ in fingerprint
-        install_keys "${sshcfg.NIXID.PKFILE}" "${sshcfg.NIXID.PUBFILE}" "${sshcfg.NIXID.OPURI}"
-
-        # 8. Get the user keys out to .ssh if these are absent
-        install_keys "${sshcfg.USER.PKFILE}" "${sshcfg.USER.PUBFILE}" "${sshcfg.USER.OPURI}"
-
-        # 9. Request to re-run darwin-rebuild switch if new keys are generated
-        if [ $RERUN -eq 1 ]; then
-          printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXID.PKFILE}")"
-        fi
-      ''
+        ''
+      )
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
