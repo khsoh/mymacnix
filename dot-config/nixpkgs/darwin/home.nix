@@ -40,8 +40,8 @@ let
     in
     # Take the first two elements and join them with a space
     builtins.concatStringsSep " " (lib.take 2 parts);
-  userssh_pubkey = if sshcfg.userpubfile_present then (readPubkey sshcfg.USERPUBFILE) else null;
-  nixidssh_pubkey = if sshcfg.nixidpubfile_present then (readPubkey sshcfg.NIXIDPUBFILE) else null;
+  userssh_pubkey = if (sshcfg.USER ? PUBFILE) then (readPubkey sshcfg.USER.PUBFILE) else null;
+  nixidssh_pubkey = if (sshcfg.NIXID ? PUBFILE) then (readPubkey sshcfg.NIXID.PUBFILE) else null;
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -65,9 +65,9 @@ in
   xdg.enable = true;
 
   ##### agenix configuration
-  age.identityPaths = lib.mkIf (sshcfg.nixidpkfile_present || sshcfg.userpkfile_present) (
-    (lib.optional sshcfg.nixidpkfile_present "${sshcfg.NIXIDPKFILE}")
-    ++ (lib.optional sshcfg.userpkfile_present "${sshcfg.USERPKFILE}")
+  age.identityPaths = lib.mkIf (sshcfg.NIXID ? PKFILE || sshcfg.USER ? PKFILE) (
+    (lib.optional (sshcfg.NIXID ? PKFILE) "${sshcfg.NIXID.PKFILE}")
+    ++ (lib.optional (sshcfg.USER ? PKFILE) "${sshcfg.USER.PKFILE}")
   );
 
   # armored-secrets stores various secret information in JSON file format
@@ -164,16 +164,16 @@ in
   };
 
   # Generate secret key templates
-  home.file."${sshcfg.NIXIDPKFILE}" = lib.mkIf onepassword_enable {
-    target = "${sshcfg.NIXIDPKFILE}.tpl";
+  home.file."${sshcfg.NIXID.PKFILE}" = lib.mkIf onepassword_enable {
+    target = "${sshcfg.NIXID.PKFILE}.tpl";
     text = ''
-      {{ ${sshcfg.NIXIDPKOPLOC}/private key?ssh-format=openssh }}
+      {{ ${sshcfg.NIXID.OPURI}/private key?ssh-format=openssh }}
     '';
   };
-  home.file."${sshcfg.USERPKFILE}" = lib.mkIf onepassword_enable {
-    target = "${sshcfg.USERPKFILE}.tpl";
+  home.file."${sshcfg.USER.PKFILE}" = lib.mkIf onepassword_enable {
+    target = "${sshcfg.USER.PKFILE}.tpl";
     text = ''
-      {{ ${sshcfg.USERPKOPLOC}/private key?ssh-format=openssh }}
+      {{ ${sshcfg.USER.OPURI}/private key?ssh-format=openssh }}
     '';
   };
 
@@ -363,7 +363,7 @@ in
         controlPersist = "no";
       };
       extraConfig = ''
-        IdentityFile ${sshcfg.NIXIDPKFILE}
+        IdentityFile ${sshcfg.NIXID.PKFILE}
       '';
     })
   ];
@@ -914,14 +914,14 @@ in
         /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
 
         # 7. Get the nixid keys out to .ssh if these are absent or differ in fingerprint
-        install_keys "${sshcfg.NIXIDPKFILE}" "${sshcfg.NIXIDPUBFILE}" "${sshcfg.NIXIDPKOPLOC}"
+        install_keys "${sshcfg.NIXID.PKFILE}" "${sshcfg.NIXID.PUBFILE}" "${sshcfg.NIXID.OPURI}"
 
         # 8. Get the user keys out to .ssh if these are absent
-        install_keys "${sshcfg.USERPKFILE}" "${sshcfg.USERPUBFILE}" "${sshcfg.USERPKOPLOC}"
+        install_keys "${sshcfg.USER.PKFILE}" "${sshcfg.USER.PUBFILE}" "${sshcfg.USER.OPURI}"
 
         # 9. Request to re-run darwin-rebuild switch if new keys are generated
         if [ $RERUN -eq 1 ]; then
-          printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXIDPKFILE}")"
+          printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXID.PKFILE}")"
         fi
       ''
     );

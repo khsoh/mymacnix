@@ -34,25 +34,37 @@ in
 
   ##### sshkeys configuration
   config.sshkeys = {
-    ## The locations of the SSH private and public key files
-    USERPKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
-    USERPUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
-    NIXIDPKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
-    NIXIDPUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
+    ## NIXID SSH key configuration
+    NIXID = {
+      OPURI = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
+      PKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
+      PUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
+    };
 
-    #### Test the presence of SSH key files
-    ### The configuration only builds if the following files exist:
-    ## - nixid SSH private key file
-    ## - nixid SSH public key file
-    check_nixidpkfile = lib.mkDefault true;
-    check_nixidpubfile = lib.mkDefault true;
-    check_userpkfile = lib.mkDefault (!isVM);
-    check_userpubfile = lib.mkDefault (!isVM);
-
-    ## 1Password CLI op URL to SSH keys
-    NIXIDPKOPLOC = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
-    USERPKOPLOC = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
+    ## User SSH key configuration
+    USER = lib.mkIf (!isVM) {
+      OPURI = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
+      PKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
+      PUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
+    };
   };
+
+  ## Setup checks and asserts for the SSH private and public key files based on
+  ## user configuration
+  config.assertions = lib.flatten (
+    lib.mapAttrsToList (name: value: [
+      # Check the private key file
+      {
+        assertion = builtins.pathExists value.PKFILE;
+        message = "The ${name} SSH private key file is absent - file must be present to build";
+      }
+      # Check the public key file
+      {
+        assertion = builtins.pathExists value.PUBFILE;
+        message = "The ${name} SSH public key file is absent - file must be present to build";
+      }
+    ]) config.sshkeys
+  );
 
   ##### onepassword configuration
   config.onepassword = {
