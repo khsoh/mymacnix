@@ -15,7 +15,6 @@
 
     enable = lib.mkOption {
       type = lib.types.bool;
-      default = !osConfig.machineInfo.is_vm;
       description = ''
         Indicate whether to install 1Password and CLI program
       '';

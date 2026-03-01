@@ -3,6 +3,7 @@
   osConfig,
   pkgs,
   lib,
+  user,
   ...
 }:
 let
@@ -24,8 +25,6 @@ let
       "${homecfg.homeDirectory}/.1password/agent.sock"
     else
       "${homecfg.homeDirectory}/.ssh/ssh-agent.sock";
-
-  isVM = osConfig.machineInfo.is_vm;
 
   backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
 
@@ -258,8 +257,8 @@ in
         source = pkgs.fetchFromGitHub {
           owner = ghcfg.username;
           repo = "kickstart.nvim";
-          rev="57a559d57a32c2ccd98053004c5830e85b1b0793";
-          sha256="sha256-wSgCvmyUQ3gIuIaWZwEhccklm9VRRpGRYGyLf2IW7rU=";
+          rev = "57a559d57a32c2ccd98053004c5830e85b1b0793";
+          sha256 = "sha256-wSgCvmyUQ3gIuIaWZwEhccklm9VRRpGRYGyLf2IW7rU=";
           #sha256 = lib.fakeSha256;
         };
         recursive = true;
@@ -711,7 +710,7 @@ in
                   app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
               EOF
             ''
-            + (lib.optionalString (!isVM) ''
+            + (lib.optionalString (user.hasAppleID) ''
                 IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
                 if [ -n "$IMSGID" ]; then
                   MSGSTR=$(cat <<MYMSG
