@@ -6,6 +6,7 @@ _USERINFO=$(cat <<EOF
   name = "$(id -un)";
   home = "$HOME";
   uid = $(id -u);
+  hasAppleID = $(defaults read MobileMeAccounts Accounts >/dev/null 2>&1 && echo "true" || echo "false");
 }
 # vim: set ts=2 sw=2 et ft=nix:
 EOF

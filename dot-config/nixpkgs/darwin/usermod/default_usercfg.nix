@@ -3,6 +3,7 @@
   osConfig,
   pkgs,
   lib,
+  user,
   ...
 }:
 let
@@ -14,29 +15,24 @@ in
   config = {
     ##### sshkeys configuration
     # sshkeys = {
-    #   ## The locations of the SSH private and public key files
-    #   USERPKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
-    #   USERPUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
-    #   NIXIDPKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
-    #   NIXIDPUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
+    #   ## NIXID SSH key configuration
+    #   NIXID = {
+    #     OPURI = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
+    #     PKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
+    #     PUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
+    #   };
     #
-    #   #### Test the presence of SSH key files
-    #   ### The configuration only builds if the following files exist:
-    #   ## - nixid SSH private key file
-    #   ## - nixid SSH public key file
-    #   check_nixidpkfile = lib.mkDefault true;
-    #   check_nixidpubfile = lib.mkDefault true;
-    #   check_userpkfile = lib.mkDefault (!isVM);
-    #   check_userpubfile = lib.mkDefault (!isVM);
-    #
-    #   ## 1Password CLI op URL to SSH keys
-    #   NIXIDPKOPLOC = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
-    #   USERPKOPLOC = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
+    #   ## User SSH key configuration
+    #   USER = lib.mkIf (user.hasAppleID) {
+    #     OPURI = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
+    #     PKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
+    #     PUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
+    #   };
     # };
 
     ##### onepassword configuration
     # onepassword = {
-    #    enable = lib.mkDefault (!isVM);
+    #    enable = lib.mkDefault (user.hasAppleID);
     #    SSHSIGN_PROGRAM = lib.mkDefault "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
     # };
 

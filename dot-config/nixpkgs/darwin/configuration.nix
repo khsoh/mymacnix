@@ -59,7 +59,20 @@ in
   home-manager.useUserPackages = true;
 
   ## Apply home-manager configuration for all users
-  home-manager.users = lib.attrsets.genAttrs (map (o: o.name) hmUsers) (_: import ./home.nix);
+  # home-manager.users = lib.attrsets.genAttrs (map (o: o.name) hmUsers) (_: import ./home.nix);
+  home-manager.users = lib.attrsets.genAttrs (map (o: o.name) hmUsers) (
+    name:
+    let
+      # Find the original user object from hmUsers
+      userConfig = builtins.head (builtins.filter (u: u.name == name) hmUsers);
+    in
+    {
+      imports = [ ./home.nix ];
+
+      # Inject 'user' variable to home.nix
+      _module.args.user = userConfig;
+    }
+  );
 
   ##### end home-manager configuration
 
@@ -67,12 +80,20 @@ in
 
   ## The following is needed by home-manager to set the
   ##  home.username and home.homeDirectory attributes
-  users.users = builtins.listToAttrs (
-    map (o: {
-      inherit (o) name;
-      value = o;
-    }) hmUsers
-  );
+  users.users =
+    let
+      supportedKeys = {
+        name = null;
+        home = null;
+        uid = null;
+      };
+    in
+    builtins.listToAttrs (
+      map (o: {
+        inherit (o) name;
+        value = builtins.intersectAttrs supportedKeys o;
+      }) hmUsers
+    );
 
   fonts.packages = with pkgs; [
     nerd-fonts.fira-mono
