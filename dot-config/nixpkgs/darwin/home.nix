@@ -39,8 +39,8 @@ let
     in
     # Take the first two elements and join them with a space
     builtins.concatStringsSep " " (lib.take 2 parts);
-  userssh_pubkey = if (sshcfg.USER ? PUBFILE) then (readPubkey sshcfg.USER.PUBFILE) else null;
-  nixidssh_pubkey = if (sshcfg.NIXID ? PUBFILE) then (readPubkey sshcfg.NIXID.PUBFILE) else null;
+
+  nonNIXIDsshcfg = removeAttrs sshcfg [ "NIXID" ];
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -160,11 +160,9 @@ in
         target = ".config/nixpkgs/secrets/pubkeys.nix";
         text =
           let
-            validKeys = builtins.filter (k: k != null) [
-              userssh_pubkey
-              nixidssh_pubkey
-            ];
-            content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") validKeys;
+            content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") (
+              lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") sshcfg
+            );
           in
           ''
             [
@@ -180,13 +178,9 @@ in
         target = ".ssh/allowed_signers";
         text =
           let
-            validKeys = builtins.filter (k: k != null) [
-              userssh_pubkey
-              nixidssh_pubkey
-            ];
-            content = lib.strings.concatMapStringsSep "\n" (
-              k: "${default_git_email} namespaces=\"git\" ${k}"
-            ) validKeys;
+            content = lib.strings.concatMapStringsSep "\n" (k: "${default_git_email} namespaces=\"git\" ${k}") (
+              lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") sshcfg
+            );
           in
           "${content}\n";
       };
@@ -493,7 +487,12 @@ in
 
     signing = {
       format = "ssh";
-      key = if userssh_pubkey != null then userssh_pubkey else nixidssh_pubkey;
+      #key = if userssh_pubkey != null then userssh_pubkey else nixidssh_pubkey;
+      key =
+        if builtins.attrNames nonNIXIDsshcfg != [ ] then
+          builtins.head (lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") nonNIXIDsshcfg)
+        else
+          readPubkey "${sshcfg.NIXID.PUBFILE}";
       signByDefault = true;
     }
     // lib.optionalAttrs onepasscfg.enable {
