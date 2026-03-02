@@ -13,6 +13,7 @@ let
   ghcfg = config.github;
   glcfg = config.gitlab;
   termcfg = config.terminal;
+  opnixcfg = osConfig.services.onepassword-secrets;
 
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
@@ -56,7 +57,7 @@ let
 in
 {
   imports = [
-    <agenix/modules/age-home.nix>
+    # <agenix/modules/age-home.nix>
     ./usermod
   ];
 
@@ -64,49 +65,49 @@ in
   xdg.enable = true;
 
   ##### agenix configuration
-  age.identityPaths = lib.mapAttrsToList (name: value: "${value.PKFILE}") sshcfg;
+  # age.identityPaths = lib.mapAttrsToList (name: value: "${value.PKFILE}") sshcfg;
 
   # armored-secrets stores various secret information in JSON file format
-  age.secrets."armored-secrets.json" = {
-    file = /. + "${config.xdg.configHome}/nixpkgs/secrets/armored-secrets.json.age";
-
-    # path should be a string expression (in quotes), not a path expression
-    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "${config.xdg.configHome}/nix/armored-secrets.json";
-
-    # The default is true if not specified.  We want to make sure that
-    # the "file" (decrypted secret) is symlinked and not generated directly into
-    # that location
-    symlink = true;
-
-    # The following are needed to ensure the decrypted secret has the correct permission
-    mode = "600";
-
-    # Note that the owner and group attribute are absent from home-manager module
-    #owner = "${username}";
-    #group = "staff";
-  };
-
-  # Stores the Raise2 backup configuration
-  age.secrets."mac-raise2.json" = {
-    file = /. + "${config.xdg.configHome}/nixpkgs/secrets/mac-raise2.json.age";
-
-    # path should be a string expression (in quotes), not a path expression
-    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "${homecfg.homeDirectory}/Dygma/mac-raise2.json";
-
-    # The default is true if not specified.  We want to make sure that
-    # the "file" (decrypted secret) is symlinked and not generated directly into
-    # that location
-    symlink = true;
-
-    # The following are needed to ensure the decrypted secret has the correct permission
-    mode = "600";
-
-    # Note that the owner and group attribute are absent from home-manager module
-    #owner = "${username}";
-    #group = "staff";
-  };
+  # age.secrets."armored-secrets.json" = {
+  #   file = /. + "${config.xdg.configHome}/nixpkgs/secrets/armored-secrets.json.age";
+  #
+  #   # path should be a string expression (in quotes), not a path expression
+  #   # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+  #   path = "${config.xdg.configHome}/nix/armored-secrets.json";
+  #
+  #   # The default is true if not specified.  We want to make sure that
+  #   # the "file" (decrypted secret) is symlinked and not generated directly into
+  #   # that location
+  #   symlink = true;
+  #
+  #   # The following are needed to ensure the decrypted secret has the correct permission
+  #   mode = "600";
+  #
+  #   # Note that the owner and group attribute are absent from home-manager module
+  #   #owner = "${username}";
+  #   #group = "staff";
+  # };
+  #
+  # # Stores the Raise2 backup configuration
+  # age.secrets."mac-raise2.json" = {
+  #   file = /. + "${config.xdg.configHome}/nixpkgs/secrets/mac-raise2.json.age";
+  #
+  #   # path should be a string expression (in quotes), not a path expression
+  #   # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+  #   path = "${homecfg.homeDirectory}/Dygma/mac-raise2.json";
+  #
+  #   # The default is true if not specified.  We want to make sure that
+  #   # the "file" (decrypted secret) is symlinked and not generated directly into
+  #   # that location
+  #   symlink = true;
+  #
+  #   # The following are needed to ensure the decrypted secret has the correct permission
+  #   mode = "600";
+  #
+  #   # Note that the owner and group attribute are absent from home-manager module
+  #   #owner = "${username}";
+  #   #group = "staff";
+  # };
 
   services.ssh-agent = lib.mkIf (!onepassword_enable) {
     enable = true;
@@ -153,23 +154,23 @@ in
       '';
 
       ## Generate list of public keys file in pubkeys.nix
-      "pubkeys.nix" = {
-        ## The defaults are commented out
-        # enable = true;
-
-        target = ".config/nixpkgs/secrets/pubkeys.nix";
-        text =
-          let
-            content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") (
-              lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") sshcfg
-            );
-          in
-          ''
-            [
-              ${content}
-            ]
-          '';
-      };
+      # "pubkeys.nix" = {
+      #   ## The defaults are commented out
+      #   # enable = true;
+      #
+      #   target = ".config/nixpkgs/secrets/pubkeys.nix";
+      #   text =
+      #     let
+      #       content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") (
+      #         lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") sshcfg
+      #       );
+      #     in
+      #     ''
+      #       [
+      #         ${content}
+      #       ]
+      #     '';
+      # };
 
       gitAllowedSigners = {
         ## Generate the allowed signers file
@@ -258,14 +259,14 @@ in
         recursive = true;
       };
 
-      ## Need to specify the symbolic link in this manne because the secret is generated at runtime and
+      ## Need to specify the symbolic link in this manne because te secret is generated at runtime and
       #  does not exist in Nix store.
       "Dygma/Dygma-mac-raise2.json".source =
-        config.lib.file.mkOutOfStoreSymlink "${osConfig.services.onepassword-secrets.outputDir}/dygmaMacRaise2.json";
+        config.lib.file.mkOutOfStoreSymlink "${opnixcfg.outputDir}/dygmaMacRaise2.json";
     }
   ];
 
-  ### Enable bash configuration
+  ### Enable bas configuration
   programs.bash = {
     enable = true;
     enableCompletion = false;
@@ -715,7 +716,7 @@ in
               EOF
             ''
             + (lib.optionalString (user.hasAppleID) ''
-                IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
+                IMSGID=$(jq '.iMessageID' "${opnixcfg.outputDir}/${opnixcfg.secrets.nixChanneliMsg.path}" 2>/dev/null)
                 if [ -n "$IMSGID" ]; then
                   MSGSTR=$(cat <<MYMSG
               $LOCALHOSTNAME nix-channel updates:

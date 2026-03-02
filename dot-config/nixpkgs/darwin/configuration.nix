@@ -42,7 +42,7 @@ in
   imports = [
     ./globals.nix
     <home-manager/nix-darwin>
-    <agenix/modules/age.nix>
+    # <agenix/modules/age.nix>
     ./brews.nix
     ./machine.nix
     (
@@ -143,7 +143,7 @@ in
       duti
       nixd # LSP for nix
       python3
-      (callPackage <agenix/pkgs/agenix.nix> { })
+      # (callPackage <agenix/pkgs/agenix.nix> { })
 
       ### The following are for kickstart.nvim
       ripgrep
@@ -204,10 +204,10 @@ in
       # The following packages that could not be installed because these are marked as broken
       # handbrake
 
+      _1password-cli
     ]
     ++ allTerminalPackages
-    ++ lib.optionals (install_onepassword) [
-      _1password-cli
+    ++ lib.optionals install_onepassword [
       _1password-gui
     ];
 
@@ -373,7 +373,44 @@ in
       rm -rf "${config.services.onepassword-secrets.outputDir}"/*
     fi
   '';
-  system.activationScripts.postActivation.text = lib.mkAfter ''
+
+  system.activationScripts.postActivation.text = lib.mkBefore ''
+    echo "==== Restarting opnix service ===="
+    SERVICE_LABEL=org.nixos.opnix-secrets
+    /bin/launchctl kickstart -k "system/$SERVICE_LABEL"
+    echo "Wait for up to 20 seconds to fetch secrets"
+
+    # Wait loop
+    # We loop while the service has a PID (meaning it is still running)
+    # OR while the exit status is unknown/non-zero if it hasn't run yet.
+    TIMEOUT=20
+    COUNTER=0
+
+    while [ $COUNTER -lt $TIMEOUT ]; do
+      # Get service info (PID Status Label)
+      INFO=$(/bin/launchctl list | grep "$SERVICE_LABEL")
+      PID=$(echo "$INFO" | awk '{print $1}')
+      STATUS=$(echo "$INFO" | awk '{print $2}')
+
+      # If PID is a dash '-', the process has exited
+      if [ "$PID" = "-" ]; then
+        if [ "$STATUS" = "0" ]; then
+          echo "Secret fetched successfully after $COUNTER seconds."
+          break
+        else
+          echo "Error: Service exited with status $STATUS."
+          break
+        fi
+      fi
+
+      sleep 1
+      COUNTER=$((COUNTER+1))
+    done
+
+    if [ $COUNTER -eq $TIMEOUT ]; then
+      echo "Error: Timed out waiting for secret fetch."
+    fi
+
     PRINT_HEADER=1
 
     # 1. Map previous binaries to their store paths
