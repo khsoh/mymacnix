@@ -45,6 +45,15 @@ in
     <agenix/modules/age.nix>
     ./brews.nix
     ./machine.nix
+    (
+      fetchTarball {
+        # Dated 13 Jan 2026
+        url = "https://github.com/brizzbuzz/opnix/archive/4052e33.tar.gz";
+        sha256 = "1wi49sfclf745ddqc3kq8zwbjb81zzckmqv6xgkhlaq6pdimr876";
+        #sha256 = lib.fakeSha256;
+      }
+      + "/nix/darwin-module.nix"
+    )
   ];
 
   ######### Configuration of modules #########
@@ -358,6 +367,12 @@ in
   #   echo "I am in PostActivation"
   #   '';
 
+  system.activationScripts.preActivation.text = lib.mkAfter ''
+    echo "Purging old opnix secrets in default folder..."
+    if [ -d "${config.services.onepassword-secrets.outputDir}" ]; then
+      rm -rf "${config.services.onepassword-secrets.outputDir}"/*
+    fi
+  '';
   system.activationScripts.postActivation.text = lib.mkAfter ''
     PRINT_HEADER=1
 
@@ -431,6 +446,26 @@ in
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
 
+  services.onepassword-secrets = {
+    enable = true;
+    tokenFile = "/etc/opnix/token";
+
+    secrets = {
+      dygmaMacRaise2 = {
+        reference = "op://Nix Bootstrap/Dygma-mac-raise2.json/notesPlain";
+        path = "dygmaMacRaise2.json";
+        owner = "root";
+        mode = "0644";
+      };
+
+      nixChanneliMsg = {
+        reference = "op://Nix Bootstrap/NixChannel Update iMessage/notesPlain";
+        path = "nixChanneliMsg.json";
+        owner = "root";
+        mode = "0644";
+      };
+    };
+  };
   ids.gids.nixbld = config.machineInfo.buildGroupID;
 }
 # vim: set ts=2 sw=2 et ft=nix:

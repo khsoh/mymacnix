@@ -257,6 +257,11 @@ in
         };
         recursive = true;
       };
+
+      ## Need to specify the symbolic link in this manne because the secret is generated at runtime and
+      #  does not exist in Nix store.
+      "Dygma/Dygma-mac-raise2.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${osConfig.services.onepassword-secrets.outputDir}/dygmaMacRaise2.json";
     }
   ];
 
