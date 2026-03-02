@@ -115,7 +115,7 @@ in
   ## User-specific aliases
   home.shellAliases = {
     cdnix = "cd $(readlink -f ${toString ./.})";
-    dru = "\"$(readlink -f \"${toString ./.}/../../../darwinupdate\")\"";
+    dru = "\"${toString ./.}/../../../darwinupdate\"";
     hbb = "brew bundle";
     hbu = "brew update";
   };
