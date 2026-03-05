@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+echo "Copying SSH key..."
+
+read -p "SSH destination in <user>@<ipaddr> form: " REMOTE_HOST
+
+read -p "Target SSH Private key file name: " TARGET_FILE
+
+read -p "Vault name: " VAULT
+
+read -p "Item name: " ITEM
+
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $REMOTE_HOST "cat > $TARGET_FILE" < <(op read "op://${VAULT}/${ITEM}/private key?ssh-format=openssh")

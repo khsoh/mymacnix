@@ -5,8 +5,7 @@
   ...
 }:
 let
-  # Declare primary user and home
-  primaryUserInfo = import ./_user.nix;
+  userInfo = import ./userinfo.nix;
 
   # The following is example of fixing specific packages to an earlier nixpkgs revision
   # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
@@ -17,11 +16,10 @@ let
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
-  hmUsers = [
-    primaryUserInfo
-  ];
 
   isVM = config.machineInfo.is_vm;
+
+  pkdata = import ../secrets/getpkinfo.nix;
 
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
@@ -49,6 +47,11 @@ in
 
   ######### Configuration of modules #########
 
+  ##### agenix configuration
+  age.identityPaths = [
+    pkdata.pkhost.PKFILE
+  ];
+
   ##### home-manager configuration
 
   ## We use home-manager because this nix-darwin does not seem
@@ -59,20 +62,10 @@ in
   home-manager.useUserPackages = true;
 
   ## Apply home-manager configuration for all users
-  # home-manager.users = lib.attrsets.genAttrs (map (o: o.name) hmUsers) (_: import ./home.nix);
-  home-manager.users = lib.attrsets.genAttrs (map (o: o.name) hmUsers) (
-    name:
-    let
-      # Find the original user object from hmUsers
-      userConfig = builtins.head (builtins.filter (u: u.name == name) hmUsers);
-    in
-    {
-      imports = [ ./home.nix ];
-
-      # Inject 'user' variable to home.nix
-      _module.args.user = userConfig;
-    }
-  );
+  home-manager.users."${userInfo.name}" = {
+    _module.args.user = userInfo;
+    imports = [ ./home.nix ];
+  };
 
   ##### end home-manager configuration
 
@@ -80,20 +73,10 @@ in
 
   ## The following is needed by home-manager to set the
   ##  home.username and home.homeDirectory attributes
-  users.users =
-    let
-      supportedKeys = {
-        name = null;
-        home = null;
-        uid = null;
-      };
-    in
-    builtins.listToAttrs (
-      map (o: {
-        inherit (o) name;
-        value = builtins.intersectAttrs supportedKeys o;
-      }) hmUsers
-    );
+  users.users."${userInfo.name}" = {
+    home = userInfo.home;
+    uid = userInfo.uid;
+  };
 
   fonts.packages = with pkgs; [
     nerd-fonts.fira-mono
@@ -112,16 +95,9 @@ in
   # ];
 
   # Setup user specific logfile rotation for all users
-  environment.etc = builtins.listToAttrs (
-    map (o: {
-      name = "newsyslog.d/${o.name}.conf";
-      value = {
-        text = ''
-          ${o.home}/log/*.log      644  5  1024  *  NJ
-        '';
-      };
-    }) hmUsers
-  );
+  environment.etc."newsyslog.d/${userInfo.name}.conf".text = ''
+    ${userInfo.home}/log/*.log      644  5  1024  *  NJ
+  '';
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
@@ -134,6 +110,7 @@ in
       duti
       nixd # LSP for nix
       python3
+      age
       (callPackage <agenix/pkgs/agenix.nix> { })
 
       ### The following are for kickstart.nvim
@@ -203,8 +180,8 @@ in
     ];
 
   # Use a custom configuration.nix location.
-  # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin/configuration.nix
-  environment.darwinConfig = "${primaryUserInfo.home}/.config/nixpkgs/darwin/configuration.nix";
+  # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
+  environment.darwinConfig = "${userInfo.home}/.config/nixpkgs/darwin";
 
   # Launch daemon to make root channels public
   launchd.daemons.makeRootChannelsPublic = {
@@ -322,7 +299,7 @@ in
                                   /usr/bin/sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db SELECT\ *\ FROM\ access*
   '';
 
-  system.primaryUser = primaryUserInfo.name;
+  system.primaryUser = userInfo.name;
 
   system.defaults.dock = {
     showLaunchpadGestureEnabled = true;

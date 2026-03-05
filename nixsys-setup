@@ -156,7 +156,6 @@ else
   print_arrow "Command Line Tools for Xcode have been installed."
 fi
 
-
 git -C "$SCRIPTDIR" rev-parse 2>/dev/null
 if [ $? -ne 0 ]; then
     ## Script folder is not a git folder
@@ -172,7 +171,7 @@ if [ $? -ne 0 ]; then
     [ -f /etc/zshenv ] && . /etc/zshenv
     [ -f /etc/zprofile ] && . /etc/zprofile
     [ -f /etc/zshrc ] && . /etc/zshrc
-    NIXPKGS_ALLOW_UNFREE=1 nix-shell -p git stow openssh _1password-cli --command '
+    nix-shell -p git stow openssh age --command '
     echo "Populating ~/.ssh/known_hosts with public keys of github.com and gitlab.com"
     # Save current umask to set temporary umask
     save_umask=$(umask)
@@ -182,6 +181,16 @@ if [ $? -ne 0 ]; then
     mkdir -p ~/.ssh
     ssh-keyscan github.com >> ~/.ssh/known_hosts
     ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+
+    # Generate age public keys if missing
+    if [ -f ~/.age/key.txt ] && [ ! -f ~/.age/public.txt ]; then
+        age-keygen -y -o ~/.age/public.txt ~/.age/key.txt
+        chmod 644 ~/.age/public.txt
+    fi
+    if [ -f ~/.age/nixid_key.txt ] && [ ! -f ~/.age/nixid_public.txt ]; then
+        age-keygen -y -o ~/.age/nixid_public.txt ~/.age/nixid_key.txt
+        chmod 644 ~/.age/nixid_public.txt
+    fi
 
     # Restore original umask
     umask "$save_umask"
@@ -194,70 +203,10 @@ if [ $? -ne 0 ]; then
     source "$gitfolder/dostow.sh"
     cd ..
 
-    IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
-
-    ## The following is required to share clipboard between VM and host OS
-    if [ $IS_VM -eq 1 ]; then
-        # 1. Prompt to mount Guest Tools ISO
-        printf "${GREEN}Install guest tools to support shared clipboard with host OS by selecting \"Virtual Machine | Drives | Install Guest Tools...\" from the UTM menu bar${ESC}\n"
-
-        MNTPATH="/Volumes/GUEST TOOLS"
-        /bin/wait4path "$MNTPATH"
-
-        PKG_PATH=$(/usr/bin/find "$MNTPATH" -maxdepth 1 -name "*.pkg" -print -quit)
-        PKG_NAME=$(basename "$PKG_PATH")
-
-        echo "\"$MNTPATH\" mounted - installing package $PKG_NAME"
-
-        # 2. Install the Guest Tools to share clipboard betwen VM and host OS
-        sudo -H installer -pkg "$PKG_PATH" -target /
-    fi
-
-    [[ ! -f ~/.ssh/nixid_ed25519 || ( $IS_VM -eq 0 && ! -f ~/.ssh/id_ed25519 ) ]] && OPSIGNIN=true || OPSIGNIN=false
-
-    if $OPSIGNIN; then
-        if [ $IS_VM -eq 0 ]; then
-            # Non-VM - login to 1Password account
-            eval $(op account add --signin)
-        else
-            # Get account service token
-            while true; do
-                read -sp "Enter Service Account Token: " OP_SERVICE_ACCOUNT_TOKEN && export OP_SERVICE_ACCOUNT_TOKEN
-                if [[ $OP_SERVICE_ACCOUNT_TOKEN == ops_* ]]; then
-                    echo "Service Account Token read"
-                    break;
-                else
-                    echo "Invalid service account token.  Try again"
-                fi
-            done 
-        fi
-    fi
-
     killall ssh-agent
-    if [ ! -f ~/.ssh/nixid_ed25519 ]; then
-        # Use the query parameter to force OpenSSH format
-        op read "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh" --out-file ~/.ssh/nixid_ed25519
-    fi
-    if [ -v OP_SERVICE_ACCOUNT_TOKEN ]; then
-        unset -v OP_SERVICE_ACCOUNT_TOKEN
-    fi
-    if [ ! -f ~/.ssh/nixid_ed25519.pub ]; then
-        ssh-keygen -y -f ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub
-    fi
     eval $(ssh-agent -s) > /dev/null
     ssh-add ~/.ssh/nixid_ed25519
 
-    if [ $IS_VM -eq 0 ]; then
-        # In non-VM machine - get the id_ed25519
-        if [ ! -f ~/.ssh/id_ed25519 ]; then
-            # Use the query parameter to force OpenSSH format
-            op read "op://Private/OPENSSH ED25519 Key/private key?ssh-format=openssh" --out-file ~/.ssh/id_ed25519
-        fi
-        if [ ! -f ~/.ssh/id_ed25519.pub ]; then
-            ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
-        fi
-        ssh-add ~/.ssh/id_ed25519
-    fi
     git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
 
     cd caskmasapps

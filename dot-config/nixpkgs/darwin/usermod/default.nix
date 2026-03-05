@@ -16,12 +16,26 @@ let
     pkgs.kitty
   ]);
 
+  sshcfg = config.sshkeys;
+
+  ## Function to extract first 2 elements of the public key file
+  readPubkey =
+    pubkeyfile:
+    let
+      # Read the file and strip the trailing newline
+      content = lib.removeSuffix "\n" (builtins.readFile pubkeyfile);
+      # Split by spaces into a list of strings
+      parts = lib.splitString " " content;
+    in
+    # Take the first two elements and join them with a space
+    builtins.concatStringsSep " " (lib.take 2 parts);
+
   default_usercfg = ./default_usercfg.nix;
   default_usercfgFile = toString default_usercfg;
 
-  usercfgTarget = ./usercfg.nix; # This will be a symbolic link to the usercfgSourceFile
-  usercfgTargetFile = toString usercfgTarget;
-  usercfgSourceFile = "${config.xdg.configHome}/nix/usercfg.nix";
+  usercfg = ./usercfg.nix;
+  usercfgFile = toString usercfg;
+
 in
 {
   imports = [
@@ -31,41 +45,58 @@ in
     ./sshkeys.nix
     ./terminal.nix
   ]
-  ++ lib.optional (builtins.pathExists usercfgTarget) usercfgTarget;
+  ++ lib.optional (builtins.pathExists usercfgFile) usercfg;
 
   ##### sshkeys configuration
-  config.sshkeys = {
-    ## NIXID SSH key configuration
-    NIXID = {
+  config.sshkeys = lib.mkMerge [
+    (lib.mkIf config.onepassword.enable {
+      OPURI = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
+      pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
+    })
+    (lib.mkIf (!config.onepassword.enable) {
       OPURI = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
       PKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
       PUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
-    };
 
-    ## User SSH key configuration
-    USER = lib.mkIf (user.hasAppleID) {
-      OPURI = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
-      PKFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519";
-      PUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
-    };
-  };
+      # Read from PUBFILE if it exists
+      pubkey = lib.mkDefault (if (sshcfg.PUBFILE != null) then (readPubkey sshcfg.PUBFILE) else null);
+    })
+  ];
 
   ## Setup checks and asserts for the SSH private and public key files based on
   ## user configuration
-  config.assertions = lib.flatten (
-    lib.mapAttrsToList (name: value: [
-      # Check the private key file
-      {
-        assertion = builtins.pathExists value.PKFILE;
-        message = "The ${name} SSH private key file is absent - file must be present to build";
-      }
-      # Check the public key file
-      {
-        assertion = builtins.pathExists value.PUBFILE;
-        message = "The ${name} SSH public key file is absent - file must be present to build";
-      }
-    ]) config.sshkeys
-  );
+  config.assertions = [
+    # Check the private key file
+    {
+      assertion = (sshcfg.PKFILE == null) || (builtins.pathExists sshcfg.PKFILE);
+      message = "The ${sshcfg.PKFILE} SSH private key file is absent - file must be present to build";
+    }
+
+    # Check the public key file
+    {
+      assertion = (sshcfg.PUBFILE == null) || (builtins.pathExists sshcfg.PUBFILE);
+      message = "The ${sshcfg.PUBFILE} SSH public key file is absent - file must be present to build";
+    }
+
+    # The the public key file contents and pubkey match
+    {
+      assertion = (sshcfg.PUBFILE == null) || ((readPubkey sshcfg.PUBFILE) == sshcfg.pubkey);
+      message = "Contents of ${sshcfg.PUBFILE} do not match with the pubkey string";
+    }
+
+    # If 1Password is enabled then should not use key files
+    # If 1Password is disabled then must use key files
+    {
+      assertion =
+        (config.onepassword.enable && (sshcfg.PKFILE == null) && (sshcfg.PUBFILE == null))
+        || ((!config.onepassword.enable) && (sshcfg.PKFILE != null) && (sshcfg.PUBFILE != null));
+      message =
+        if config.onepassword.enable then
+          "onepassword.enable is true - should not not define sshkeys.PKFILE nor sshkeys.PUBFILE"
+        else
+          "onepassword.enable is false - must define sshkeys.PKFILE nor sshkeys.PUBFILE";
+    }
+  ];
 
   ##### onepassword configuration
   config.onepassword = {
@@ -91,15 +122,12 @@ in
   };
 
   #### Create a default usercfg.nix in ~/.config/nix and add a symbolic link to it
-  config.home.activation.linkusercfg = lib.mkIf (!builtins.pathExists usercfgTarget) (
+  config.home.activation.linkusercfg = lib.mkIf (!(builtins.pathExists usercfgFile)) (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      noteEcho "Linking user configuration settings to ${usercfgSourceFile}"
-      run mkdir -p "$(dirname "${usercfgSourceFile}")"
-      if [ ! -f "${usercfgSourceFile}" ]; then
-        noteEcho "Missing ${usercfgSourceFile}: Creating default from ${default_usercfgFile}"
-        run cp "${default_usercfgFile}" "${usercfgSourceFile}"
+      noteEcho "Copying user configuration settings to ${usercfgFile}"
+      if [ ! -f "${usercfgFile}" ]; then
+        run cp "${default_usercfgFile}" "${usercfgFile}"
       fi
-      run ln -sf "${usercfgSourceFile}" "${usercfgTargetFile}"
     ''
   );
 }

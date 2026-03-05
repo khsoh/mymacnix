@@ -28,6 +28,9 @@ let
 
   backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
 
+  pkdata = import ../secrets/getpkinfo.nix;
+  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.name}/secrets.json.age";
+
   ## Function to extract first 2 elements of the public key file
   readPubkey =
     pubkeyfile:
@@ -39,8 +42,6 @@ let
     in
     # Take the first two elements and join them with a space
     builtins.concatStringsSep " " (lib.take 2 parts);
-
-  nonNIXIDsshcfg = removeAttrs sshcfg [ "NIXID" ];
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -64,15 +65,18 @@ in
   xdg.enable = true;
 
   ##### agenix configuration
-  age.identityPaths = lib.mapAttrsToList (name: value: "${value.PKFILE}") sshcfg;
+  age.identityPaths = [
+    pkdata.pkuser.PKFILE
+    pkdata.pkhost.PKFILE
+  ];
 
-  # armored-secrets stores various secret information in JSON file format
-  age.secrets."armored-secrets.json" = {
-    file = /. + "${config.xdg.configHome}/nixpkgs/secrets/armored-secrets.json.age";
+  # secrets.json stores various secret information in JSON file format
+  age.secrets."secrets.json" = lib.mkIf (builtins.pathExists secretsjsonPath) {
+    file = /. + secretsjsonPath;
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "${config.xdg.configHome}/nix/armored-secrets.json";
+    path = "${config.xdg.configHome}/nix/secrets.json";
 
     # The default is true if not specified.  We want to make sure that
     # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -120,145 +124,108 @@ in
     hbu = "brew update";
   };
 
-  home.file = lib.mkMerge [
-    (lib.mkIf onepassword_enable (
-      lib.mapAttrs' (
-        name: value:
-        lib.nameValuePair "${value.PKFILE}" {
-          target = "${value.PKFILE}.tpl";
-          text = ''
-            {{ ${value.OPURI}/private key?ssh-format=openssh }}
-          '';
-        }
-      ) sshcfg
-    ))
+  home.file = {
+    resize_app = {
+      ## AppleScript file to resize app
+      target = "${config.xdg.configHome}/jxa/resize_app.js";
+      source = ./jxa/resize_app.js;
+    };
 
-    {
-      resize_app = {
-        ## AppleScript file to resize app
-        target = "${config.xdg.configHome}/jxa/resize_app.js";
-        source = ./jxa/resize_app.js;
-      };
+    waitapp = {
+      ## JavaScript (JXA) file to wait for DisplayLink Manager to start
+      target = "${config.xdg.configHome}/jxa/waitapp.js";
+      source = ./jxa/waitapp.js;
+    };
 
-      waitapp = {
-        ## JavaScript (JXA) file to wait for DisplayLink Manager to start
-        target = "${config.xdg.configHome}/jxa/waitapp.js";
-        source = ./jxa/waitapp.js;
-      };
+    # setting up neovide to use neovim binary
+    ".config/neovide/config.toml".text = ''
+      # Ensure Neovide uses the exact Neovim binary from your Nix store
+      neovim-bin = "${pkgs.neovim}/bin/nvim"
+    '';
 
-      # setting up neovide to use neovim binary
-      ".config/neovide/config.toml".text = ''
-        # Ensure Neovide uses the exact Neovim binary from your Nix store
-        neovim-bin = "${pkgs.neovim}/bin/nvim"
+    gitAllowedSigners = {
+      ## Generate the allowed signers file
+      # enable = true;
+
+      target = ".ssh/allowed_signers";
+      text = ''
+        ${default_git_email} namespaces="git" ${sshcfg.pubkey}
       '';
+    };
 
-      ## Generate list of public keys file in pubkeys.nix
-      "pubkeys.nix" = {
-        ## The defaults are commented out
-        # enable = true;
+    tmux = {
+      ## The defaults are commented out
+      # enable = true;
 
-        target = ".config/nixpkgs/secrets/pubkeys.nix";
-        text =
-          let
-            content = lib.strings.concatMapStringsSep "\n  " (k: "\"${k}\"") (
-              lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") sshcfg
-            );
-          in
-          ''
-            [
-              ${content}
-            ]
-          '';
+      target = "${config.xdg.configHome}/tmux";
+      #source = ../tmux;
+      source = pkgs.fetchFromGitHub {
+        owner = ghcfg.username;
+        repo = "tmuxconf";
+        rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
+        sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
+        #sha256 = lib.fakeSha256;
       };
+      recursive = true;
+    };
 
-      gitAllowedSigners = {
-        ## Generate the allowed signers file
-        # enable = true;
+    # home.file.kitty = {
+    #   ## The defaults are commented out
+    #
+    #   # Enable kitty config if kitty is installed in Nix or homebrew
+    #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
+    #   target = "${config.xdg.configHome}/kitty";
+    #   #source = ../kitty;
+    #   source = pkgs.fetchFromGitHub {
+    #     owner = ghcfg.username;
+    #     repo = "kittyconf";
+    #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
+    #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
+    #     #sha256 = lib.fakeSha256;
+    #   };
+    #   recursive = true;
+    # };
+    kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+      # Enable kitty config if kitty is installed in Nix or homebrew
+      enable = true;
 
-        target = ".ssh/allowed_signers";
-        text =
-          let
-            content = lib.strings.concatMapStringsSep "\n" (k: "${default_git_email} namespaces=\"git\" ${k}") (
-              lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") sshcfg
-            );
-          in
-          "${content}\n";
+      target = "${config.xdg.configHome}/kitty/startup.conf";
+      text = ''
+        cd ~/github
+        layout splits
+        launch zsh
+        launch --location hsplit zsh
+        launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
+      '';
+    };
+    termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
+      # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
+      enable = true;
+      target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
+      source = ./images/totoro-dimmed.jpeg;
+    };
+    kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+      # Enable kitty tab bar if kitty is installed in Nix or homebrew
+      enable = true;
+      target = "${config.xdg.configHome}/kitty/tab_bar.py";
+      source = ./kitty/tab_bar.py;
+    };
+
+    nvim = {
+      ## The defaults are commented out
+      # enable = true;
+
+      target = "${config.xdg.configHome}/nvim";
+      source = pkgs.fetchFromGitHub {
+        owner = ghcfg.username;
+        repo = "kickstart.nvim";
+        rev = "57a559d57a32c2ccd98053004c5830e85b1b0793";
+        sha256 = "sha256-wSgCvmyUQ3gIuIaWZwEhccklm9VRRpGRYGyLf2IW7rU=";
+        #sha256 = lib.fakeSha256;
       };
-
-      tmux = {
-        ## The defaults are commented out
-        # enable = true;
-
-        target = "${config.xdg.configHome}/tmux";
-        #source = ../tmux;
-        source = pkgs.fetchFromGitHub {
-          owner = ghcfg.username;
-          repo = "tmuxconf";
-          rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
-          sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
-          #sha256 = lib.fakeSha256;
-        };
-        recursive = true;
-      };
-
-      # home.file.kitty = {
-      #   ## The defaults are commented out
-      #
-      #   # Enable kitty config if kitty is installed in Nix or homebrew
-      #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
-      #   target = "${config.xdg.configHome}/kitty";
-      #   #source = ../kitty;
-      #   source = pkgs.fetchFromGitHub {
-      #     owner = ghcfg.username;
-      #     repo = "kittyconf";
-      #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
-      #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
-      #     #sha256 = lib.fakeSha256;
-      #   };
-      #   recursive = true;
-      # };
-      kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-        # Enable kitty config if kitty is installed in Nix or homebrew
-        enable = true;
-
-        target = "${config.xdg.configHome}/kitty/startup.conf";
-        text = ''
-          cd ~/github
-          layout splits
-          launch zsh
-          launch --location hsplit zsh
-          launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
-        '';
-      };
-      termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
-        # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
-        enable = true;
-        target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
-        source = ./images/totoro-dimmed.jpeg;
-      };
-      kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-        # Enable kitty tab bar if kitty is installed in Nix or homebrew
-        enable = true;
-        target = "${config.xdg.configHome}/kitty/tab_bar.py";
-        source = ./kitty/tab_bar.py;
-      };
-
-      nvim = {
-        ## The defaults are commented out
-        # enable = true;
-
-        target = "${config.xdg.configHome}/nvim";
-        source = pkgs.fetchFromGitHub {
-          owner = ghcfg.username;
-          repo = "kickstart.nvim";
-          rev = "57a559d57a32c2ccd98053004c5830e85b1b0793";
-          sha256 = "sha256-wSgCvmyUQ3gIuIaWZwEhccklm9VRRpGRYGyLf2IW7rU=";
-          #sha256 = lib.fakeSha256;
-        };
-        recursive = true;
-      };
-    }
-  ];
+      recursive = true;
+    };
+  };
 
   ### Enable bash configuration
   programs.bash = {
@@ -355,7 +322,7 @@ in
         controlPersist = "no";
       };
       extraConfig = ''
-        IdentityFile ${sshcfg.NIXID.PKFILE}
+        IdentityFile ${sshcfg.PKFILE}
       '';
     })
   ];
@@ -488,11 +455,7 @@ in
     signing = {
       format = "ssh";
       #key = if userssh_pubkey != null then userssh_pubkey else nixidssh_pubkey;
-      key =
-        if builtins.attrNames nonNIXIDsshcfg != [ ] then
-          builtins.head (lib.mapAttrsToList (name: value: readPubkey "${value.PUBFILE}") nonNIXIDsshcfg)
-        else
-          readPubkey "${sshcfg.NIXID.PUBFILE}";
+      key = sshcfg.pubkey;
       signByDefault = true;
     }
     // lib.optionalAttrs onepasscfg.enable {
@@ -709,8 +672,8 @@ in
                   app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
               EOF
             ''
-            + (lib.optionalString (user.hasAppleID) ''
-                IMSGID=$(jq '.iMessageID' ${config.age.secrets."armored-secrets.json".path} 2>/dev/null)
+            + (lib.optionalString (builtins.pathExists secretsjsonPath) ''
+                IMSGID=$(jq '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
                 if [ -n "$IMSGID" ]; then
                   MSGSTR=$(cat <<MYMSG
               $LOCALHOSTNAME nix-channel updates:
@@ -854,81 +817,36 @@ in
 
   home.activation = {
     start1Password = lib.mkIf onepassword_enable (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] (
-        ''
-          RERUN=0
-          # 1. Define a 1Password login function
-          op_login() {
-            if ! ${OPCLI} whoami > /dev/null 2>&1; then
-              printf "\033[1;34m1Password is locked. Please authenticate...\033[0m\n"
-              # If app integration is on, any command triggers the prompt.
-              # We'll use 'signin' to be explicit.
-              eval $(${OPCLI} signin)
-            fi
-          }
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        # Create the .1password directory if it does not exist
+        /bin/mkdir -p "$(dirname "${SSHSOCK}")"
 
-          # 2. Define key installation function
-          install_keys() {
-            PKFILE=$1
-            PUBFILE=$2
-            OPURI=$3
-            remote_fp=$(/bin/cat "''${PKFILE}.fp" 2>/dev/null || ${OPCLI} read "''${OPURI}/fingerprint")
-            if [ ! -f "$PKFILE" ] ||
-              [ "$(${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}')" != "$remote_fp" ]; then
-              RERUN=1
-              printf "\033[1;34mMissing %s file - extracting it from 1Password\033[0m\n" "$PKFILE"
-              ${OPCLI} inject -i "''${PKFILE}.tpl" -o "$PKFILE" --force
-            fi
-            if [ ! -f "$PUBFILE" ]; then
-              RERUN=1
-              printf "\033[1;34mMissing %s file - re-generating it from the private key\033[0m\n" "$PUBFILE"
-              ${pkgs.openssh}/bin/ssh-keygen -y -f "$PKFILE" > "$PUBFILE"
-            fi
-            ${pkgs.openssh}/bin/ssh-keygen -lf "$PKFILE" | /usr/bin/awk '{print $2}' > "''${PKFILE}.fp"
-          }
+        # Symlink the 1Password-managed socket to the standard location
+        # Replace the source path if 1Password changes it, but this is the current macOS default
+        /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
 
-          # 2. Create the .1password directory if it does not exist
-          /bin/mkdir -p "$(dirname "${SSHSOCK}")"
+        # Check that 1Password is running
+        if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
+          printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
+          /usr/bin/open -a "1Password" --args --silent
+          /bin/sleep 2
 
-          # 3. Symlink the 1Password-managed socket to the standard location
-          # Replace the source path if 1Password changes it, but this is the current macOS default
-          /bin/ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
-
-          # 4. Check that 1Password is running
-          if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
-            printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
-            /usr/bin/open -a "1Password" --args --silent
-            /bin/sleep 2
-
-            # 5. Ensure at least one account is configured on this machine
-            if ! ${OPCLI} account list > /dev/null 2>&1; then
-              printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
-              ${OPCLI} account add
-            fi
-
+          # Ensure at least one account is configured on this machine
+          if ! ${OPCLI} account list > /dev/null 2>&1; then
+            printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
+            ${OPCLI} account add
           fi
 
-          # 6. Confirm existence of .ssh directory
-          /bin/mkdir -p $HOME/.ssh && /bin/chmod 700 $HOME/.ssh
+        fi
 
-        ''
-        + lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (name: value: ''
-            # Generate the keys if their fingerprint differ
-            install_keys "${value.PKFILE}" "${value.PUBFILE}" "${value.OPURI}"
-          '') sshcfg
-        )
-        + ''
-          # 9. Request to re-run darwin-rebuild switch if new keys are generated
-          if [ $RERUN -eq 1 ]; then
-            printf "\033[1;31mRerun darwin-rebuild switch as new SSH key files have been created in %s folder\033[0m\n" "$(dirname "${sshcfg.NIXID.PKFILE}")"
-          fi
-        ''
-      )
+      ''
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      noteEcho "Sleeping 10 seconds to wait for Launch application database to build"
+      sleep 10
       idneovide=$(/usr/bin/osascript -e 'id of app "${Helpers.getMacAppName pkgs.neovide}"')
+
       # Use duti to set Neovide for plain-text (.txt) files
       # The 'all' flag applies it to editor, viewer, and shell roles
       run ${pkgs.duti}/bin/duti -s $idneovide public.plain-text all

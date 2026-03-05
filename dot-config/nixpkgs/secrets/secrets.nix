@@ -1,13 +1,13 @@
 let
-  pubkeys = import ./pubkeys.nix;
+  pkinfo = import ./getpkinfo.nix;
+
+  # Create logical groups for easy use in the 'in' block
+  allHosts = builtins.attrValues pkinfo.hosts;
+  allUsers = builtins.attrValues pkinfo.users;
 in
 {
-  "armored-secrets.json.age" = {
-    publicKeys = pubkeys;
-    armor = true;
-  };
   "mac-raise2.json.age" = {
-    publicKeys = pubkeys;
+    publicKeys = map (x: x.pubkey) (allHosts ++ allUsers);
     armor = true;
   };
 }
