@@ -92,7 +92,7 @@ in
   };
 
   # Stores the Raise2 backup configuration
-  age.secrets."mac-raise2.json" = {
+  age.secrets."mac-raise2.json" = lib.mkIf (Helpers.brewAppInstalled "bazecor") {
     file = /. + "${config.xdg.configHome}/nixpkgs/secrets/mac-raise2.json.age";
 
     # path should be a string expression (in quotes), not a path expression
@@ -122,6 +122,9 @@ in
     dru = "\"${toString ./.}/../../../darwinupdate\"";
     hbb = "brew bundle";
     hbu = "brew update";
+
+    # Standard agenix wrapper to include age key file
+    agenix = "agenix -i ${pkdata.pkuser.PKFILE}";
   };
 
   home.file = {
