@@ -843,8 +843,6 @@ in
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      noteEcho "Sleeping 10 seconds to wait for Launch application database to build"
-      sleep 10
       idneovide=$(/usr/bin/osascript -e 'id of app "${Helpers.getMacAppName pkgs.neovide}"')
 
       # Use duti to set Neovide for plain-text (.txt) files
