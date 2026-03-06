@@ -1,17 +1,5 @@
 #!/usr/bin/env zsh
 
-set -u
-set -o pipefail
-
-nixtmpDir="$(mktemp -d -t scpdeploydir.XXXXXXXXX || \
-          echo "Can't create temporary directory for deploying secrets remotely")"
-
-cleanup() {
-    rm -rf "$nixtmpDir"
-}
-
-trap cleanup EXIT INT TERM QUIT
-
 echo "Copying deploy.map and token..."
 
 read "REMOTE_HOST?SSH destination in <user>@<ipaddr> form: "
@@ -27,7 +15,7 @@ if [ ! -f "$DEPLOY_FILE" ]; then
 fi
 
 ## Create a dummy known_hosts file
-SOCKET="$nixtmpDir/ssh_mux_%h_%p_%r"
+SOCKET="/tmp/ssh_mux_%h_%p_%r"
 
 
 echo "Enter vault names one by one.  Press ENTER on an empty line when finished:"
