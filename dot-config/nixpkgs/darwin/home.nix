@@ -31,18 +31,6 @@ let
   pkdata = import ../secrets/getpkinfo.nix;
   secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.name}/secrets.json.age";
 
-  ## Function to extract first 2 elements of the public key file
-  readPubkey =
-    pubkeyfile:
-    let
-      # Read the file and strip the trailing newline
-      content = lib.removeSuffix "\n" (builtins.readFile pubkeyfile);
-      # Split by spaces into a list of strings
-      parts = lib.splitString " " content;
-    in
-    # Take the first two elements and join them with a space
-    builtins.concatStringsSep " " (lib.take 2 parts);
-
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
   hasTermGhostty = (builtins.elem pkgs.ghostty-bin termcfg.packages);
@@ -685,12 +673,31 @@ in
               )
                   export MSGSTR
                   osascript -l JavaScript <<EOF1
-                    const Messages = Application('Messages');
-                    const person = Messages.participants.whose({ handle: $IMSGID });
-                    if (person.length > 0) {
-                      var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
-                      updateText = updateText ? String(updateText) : "No updates found";
-                      Messages.send(updateText, { to: person[0] });
+                    const app = Application.currentApplication();
+                    app.includeStandardAdditions = true;
+                    # Wait for IP address to be up before trying to send iMessage
+                    let currentIP = "";
+                    let found = false;
+                    for (let i = 0; i < 30; i++) {
+                      currentIP = app.systemInfo().ipv4Address;
+                      if (currentIP &&
+                          currentIP != "127.0.0.1" &&
+                          !currentIP.startsWith("169.254")) {
+                        found = true;
+                        break;
+                      }
+                      delay(2); // Wait 2 seconds before retrying
+                    }
+                    if (!found) {
+                      app.displayNotification(`Cannot send iMessage from IP=''${currentIP}`, { withTitle: 'Network not yet available' });
+                    } else {
+                      const Messages = Application('Messages');
+                      const person = Messages.participants.whose({ handle: $IMSGID });
+                      if (person.length > 0) {
+                        var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
+                        updateText = updateText ? String(updateText) : "No updates found";
+                        Messages.send(updateText, { to: person[0] });
+                      }
                     }
               EOF1
                 fi
