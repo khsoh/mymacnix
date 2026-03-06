@@ -32,6 +32,9 @@ let
   pkuser = users."${pkhost.users."${currentUser}" or pkhost.users.__default__}";
 in
 {
+  users = users;
+  hosts = hosts;
+
   ## These are the key data for current host and current user
   pkhost = pkhost;
   pkuser = pkuser;
