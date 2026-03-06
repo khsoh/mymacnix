@@ -843,7 +843,30 @@ in
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      idneovide=$(/usr/bin/osascript -e 'id of app "${Helpers.getMacAppName pkgs.neovide}"')
+      COUNT=10
+      APPNAME="${Helpers.getMacAppName pkgs.neovide}"
+      noteEcho "Waiting for up to 10 seconds to get ID of $APPNAME"
+      FOUND=0
+
+      for (( i=$COUNT; i>0; i-- )); do
+        if /usr/bin/osascript -e "id of app \"$APPNAME\"" &>/dev/null; then
+          FOUND=1
+          printf "\nID of %s is now available!\n" "$APPNAME"
+          break
+        fi
+
+        # Update countdown on the same line
+        printf "\rChecking... %2d seconds remaining" "$i"
+
+        sleep 1
+      done
+
+      if [ $FOUND -eq 0 ]; then
+        printf "\nTimeout: ID of %s could not be found" "$APPNAME"
+        exit 0
+      fi
+
+      idneovide=$(/usr/bin/osascript -e "id of app \"$APPNAME\"")
 
       # Use duti to set Neovide for plain-text (.txt) files
       # The 'all' flag applies it to editor, viewer, and shell roles

@@ -59,12 +59,15 @@ function copy_secretkeys() {
     AGEPRIVKEY="$HOME/.age/key.txt"
     AGEPUBKEY="$HOME/.age/public.txt"
 
-    ## 1. Prompt user to enable Remote Login
+    ## 1. Will try automated but legacy command to enable Remote Login
+    #    - but it may not work - so will fall back to manual if it fails
     print_arrow "COPYING NIXID SSH KEYS"
-    print_arrow "Checking Remote Login status"
-    is_sshd_on
-    if [ "$?" != "0" ]; then
-        print_arrow "Remote Login is disabled - please enable Remote Login:"
+    print_arrown "Attempting automated legacy command to enable Remote Login"
+    sudo -H /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+    sleep 2
+    if ! is_sshd_on; then
+        ## 1a. Failed automated enabling of Remote Login - fallback to manual
+        print_arrow "Failed to auto-enable Remote Login via legacy launchctl command - falling back to manual"
         printf "${RED}Go to ${BOLD}System Settings> General> Sharing${ESC}\n"
         printf "${RED}Toggle ${BOLD}Remote Login${ESC}${RED} to ${BOLD}On.${ESC}\n\n"
         print_arrow "Waiting for you to enable Remote Login"
@@ -82,7 +85,7 @@ function copy_secretkeys() {
     USER_NAME=$(id -un)
     IP_ADDR=$(osascript -e "IPv4 address of (system info)")
 
-    ## 2. Copy the SSH keys
+    ## 2. Copy the SSH private key
     if [ ! -f "$NIX_PRIVKEY" ]; then
         print_arrow "Copy the NIXID SSH private key from the other machine:\n"
         printf "${RED}${BOLD}./dosshcopy${ESC}\n"
@@ -103,6 +106,7 @@ function copy_secretkeys() {
         print_arrow "NIXID SSH Private Key already present"
     fi
 
+    ## 3. Generating SSH public key
     if [ ! -f "$NIX_PUBKEY" ]; then
         print_arrow "Missing NIXID SSH Public Key - autogenerating NIXID SSH Public Key..."
         ssh-keygen -y -f "$NIX_PRIVKEY" > "$NIX_PUBKEY"
@@ -110,7 +114,7 @@ function copy_secretkeys() {
     fi
     print_arrow "Completed getting SSH Keys\n"
 
-    ### Copy the age keys
+    ## 4. Copy the age private key
     if [ ! -f "$AGEPRIVKEY" ] && [ ! -f "$NIX_AGEPRIVKEY" ]; then
         print_arrow "Copy the AGE private key from the other machine:\n"
         printf "${RED}${BOLD}./doagecopy${ESC}\n"
