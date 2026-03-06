@@ -62,7 +62,7 @@ function copy_secretkeys() {
     ## 1. Will try automated but legacy command to enable Remote Login
     #    - but it may not work - so will fall back to manual if it fails
     print_arrow "COPYING NIXID SSH KEYS"
-    print_arrown "Attempting automated legacy command to enable Remote Login"
+    print_arrow "Attempting automated legacy command to enable Remote Login"
     sudo -H /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist
     sleep 2
     if ! is_sshd_on; then
