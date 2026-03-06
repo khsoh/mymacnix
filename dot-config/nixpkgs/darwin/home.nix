@@ -843,9 +843,9 @@ in
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      COUNT=10
+      COUNT=15
       APPNAME="${Helpers.getMacAppName pkgs.neovide}"
-      noteEcho "Waiting for up to 10 seconds to get ID of $APPNAME"
+      noteEcho "Waiting for up to $COUNT seconds to get ID of $APPNAME"
       FOUND=0
 
       for (( i=$COUNT; i>0; i-- )); do
