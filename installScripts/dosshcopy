@@ -1,13 +1,19 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 echo "Copying SSH key..."
 
-read -p "SSH destination in <user>@<ipaddr> form: " REMOTE_HOST
+read "REMOTE_HOST?SSH destination in <user>@<ipaddr> form: "
 
-read -p "Target SSH Private key file name: " TARGET_FILE
+DEFAULT_FILE="~/.ssh/nixid_ed25519"
+read "TARGET_FILE?Target SSH Private key file name [$DEFAULT_FILE]: "
+TARGET_FILE=${TARGET_FILE:-$DEFAULT_FILE}
 
-read -p "Vault name: " VAULT
+DEFAULT_VAULT="Nix Bootstrap"
+read "VAULT?Vault name [$DEFAULT_VAULT]: "
+VAULT=${VAULT:-$DEFAULT_VAULT}
 
-read -p "Item name: " ITEM
+DEFAULT_ITEM="NIXID SSH Key"
+read  "ITEM?Item name [$DEFAULT_ITEM]: "
+ITEM=${ITEM:-$DEFAULT_ITEM}
 
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $REMOTE_HOST "cat > $TARGET_FILE" < <(op read "op://${VAULT}/${ITEM}/private key?ssh-format=openssh")

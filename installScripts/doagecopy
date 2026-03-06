@@ -1,13 +1,20 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 echo "Copying AGE key..."
 
-read -p "SSH destination in <user>@<ipaddr> form: " REMOTE_HOST
+read "REMOTE_HOST?SSH destination in <user>@<ipaddr> form: "
 
-read -p "Target AGE Private Key file name: " TARGET_FILE
+DEFAULT_FILE="~/.age/nixid_key.txt"
+read "TARGET_FILE?Target AGE Private key file name [$DEFAULT_FILE]: "
+TARGET_FILE=${TARGET_FILE:-$DEFAULT_FILE}
 
-read -p "Vault name: " VAULT
 
-read -p "Item name: " ITEM
+DEFAULT_VAULT="Nix Bootstrap"
+read "VAULT?Vault name [$DEFAULT_VAULT]: "
+VAULT=${VAULT:-$DEFAULT_VAULT}
+
+DEFAULT_ITEM="NIXID age private key"
+read  "ITEM?Item name [$DEFAULT_ITEM]: "
+ITEM=${ITEM:-$DEFAULT_ITEM}
 
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $REMOTE_HOST "cat > $TARGET_FILE" < <(op read "op://${VAULT}/${ITEM}/notesPlain")
