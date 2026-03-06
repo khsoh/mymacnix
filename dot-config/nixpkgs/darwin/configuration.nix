@@ -333,9 +333,10 @@ in
   #   '';
   # system.activationScripts.postActivation.text = lib.mkAfter ''
   #   echo "I am in PostActivation"
-  #   '';
+  # '';
 
-  system.activationScripts.postActivation.text = lib.mkAfter ''
+  system.activationScripts.postActivation.text = lib.mkBefore ''
+    echo "======== nixpkgs Apps re-registration =====-"
     PRINT_HEADER=1
 
     # 1. Map previous binaries to their store paths
