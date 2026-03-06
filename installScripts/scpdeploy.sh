@@ -61,4 +61,4 @@ echo "Generating token for vaults: ${VAULTS[*]}..."
 # Generate the unique name
 SA_NAME="tmp-$(date +%Y%m%d-%H%M)-$(uuidgen | head -c 8)"
 
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=$KNOWN_HOSTS $REMOTE_HOST "cat > ~/.deploy/token" < <(op service-account create "$SA_NAME" "${VAULTS[@]}" --expires-in=2m --raw)
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=$KNOWN_HOSTS $REMOTE_HOST "cat > ~/.deploy/token" < <(op service-account create "$SA_NAME" "${VAULTS[@]}" --expires-in=4m --raw)
