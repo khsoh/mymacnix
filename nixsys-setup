@@ -100,10 +100,11 @@ function deploy_secrets() {
         printf "${RED}${BOLD}1. Make a copy of the installScript/deploy-sample.map and edit it to select the appropriate secrets to deploy from 1Password${ESC}\n"
         printf "${RED}${BOLD}2. Execute the installScripts/scpdeploy.sh script and enter ${USER_NAME}@${IP_ADDR} as the Remote Host, select the 1Password Vaults that need to be read and the deploy.map file to copy${ESC}\n"
 
-        while [ ! -f ~/.deploy/deploy.map ] || [ ! -f ~/.deploy/token ]; do
+        while [ ! -f ~/.deploy/deploy.map ] || [ ! -f ~/.deploy/token ] || [ ! -s ~/.deploy/token ]; do
           printf "${GREEN}.${ESC}"
           sleep 2
         done
+        sleep 1
         printf "\n"
     fi
 
