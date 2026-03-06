@@ -27,12 +27,7 @@ if [ ! -f "$DEPLOY_FILE" ]; then
 fi
 
 ## Create a dummy known_hosts file
-KNOWN_HOSTS="$nixtmpDir/known_hosts"
-touch $KNOWN_HOSTS
-
-## Copy over the file
-echo "Copying file to remote host"
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=$KNOWN_HOSTS "$DEPLOY_FILE" $REMOTE_HOST:~/.deploy/deploy.map
+SOCKET="$nixtmpDir/ssh_mux_%h_%p_%r"
 
 
 echo "Enter vault names one by one.  Press ENTER on an empty line when finished:"
@@ -56,9 +51,19 @@ if [[ ${#VAULTS[@]} -eq 0 ]]; then
     exit 1
 fi
 
-echo "Generating token for vaults: ${VAULTS[*]}..."
-
 # Generate the unique name
 SA_NAME="tmp-$(date +%Y%m%d-%H%M)-$(uuidgen | head -c 8)"
 
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=$KNOWN_HOSTS $REMOTE_HOST "cat > ~/.deploy/token" < <(op service-account create "$SA_NAME" "${VAULTS[@]}" --expires-in=4m --raw)
+echo "Setting up SSH ControlMaster connection to $REMOTE_HOST"
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -f -N -M -S $SOCKET $REMOTE_HOST 
+
+## Copy over the deployment map file
+echo "Copying file to $REMOTE_HOST:~/.deploy/deploy.map"
+scp -o ControlPath="$SOCKET" "$DEPLOY_FILE" $REMOTE_HOST:~/.deploy/deploy.map
+
+echo "Generating token for vaults: ${VAULTS[*]}..."
+echo "And transferring token to $REMOTE_HOST:~/.deploy/token"
+ssh -S "$SOCKET" $REMOTE_HOST "cat > ~/.deploy/token" < <(op service-account create "$SA_NAME" "${VAULTS[@]}" --expires-in=4m --raw)
+
+echo "Completed transfer - closing ControlMaster connection"
+ssh -S "$SOCKET" -O exit $REMOTE_HOST
