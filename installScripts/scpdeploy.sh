@@ -1,5 +1,21 @@
 #!/usr/bin/env zsh
 
+echo "Copying deploy.map and token..."
+
+read "REMOTE_HOST?SSH destination in <user>@<ipaddr> form: "
+
+read "DEPLOY_FILE?Name of local deploy.map file to copy to remote host: "
+
+if [ ! -f "$DEPLOY_FILE" ]; then
+    echo "ERROR: Deploy map file $DEPLOY_FILE does not exist"
+    exit 1
+fi
+
+## Copy over the file
+echo "Copying file to remote host"
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_FILE" $REMOTE_HOST:~/.deploy/deploy.map
+
+
 echo "Enter vault names one by one.  Press ENTER on an empty line when finished:"
 
 VAULTS=()
@@ -26,9 +42,4 @@ echo "Generating token for vaults: ${VAULTS[*]}..."
 # Generate the unique name
 SA_NAME="tmp-$(date +%Y%m%d-%H%M)-$(uuidgen | head -c 8)"
 
-export OPSTOKEN=$(op service-account create "$SA_NAME" "${VAULTS[@]}" --expires-in=10m --raw)
-envsubst '$OPSTOKEN' < getSecrets-tmpl.sh > getSecrets.sh
-
-echo "Success! Generated getSecrets.sh (valid for 10m)"
-chmod +x getSecrets.sh
-
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $REMOTE_HOST "cat > ~/.deploy/token" < <(op service-account create "$SA_NAME" "${VAULTS[@]}" --expires-in=10m --raw)

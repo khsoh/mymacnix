@@ -172,10 +172,10 @@ in
       # The following packages that could not be installed because these are marked as broken
       # handbrake
 
+      _1password-cli # Helpful for deploying secrets
     ]
     ++ allTerminalPackages
-    ++ lib.optionals (install_onepassword) [
-      _1password-cli
+    ++ lib.optionals install_onepassword [
       _1password-gui
     ];
 
