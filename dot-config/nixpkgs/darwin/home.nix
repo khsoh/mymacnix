@@ -675,7 +675,7 @@ in
                   osascript -l JavaScript <<EOF1
                     const app = Application.currentApplication();
                     app.includeStandardAdditions = true;
-                    # Wait for IP address to be up before trying to send iMessage
+                    // Wait for IP address to be up before trying to send iMessage
                     let currentIP = "";
                     let found = false;
                     for (let i = 0; i < 30; i++) {
