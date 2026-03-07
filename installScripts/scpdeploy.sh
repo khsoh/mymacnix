@@ -66,7 +66,7 @@ fi
 # Generate the unique name
 SA_NAME="tmp-$(date +%Y%m%d-%H%M)-$(uuidgen | head -c 8)"
 
-SOCKET="/tmp/ssh_mux_$$.sock"
+SOCKET="$HOME/ssh_mux_$$.sock"
 echo "Setting up SSH ControlMaster connection to $REMOTE_HOST in background"
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -fNM -S "$SOCKET" "$REMOTE_HOST"
 
