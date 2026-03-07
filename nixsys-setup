@@ -94,6 +94,7 @@ function deploy_secrets() {
     IP_ADDR=$(/usr/bin/osascript -e "IPv4 address of (system info)")
 
     ## Need to wait for deploy.map and token to appear first
+    SSH_STATE=0 # 0=no connection, 1=waiting for auth, 2=connected
     printf "${GREEN}Waiting for deploy.map and token in ~/.deploy folder...${ESC}\n"
     if [ ! -f ~/.deploy/deploy.map ] || [ ! -f ~/.deploy/token ]; then
         printf "${RED}At the remote host, do the following:${ESC}\n"
@@ -102,11 +103,30 @@ function deploy_secrets() {
 
         while [ ! -f ~/.deploy/deploy.map ] || [ ! -f ~/.deploy/token ] || [ ! -s ~/.deploy/token ]; do
           printf "${GREEN}.${ESC}"
+          while IFS= read -r line; do
+              if [ $SSH_STATE -eq 0 ]; then
+                  if [[ "$line" =~ ^"sshd-auth: $USER" ]]; then
+                      # Received an SSH connection - waiting for password
+                      SSH_STATE=1
+                      printf "\n${GREEN}${BOLD}Received SSH connection - waiting to authenticate${ESC}\n"
+                      break
+                  fi
+              elif [ $SSH_STATE -eq 1 ]; then
+                  if [[ "$line" =~ ^"sshd-session: "$USER(@notty)?[[:space:]]*$ ]]; then
+                      # Received an SSH authentication
+                      SSH_STATE=2
+                      printf "\n${GREEN}${BOLD}Received SSH authentication${ESC}\n"
+                      break
+                  fi
+              fi
+          done < <(ps -ax -o args= | grep "^sshd")
           sleep 2
         done
         sleep 1
         printf "\n"
     fi
+
+    printf "${GREEN}${BOLD}Received deploy.map and token in ~/.deploy folder${ESC}\n"
 
     ## Initialize OP_SERVICE_ACCOUNT_TOKEN
     OP_SERVICE_ACCOUNT_TOKEN="$(cat ~/.deploy/token)" 
