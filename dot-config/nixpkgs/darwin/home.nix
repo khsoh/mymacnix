@@ -54,8 +54,8 @@ in
 
   ##### agenix configuration
   age.identityPaths = [
-    pkdata.pkuser.PKFILE
-    pkdata.pkhost.PKFILE
+    (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE)
+    (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.PKFILE)
   ];
 
   # secrets.json stores various secret information in JSON file format
@@ -112,7 +112,7 @@ in
     hbu = "brew update";
 
     # Standard agenix wrapper to include age key file
-    agenix = "agenix -i ${pkdata.pkuser.PKFILE}";
+    agenix = "agenix -i ${Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE}";
   };
 
   home.file = {

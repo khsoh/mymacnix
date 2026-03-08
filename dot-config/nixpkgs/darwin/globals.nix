@@ -15,6 +15,14 @@ in
     type = lib.types.raw;
 
     default = {
+      ## Function to replace "~/" with actual home directory
+      resolvePath =
+        home: path:
+        if builtins.substring 0 2 path == "~/" then
+          home + (builtins.substring 1 (builtins.stringLength path) path)
+        else
+          path;
+
       ## Function to get the Mac App Name
       # E.g. "abc.app".
       # It will return "" if not name is found
