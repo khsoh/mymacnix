@@ -20,6 +20,8 @@ let
   isVM = config.machineInfo.is_vm;
 
   pkdata = import ../secrets/getpkinfo.nix;
+  pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.PUBFILE);
+  pkhostDir = "${dirOf config.environment.darwinConfig}/../secrets/host/${pkdata.pkhost.name}";
 
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
@@ -48,7 +50,7 @@ in
   ######### Configuration of modules #########
 
   ##### agenix configuration
-  age.identityPaths = [
+  age.identityPaths = lib.mkIf (builtins.pathExists pkdata.pkhost.PKFILE) [
     pkdata.pkhost.PKFILE
   ];
 
@@ -241,6 +243,45 @@ in
       StartInterval = 3600;
       StandardOutPath = "/var/log/generate-machine-info.log";
       StandardErrorPath = "/var/log/generate-machine-info-error.log";
+    };
+  };
+
+  launchd.daemons.host-age-validator = lib.mkIf (builtins.pathExists pkdata.pkhost.PKFILE) {
+    serviceConfig = {
+      Label = "org.nixos.darwin.host-age-validator";
+      RunAtLoad = true;
+
+      # Use the one-shot settings to prevent looping
+      KeepAlive = false;
+      AbandonProcessGroup = true;
+
+      WatchPaths = [
+        "${dirOf pkdata.pkhost.PKFILE}"
+      ];
+      StandardErrorPath = "/var/log/host-age-check-error.log";
+      ProgramArguments = [
+        "${pkgs.bashInteractive}/bin/bash"
+        "-c"
+        ''
+          # Runs as root - can read 600 files
+          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkdata.pkhost.PKFILE} 2>/dev/null)
+
+          if [ "$DERIVED" != "${pkhostPUBFILEstring}" ]; then
+            # Find the ID of the currently logged-in user
+            CURRENT_USER_ID=$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))
+
+            # Send notification into that user's session
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Host Age Private key file ${pkdata.pkhost.PKFILE} does not match with its public key file ${pkdata.pkhost.PUBFILE}!" with title "Security Alert"'
+          fi
+
+          if [ "${pkhostPUBFILEstring}" != "${pkdata.pkhost.pubkey}" ]; then
+            CURRENT_USER_ID=''${USERID:-$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))}
+
+            # Send notification into that user's session
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Contents of Host Age Public key file ${pkdata.pkhost.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/pkinfo.nix!" with title "Security Alert"'
+          fi
+        ''
+      ];
     };
   };
 

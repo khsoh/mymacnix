@@ -14,6 +14,9 @@ let
   glcfg = config.gitlab;
   termcfg = config.terminal;
 
+  # Shortcut to get helper functions
+  Helpers = osConfig.helpers;
+
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
@@ -30,6 +33,11 @@ let
 
   pkdata = import ../secrets/getpkinfo.nix;
   secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.name}/secrets.json.age";
+  userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE);
+  userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PUBFILE);
+  hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.PKFILE);
+  pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
+  pkuserDir = "${dirOf osConfig.environment.darwinConfig}/../secrets/user/${pkdata.pkuser.name}";
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -40,8 +48,6 @@ let
     else
       "Terminal.app";
 
-  # Shortcut to get helper functions
-  Helpers = osConfig.helpers;
 in
 {
   imports = [
@@ -54,8 +60,8 @@ in
 
   ##### agenix configuration
   age.identityPaths = [
-    (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE)
-    (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.PKFILE)
+    userPKFILEPath
+    hostPKFILEPath
   ];
 
   # secrets.json stores various secret information in JSON file format
@@ -112,7 +118,7 @@ in
     hbu = "brew update";
 
     # Standard agenix wrapper to include age key file
-    agenix = "agenix -i ${Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE}";
+    agenix = "agenix -i ${userPKFILEPath}";
   };
 
   home.file = {
@@ -635,9 +641,46 @@ in
   };
 
   ### Setup the user-specific launch agents
-  launchd.agents.activate-agenix.config.ProcessType = lib.mkForce "Standard";
   launchd.enable = true;
+
+  ## Raise activate-agenix to "Standard" process type ensures that secrets are properly
+  #  decrypted early.
+  launchd.agents.activate-agenix.config.ProcessType = lib.mkForce "Standard";
+
   launchd.agents = {
+    age-key-validator = lib.mkIf (builtins.pathExists userPKFILEPath) {
+      enable = true;
+      config = {
+        Label = "org.nixos.user.age-key-validator";
+        RunAtLoad = true;
+
+        # Use the one-shot settings to prevent looping
+        KeepAlive = false;
+        AbandonProcessGroup = true;
+
+        WatchPaths = [
+          "${dirOf userPKFILEPath}"
+        ];
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.age-key-check-error.log";
+
+        ProgramArguments = [
+          "${pkgs.bashInteractive}/bin/bash"
+          "-c"
+          ''
+            export PATH="${pkgs.age}/bin:${pkgs.bash}/bin:/usr/bin:/bin"
+
+            DERIVED=$(${pkgs.age}/bin/age-keygen -y ${userPKFILEPath} 2>/dev/null)
+
+            if [ "$DERIVED" != "${pkuserPUBFILEstring}" ]; then
+              /usr/bin/osascript -e 'display notification "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!" with title "Security Alert" sound name "Glass"'
+            fi
+            if [ "${pkuserPUBFILEstring}" != "${pkdata.pkuser.pubkey}" ]; then
+              /usr/bin/osascript -e 'display notification "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/pkinfo.nix!" with title "Security Alert" sound name "Glass"'
+            fi
+          ''
+        ];
+      };
+    };
     detectNixUpdates = {
       enable = true;
       config = {
