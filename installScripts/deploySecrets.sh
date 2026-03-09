@@ -109,7 +109,7 @@ readonly BOLD="\$(tput bold)"
 readonly GREEN="\$(tput setaf 2)"
 readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
-sudo -s <<'EOF'
+sudo -E -s <<'EOF'
 EOFX
 
 vared -p "SSH destination in <user>@<ipaddr> form: " -c REMOTE_HOST
