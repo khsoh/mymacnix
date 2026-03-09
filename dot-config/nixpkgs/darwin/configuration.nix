@@ -264,6 +264,8 @@ in
         "${pkgs.bashInteractive}/bin/bash"
         "-c"
         ''
+          sleep 2   # Wait a while for file to be completely updated
+
           # Runs as root - can read 600 files
           DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkdata.pkhost.PKFILE} 2>/dev/null)
 

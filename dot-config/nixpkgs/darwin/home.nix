@@ -666,7 +666,7 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-c"
           ''
-            export PATH="${pkgs.age}/bin:${pkgs.bash}/bin:/usr/bin:/bin"
+            sleep 2   # Wait a while for file to be completely updated
 
             DERIVED=$(${pkgs.age}/bin/age-keygen -y ${userPKFILEPath} 2>/dev/null)
 
