@@ -1,8 +1,0 @@
-# NIXID SSH Private key
-~/.ssh/nixid_ed25519 | op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh | 600
-
-# NIXID SSH Public key
-~/.ssh/nixid_ed25519.pub | op://Nix Bootstrap/NIXID SSH Key/public key | 644
-
-# AGE private key
-~/.age/nixid_key.txt | op://Nix Bootstrap/NIXID age private key/notesPlain | 600
