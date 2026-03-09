@@ -152,6 +152,7 @@ echo $PKDATA | jq '.pkhost.DEPLOY' | jq -c '.[]' | while read -r item; do
   op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "mkdir -p \$(dirname ~/.deploy/root/$file) && umask 077 && cat > ~/.deploy/root/$file"
   HOSTCMDS=$(cat <<EOF
 $HOSTCMDS
+mkdir -p \$(dirname $file)
 $cmds
 printf "\${GREEN}\${BOLD}Installed $file\${ESC}\\n"
 EOF
