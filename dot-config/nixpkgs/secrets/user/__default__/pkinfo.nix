@@ -17,6 +17,7 @@ in
       OPURI = "op://Nix Bootstrap/NIXID age private key/notesPlain";
       FILE = agepkfile;
       POSTCMD = [
+        "rm -f ${agepubfile}"
         "age-keygen -y -o ${agepubfile} ${agepkfile}"
         "chmod 644 ${agepubfile}"
       ];
@@ -25,7 +26,7 @@ in
       OPURI = "op://Nix Bootstrap/NIXID SSH Key/private key?ssh-format=openssh";
       FILE = "~/.ssh/nixid_ed25519";
       POSTCMD = [
-        "ssh-keygen -y ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub"
+        "ssh-keygen -y -f ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub"
         "chmod 644 ~/.ssh/nixid_ed25519.pub"
       ];
     }

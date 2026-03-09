@@ -22,7 +22,8 @@ in
       OPURI = "op://MacBook-Pro-Secrets/Host age secret key/notesPlain";
       FILE = agepkfile;
       POSTCMD = [
-        "rsync --remove-source-files -p -chown=root:wheel ./root${agepkfile} ${agepkfile}"
+        "rsync --remove-source-files -p -av --chown=root:wheel ./root${agepkfile} ${agepkfile}"
+        "rm -f ${agepubfile}"
         "age-keygen -y -o ${agepubfile} ${agepkfile}"
         "chmod 644 ${agepubfile}"
       ];

@@ -102,6 +102,7 @@ readonly GREEN="\$(tput setaf 2)"
 readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 EOF
+)
 HOSTCMDS=$(cat <<EOFX
 #!/usr/bin/env zsh
 readonly ESC="\$(tput sgr0)"
@@ -111,6 +112,7 @@ readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 sudo -E -s <<'EOF'
 EOFX
+)
 
 vared -p "SSH destination in <user>@<ipaddr> form: " -c REMOTE_HOST
 
@@ -130,7 +132,12 @@ echo $PKDATA | jq '.pkuser.DEPLOY' | jq -c '.[]' | while read -r item; do
 
   # Get the secret into the remote host destination
   op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "mkdir -p \$(dirname $file) && umask 077 && cat > $file"
-  USERCMDS="$USERCMDS$cmds\n\${GREEN}\${BOLD}Installed $file\${ESC}\n"
+  USERCMDS=$(cat <<EOF
+$USERCMDS
+$cmds
+printf "\${GREEN}\${BOLD}Installed $file\${ESC}\\n"
+EOF
+)
 done
 USERCMDS="$USERCMDS\npopd\n"
 echo "$USERCMDS" | ssh -S "$SOCKET" "$REMOTE_HOST" "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
@@ -143,7 +150,12 @@ echo $PKDATA | jq '.pkhost.DEPLOY' | jq -c '.[]' | while read -r item; do
 
   # Get the secret into the remote host destination
   op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "mkdir -p \$(dirname ~/.deploy/root/$file) && umask 077 && cat > ~/.deploy/root/$file"
-  HOSTCMDS="$HOSTCMDS$cmds\${GREEN}\${BOLD}Installed $file\${ESC}\n"
+  HOSTCMDS=$(cat <<EOF
+$HOSTCMDS
+$cmds
+printf "\${GREEN}\${BOLD}Installed $file\${ESC}\\n"
+EOF
+)
 done
 HOSTCMDS="$HOSTCMDS\nEOF\npopd\n"
 echo "$HOSTCMDS" | ssh -S "$SOCKET" "$REMOTE_HOST" "cat > ~/.deploy/hostdeploy.sh && chmod +x ~/.deploy/hostdeploy.sh && touch ~/.deploy/completed"

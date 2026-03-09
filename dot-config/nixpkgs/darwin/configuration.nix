@@ -110,6 +110,7 @@ in
       neovim
       neovide
       duti
+      rsync
       nixd # LSP for nix
       python3
       age

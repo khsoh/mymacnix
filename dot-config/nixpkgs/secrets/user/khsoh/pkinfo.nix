@@ -18,6 +18,7 @@ in
       FILE = agepkfile;
       POSTCMD = [
         "chmod 600 ${agepkfile}"
+        "rm -f ${agepubfile}"
         "age-keygen -y -o ${agepubfile} ${agepkfile}"
         "chmod 644 ${agepubfile}"
       ];

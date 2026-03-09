@@ -260,7 +260,7 @@ if [ $? -ne 0 ]; then
     [ -f /etc/zshenv ] && . /etc/zshenv
     [ -f /etc/zprofile ] && . /etc/zprofile
     [ -f /etc/zshrc ] && . /etc/zshrc
-    NIXPKGS_ALLOW_UNFREE=1 nix-shell -p git stow openssh age _1password-cli --command '
+    nix-shell -p git stow openssh age rsync --command '
     eval "$FN_print_arrow"
     eval "$FN_is_sshd_on"
     eval "$FN_deploy_secrets"
@@ -275,21 +275,11 @@ if [ $? -ne 0 ]; then
     ssh-keyscan github.com >> ~/.ssh/known_hosts
     ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 
-    # Deploy secrets
-    deploy_secrets
-
-    # Generate age public keys if missing
-    if [ -f ~/.age/key.txt ] && [ ! -f ~/.age/public.txt ]; then
-        age-keygen -y -o ~/.age/public.txt ~/.age/key.txt
-        chmod 644 ~/.age/public.txt
-    fi
-    if [ -f ~/.age/nixid_key.txt ] && [ ! -f ~/.age/nixid_public.txt ]; then
-        age-keygen -y -o ~/.age/nixid_public.txt ~/.age/nixid_key.txt
-        chmod 644 ~/.age/nixid_public.txt
-    fi
-
     # Restore original umask
     umask "$save_umask"
+
+    # Deploy secrets
+    deploy_secrets
 
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
     git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
