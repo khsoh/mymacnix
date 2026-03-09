@@ -449,6 +449,8 @@ in
     ) (lib.filter (p: Helpers.getMacAppName p != "") config.environment.systemPackages)}
   '';
 
+  services.openssh.hostKeys = [ ]; # Ensure host keys are not generated
+
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
