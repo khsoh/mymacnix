@@ -98,7 +98,7 @@ function deploy_secrets() {
     printf "${GREEN}Waiting for deployment to complete in ~/.deploy folder...${ESC}\n"
     printf "${RED}At the remote host, do the following:${ESC}\n"
     printf "${RED}${BOLD}1. Execute the installScripts/deploySecrets.sh script and enter ${USER_NAME}@${IP_ADDR} as the Remote Host${ESC}\n"
-    while [ ! -f ~/.deploy/completed ]; then
+    while [ ! -f ~/.deploy/completed ]; do
         printf "${GREEN}.${ESC}"
         while IFS= read -r line; do
             if [ $SSH_STATE -eq 0 ]; then
@@ -118,7 +118,7 @@ function deploy_secrets() {
             fi
         done < <(ps -ax -o args= | grep "^sshd")
         sleep 2
-    fi
+    done
     printf "\n"
 
     printf "${GREEN}${BOLD}Received all files in ~/.deploy folder - will execute deployment scripts${ESC}\n"
