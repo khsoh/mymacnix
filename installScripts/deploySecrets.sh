@@ -94,8 +94,23 @@ in
 EOF
 )
 
-USERCMDS="#!/usr/bin/env zsh\npushd ~/.deploy\n"
-HOSTCMDS="#!/usr/bin/env zsh\npushd ~/.deploy\nsudo -s <<'EOF'\n"
+USERCMDS=$(cat <<EOF
+#!/usr/bin/env zsh
+readonly ESC="\$(tput sgr0)"
+readonly BOLD="\$(tput bold)"
+readonly GREEN="\$(tput setaf 2)"
+readonly RED="\$(tput setaf 1)"
+pushd ~/.deploy
+EOF
+HOSTCMDS=$(cat <<EOFX
+#!/usr/bin/env zsh
+readonly ESC="\$(tput sgr0)"
+readonly BOLD="\$(tput bold)"
+readonly GREEN="\$(tput setaf 2)"
+readonly RED="\$(tput setaf 1)"
+pushd ~/.deploy
+sudo -s <<'EOF'
+EOFX
 
 vared -p "SSH destination in <user>@<ipaddr> form: " -c REMOTE_HOST
 
@@ -108,29 +123,27 @@ print_green "Creating clean deployment directory in ~/.deploy at $REMOTE_HOST"
 ssh -S "$SOCKET" "$REMOTE_HOST" "rm -rf ~/.deploy && mkdir -p ~/.deploy/root"
 
 ## Copy over the user files
-# command | ssh -S "$SOCKET" "$REMOTE_HOST" "install -m 600 /dev/stdin <remote_filepath>" 
 echo $PKDATA | jq '.pkuser.DEPLOY' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
   cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
 
   # Get the secret into the remote host destination
-  op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "umask 077 && cat > $file"
-  USERCMDS="$USERCMDS$cmds\n${GREEN}${BOLD}Installed $file${ESC}\n"
+  op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "mkdir -p \$(dirname $file) && umask 077 && cat > $file"
+  USERCMDS="$USERCMDS$cmds\n\${GREEN}\${BOLD}Installed $file\${ESC}\n"
 done
 USERCMDS="$USERCMDS\npopd\n"
 echo "$USERCMDS" | ssh -S "$SOCKET" "$REMOTE_HOST" "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
 
 ## Copy over the root files
-# command | ssh -S "$SOCKET" "$REMOTE_HOST" "install -m 600 /dev/stdin ~/.deploy/root<remote_filepath>" 
 echo $PKDATA | jq '.pkhost.DEPLOY' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
   cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
 
   # Get the secret into the remote host destination
-  op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "umask 077 && cat > ~/.deploy/root/$file"
-  HOSTCMDS="$HOSTCMDS$cmds${GREEN}${BOLD}Installed $file${ESC}\n"
+  op read "$opuri" | ssh -S "$SOCKET" "$REMOTE_HOST" "mkdir -p \$(dirname ~/.deploy/root/$file) && umask 077 && cat > ~/.deploy/root/$file"
+  HOSTCMDS="$HOSTCMDS$cmds\${GREEN}\${BOLD}Installed $file\${ESC}\n"
 done
 HOSTCMDS="$HOSTCMDS\nEOF\npopd\n"
 echo "$HOSTCMDS" | ssh -S "$SOCKET" "$REMOTE_HOST" "cat > ~/.deploy/hostdeploy.sh && chmod +x ~/.deploy/hostdeploy.sh && touch ~/.deploy/completed"
