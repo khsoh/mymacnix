@@ -451,7 +451,6 @@ in
 
     signing = {
       format = "ssh";
-      #key = if userssh_pubkey != null then userssh_pubkey else nixidssh_pubkey;
       key = sshcfg.pubkey;
       signByDefault = true;
     }

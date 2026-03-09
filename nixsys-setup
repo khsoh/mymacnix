@@ -93,76 +93,42 @@ function deploy_secrets() {
     USER_NAME=$(/usr/bin/id -un)
     IP_ADDR=$(/usr/bin/osascript -e "IPv4 address of (system info)")
 
-    ## Need to wait for deploy.map and token to appear first
+    ## Need to wait for completed file to appear n ~/.deploy folder
     SSH_STATE=0 # 0=no connection, 1=waiting for auth, 2=connected
-    printf "${GREEN}Waiting for deploy.map and token in ~/.deploy folder...${ESC}\n"
-    if [ ! -f ~/.deploy/deploy.map ] || [ ! -f ~/.deploy/token ]; then
-        printf "${RED}At the remote host, do the following:${ESC}\n"
-        printf "${RED}${BOLD}1. Make a copy of the installScript/deploy-sample.map and edit it to select the appropriate secrets to deploy from 1Password${ESC}\n"
-        printf "${RED}${BOLD}2. Execute the installScripts/scpdeploy.sh script and enter ${USER_NAME}@${IP_ADDR} as the Remote Host, select the 1Password Vaults that need to be read and the deploy.map file to copy${ESC}\n"
-
-        while [ ! -f ~/.deploy/deploy.map ] || [ ! -f ~/.deploy/token ] || [ ! -s ~/.deploy/token ]; do
-          printf "${GREEN}.${ESC}"
-          while IFS= read -r line; do
-              if [ $SSH_STATE -eq 0 ]; then
-                  if [[ "$line" =~ ^"sshd-auth: $USER" ]]; then
-                      # Received an SSH connection - waiting for password
-                      SSH_STATE=1
-                      printf "\n${GREEN}${BOLD}Received SSH connection - waiting to authenticate${ESC}\n"
-                      break
-                  fi
-              elif [ $SSH_STATE -eq 1 ]; then
-                  if [[ "$line" =~ ^"sshd-session: "$USER(@notty)?[[:space:]]*$ ]]; then
-                      # Received an SSH authentication
-                      SSH_STATE=2
-                      printf "\n${GREEN}${BOLD}Received SSH authentication${ESC}\n"
-                      break
-                  fi
-              fi
-          done < <(ps -ax -o args= | grep "^sshd")
-          sleep 2
-        done
-        sleep 1
-        printf "\n"
+    printf "${GREEN}Waiting for deployment to complete in ~/.deploy folder...${ESC}\n"
+    printf "${RED}At the remote host, do the following:${ESC}\n"
+    printf "${RED}${BOLD}1. Execute the installScripts/deploySecrets.sh script and enter ${USER_NAME}@${IP_ADDR} as the Remote Host${ESC}\n"
+    while [ ! -f ~/.deploy/completed ]; then
+        printf "${GREEN}.${ESC}"
+        while IFS= read -r line; do
+            if [ $SSH_STATE -eq 0 ]; then
+                if [[ "$line" =~ ^"sshd-auth: $USER" ]]; then
+                    # Received an SSH connection - waiting for password
+                    SSH_STATE=1
+                    printf "\n${GREEN}${BOLD}Received SSH connection - waiting to authenticate${ESC}\n"
+                    break
+                fi
+            elif [ $SSH_STATE -eq 1 ]; then
+                if [[ "$line" =~ ^"sshd-session: "$USER(@notty)?[[:space:]]*$ ]]; then
+                    # Received an SSH authentication
+                    SSH_STATE=2
+                    printf "\n${GREEN}${BOLD}Received SSH authentication${ESC}\n"
+                    break
+                fi
+            fi
+        done < <(ps -ax -o args= | grep "^sshd")
+        sleep 2
     fi
+    printf "\n"
 
-    printf "${GREEN}${BOLD}Received deploy.map and token in ~/.deploy folder${ESC}\n"
+    printf "${GREEN}${BOLD}Received all files in ~/.deploy folder - will execute deployment scripts${ESC}\n"
 
-    ## Initialize OP_SERVICE_ACCOUNT_TOKEN
-    OP_SERVICE_ACCOUNT_TOKEN="$(cat ~/.deploy/token)" 
-    export OP_SERVICE_ACCOUNT_TOKEN
+    # Execute the userdeploy.sh
+    ~/.deploy/userdeploy.sh
 
-    grep -vE '^\s*(#|$)' ~/.deploy/deploy.map | while IFS="|" read -r target secret mode; do
+    # Execute the hostdeploy.sh
+    ~/.deploy/hostdeploy.sh
 
-      # Trim leading/trailing whitespace WITHOUT using xargs
-      # This syntax is pure bash and safe for spaces inside the path
-      target="${target#"${target%%[![:space:]]*}"}"
-      target="${target%"${target##*[![:space:]]}"}"
-
-      secret="${secret#"${secret%%[![:space:]]*}"}"
-      secret="${secret%"${secret##*[![:space:]]}"}"
-
-      mode="${mode#"${mode%%[![:space:]]*}"}"
-      mode="${mode%"${mode##*[![:space:]]}"}"
-      #
-      # 2. MANUALLY EXPAND TILDE (~)
-      # If target starts with ~/, replace it with the $HOME path
-      if [[ "$target" == "~/"* ]]; then
-        target="${HOME}${target#\~}"
-      fi
-
-      echo "Deploying to: '$target' with mode $mode"
-
-      # Ensure parent directory exists
-      mkdir -p "$(dirname "$target")"
-
-      # Use quotes around variables to handle spaces in the CLI call
-      op read "$secret" --out-file "$target" --force --file-mode $mode
-
-    done
-
-    # Clear the OP_SERVICE_ACCOUNT_TOKEN
-    unset OP_SERVICE_ACCOUNT_TOKEN
     # Remove the ~/.deploy directory
     rm -rf ~/.deploy
 }
