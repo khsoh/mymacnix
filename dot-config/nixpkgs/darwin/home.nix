@@ -118,7 +118,7 @@ in
     hbu = "brew update";
 
     # Standard agenix wrapper to include age key file
-    agenix = "agenix -i ${userPKFILEPath}";
+    anix = "agenix -i ${userPKFILEPath}";
   };
 
   home.file = {
