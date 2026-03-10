@@ -12,12 +12,6 @@
   # paths
   #
   options.sshkeys = {
-    OPURI = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      description = "Optional 1Password CLI op:// URI of SSH Private Key";
-      default = null;
-    };
-
     PKFILE = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       description = "Absolute path to secret key file";

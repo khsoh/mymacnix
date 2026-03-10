@@ -50,11 +50,15 @@ in
   ##### sshkeys configuration
   config.sshkeys = lib.mkMerge [
     (lib.mkIf config.onepassword.enable {
-      OPURI = lib.mkDefault "op://Private/OPENSSH ED25519 Key";
-      pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
+      PUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
+      pubkey = lib.mkDefault (
+        if ((sshcfg.PUBFILE != null) && (builtins.pathExists sshcfg.PUBFILE)) then
+          (readPubkey sshcfg.PUBFILE)
+        else
+          null
+      );
     })
     (lib.mkIf (!config.onepassword.enable) {
-      OPURI = lib.mkDefault "op://NIX Bootstrap/NIXID SSH Key";
       PKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
       PUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
 
@@ -72,15 +76,12 @@ in
       message = "The ${sshcfg.PKFILE} SSH private key file is absent - file must be present to build";
     }
 
-    # Check the public key file
-    {
-      assertion = (sshcfg.PUBFILE == null) || (builtins.pathExists sshcfg.PUBFILE);
-      message = "The ${sshcfg.PUBFILE} SSH public key file is absent - file must be present to build";
-    }
-
     # The the public key file contents and pubkey match
     {
-      assertion = (sshcfg.PUBFILE == null) || ((readPubkey sshcfg.PUBFILE) == sshcfg.pubkey);
+      assertion =
+        (sshcfg.PUBFILE == null)
+        || (!builtins.pathExists sshcfg.PUBFILE)
+        || ((readPubkey sshcfg.PUBFILE) == sshcfg.pubkey);
       message = "Contents of ${sshcfg.PUBFILE} do not match with the pubkey string";
     }
 
@@ -88,13 +89,13 @@ in
     # If 1Password is disabled then must use key files
     {
       assertion =
-        (config.onepassword.enable && (sshcfg.PKFILE == null) && (sshcfg.PUBFILE == null))
-        || ((!config.onepassword.enable) && (sshcfg.PKFILE != null) && (sshcfg.PUBFILE != null));
+        (config.onepassword.enable && (sshcfg.PKFILE == null))
+        || ((!config.onepassword.enable) && (sshcfg.PKFILE != null));
       message =
         if config.onepassword.enable then
-          "onepassword.enable is true - should not not define sshkeys.PKFILE nor sshkeys.PUBFILE"
+          "onepassword.enable is true - should not not define sshkeys.PKFILE"
         else
-          "onepassword.enable is false - must define sshkeys.PKFILE nor sshkeys.PUBFILE";
+          "onepassword.enable is false - must define sshkeys.PKFILE";
     }
   ];
 

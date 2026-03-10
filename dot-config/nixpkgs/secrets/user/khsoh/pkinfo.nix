@@ -23,5 +23,12 @@ in
         "chmod 644 ${agepubfile}"
       ];
     }
+    {
+      OPURI = "op://Private/OPENSSH ED25519 Key/public key";
+      FILE = "~/.ssh/id_ed25519.pub";
+      POSTCMD = [
+        "chmod 644 ~/.ssh/id_ed25519.pub"
+      ];
+    }
   ];
 }
