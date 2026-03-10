@@ -16,9 +16,13 @@ const secrets = JSON.parse(app.read(Path(fullPath)));
 console.log(`iMessage receiver: ${secrets.iMessageID}`);
 
 const Messages = Application('Messages');
-const person = Messages.participants.whose({ handle: secrets.iMessageID });
-if (person.length > 0) {
-    Messages.send("hello world", { to: person[0] });
+
+// 4. Find the person whose account can receive iMessage
+const person = Messages.participants.whose({ handle: secrets.iMessageID })().
+    find(p => p.account().serviceType() == 'iMessage');
+
+if (person) {
+    Messages.send("hello world", { to: person });
 } else {
     console.log("Cannot find person to send to");
 }
