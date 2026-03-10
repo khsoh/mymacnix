@@ -717,6 +717,23 @@ in
                   osascript -l JavaScript <<EOF1
                     const app = Application.currentApplication();
                     app.includeStandardAdditions = true;
+                    ObjC.import('stdlib');
+
+                    const Messages = Application('Messages');
+                    // Test that iMessage service is enabled
+                    const iMessageService = Messages.accounts().find(s => {
+                      try {
+                        return s.enabled() && s.serviceType() === 'iMessage';
+                      } catch (e) {
+                        return false;
+                      }
+                    });
+                    if (!iMessageService) {
+                      // No iMessage Service - just get out as we cannot send iMessage
+                      console.log("No iMessage service enabled - will not send iMessage");
+                      $.exit(0);
+                    }
+
                     // Wait for IP address to be up before trying to send iMessage
                     let currentIP = "";
                     let found = false;
@@ -733,7 +750,6 @@ in
                     if (!found) {
                       app.displayNotification(\`Cannot send iMessage from IP address \''${currentIP}\`, { withTitle: 'Network not yet available' });
                     } else {
-                      const Messages = Application('Messages');
                       const person = Messages.participants.whose({ handle: $IMSGID })()
                         .find(p => p.account().serviceType() === 'iMessage');
                       if (person) {
