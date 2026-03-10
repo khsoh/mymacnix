@@ -734,11 +734,12 @@ in
                       app.displayNotification(\`Cannot send iMessage from IP address \''${currentIP}\`, { withTitle: 'Network not yet available' });
                     } else {
                       const Messages = Application('Messages');
-                      const person = Messages.participants.whose({ handle: $IMSGID });
-                      if (person.length > 0) {
+                      const person = Messages.participants.whose({ handle: $IMSGID })()
+                        .find(p => p.account().serviceType() === 'iMessage');
+                      if (person) {
                         var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
                         updateText = updateText ? String(updateText) : "No updates found";
-                        Messages.send(updateText, { to: person[0] });
+                        Messages.send(updateText, { to: person });
                       }
                     }
               EOF1
