@@ -683,7 +683,7 @@ in
     detectNixUpdates = {
       enable = true;
       config = {
-        Label = "org.nixos.detectNixUpdates";
+        Label = "org.nixos.user.detectNixUpdates";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
@@ -731,7 +731,7 @@ in
                       delay(2); // Wait 2 seconds before retrying
                     }
                     if (!found) {
-                      app.displayNotification(`Cannot send iMessage from IP=''${currentIP}`, { withTitle: 'Network not yet available' });
+                      app.displayNotification(\`Cannot send iMessage from IP address \''${currentIP}\`, { withTitle: 'Network not yet available' });
                     } else {
                       const Messages = Application('Messages');
                       const person = Messages.participants.whose({ handle: $IMSGID });
@@ -752,8 +752,7 @@ in
         ];
         RunAtLoad = true;
         StartInterval = 60 * 20;
-        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-output.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.detectNixUpdates-error.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.detectNixUpdates-error.log";
       };
     };
     LoginStartTerminal = {
