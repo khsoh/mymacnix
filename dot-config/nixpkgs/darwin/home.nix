@@ -919,18 +919,19 @@ in
       for (( i=$COUNT; i>0; i-- )); do
         if /usr/bin/osascript -e "id of app \"$APPNAME\"" &>/dev/null; then
           FOUND=1
-          printf "\nID of %s is now available!\n" "$APPNAME"
+          [ $i -ne $COUNT ] && printf "\n"
+          printf "  ID of %s is now available!\n" "$APPNAME"
           break
         fi
 
         # Update countdown on the same line
-        printf "\rChecking... %2d seconds remaining" "$i"
+        printf "\r  Checking... %2d seconds remaining" "$i"
 
         sleep 1
       done
 
       if [ $FOUND -eq 0 ]; then
-        printf "\nTimeout: ID of %s could not be found" "$APPNAME"
+        printf "\n  Timeout: ID of %s could not be found\n" "$APPNAME"
         exit 0
       fi
 
