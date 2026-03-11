@@ -1,5 +1,5 @@
 let
-  pkinfo = import ./getpkinfo.nix;
+  pkinfo = import ./default.nix { };
 
   # Create logical groups for easy use in the 'in' block
   allHosts = builtins.attrValues pkinfo.hosts;

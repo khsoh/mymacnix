@@ -46,64 +46,43 @@ function cleanup() {
 trap cleanup EXIT INT TERM QUIT
 
 
+function run() {
+    if [ -n "$INSTALL_REMOTE" ]; then
+        ssh -S "$SOCKET" "$REMOTE_HOST" "zsh -c '$1'"
+    else
+        zsh -c "$1"
+    fi
+}
+
 function usage () {
     print_green "Usage: "
-    print_green "  $1 [<user> <host>]"
-    print_green " <user> : Username - should be one folder names under ../dot-config/nixpkgs/secrets/user"
-    print_green " <host> : Host - should be one folder names under ../dot-config/nixpkgs/secrets/host"
-    print_green " If no arguments are provided, scripts are generated at ~/.deploy to deploy the secrets at the local host and user"
+    print_green "  $1 (<user>@<host> | localhost)"
+    print_green " <user>@<host> : the ssh host to connect to"
+    print_green " localhost : deploy locally. Scripts are generated at ~/.deploy to deploy the secrets at the local host and user"
     exit 1
 }
 
-INSTALL_REMOTE=1
-if [ "$#" -eq 2 ]; then
-    XUSER=$1
-    XHOST=$2
-elif [ "$#" -eq 0 ]; then
-    INSTALL_REMOTE=""
-    XHOST="$(/usr/sbin/scutil --get LocalHostName)"
-    XUSER=$(nix-instantiate --eval --json --strict -E '(import (<darwin-config> + "/../secrets/getpkinfo.nix")).pkuser.name')
-    XUSER="${XUSER%\"}" # Remove trailing quote
-    XUSER="${XUSER#\"}" # Remove leading quote
-else
+if [ "$#" -ne 1 ]; then
     usage $0
 fi
 
-## Validate the user and host name
-DARWINDIR=$(nix-instantiate --eval -E '<darwin-config>')
-USERDIR=$(readlink -f "${DARWINDIR}/../secrets/user")
-HOSTDIR=$(readlink -f "${DARWINDIR}/../secrets/host")
-goodargs=1
-if [[ ! -d "$USERDIR/$XUSER" ]]; then
-    print_red "ERROR: $XUSER does not exist in $USERDIR"
-    print_red "Available users:"
-    print_green "$(ls $USERDIR)"
-    goodargs=""
+INSTALL_REMOTE=1
+if [[ "$1" == "localhost" ]]; then
+    ## This is for deploying locally.
+    INSTALL_REMOTE=""
+else
+    ## Install remotely
+    REMOTE_HOST="$1"
+    SOCKET="$HOME/ssh_mux_$$.sock"
+
+    print_green "Setting up SSH ControlMaster connection to $REMOTE_HOST in background"
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -fNM -S "$SOCKET" "$REMOTE_HOST"
 fi
 
-if [[ ! -d "$HOSTDIR/$XHOST" ]]; then
-    print_red "ERROR: $XHOST does not exist in $HOSTDIR"
-    print_red "Available hosts:"
-    print_green "$(ls $HOSTDIR)"
-    goodargs=""
-fi
+XHOST=$(run "/usr/sbin/scutil --get LocalHostName")
+XUSER=$(run "/usr/bin/id -un")
 
-[ -n "$goodargs" ] || exit 1
-
-print_green "Deploying from user: ${USERDIR}/$XUSER"
-print_green "Deploying from host: ${HOSTDIR}/$XHOST"
-
-PKDATA=$(nix-instantiate --eval --strict --json - <<EOF
-let
-  base = <darwin-config>;
-  pkdata = import (base + "/../secrets/getpkinfo.nix");
-in
-{
-  pkuser = pkdata.users."$XUSER";
-  pkhost = pkdata.hosts."$XHOST";
-}
-EOF
-)
+PKDATA=$(nix-instantiate --eval --strict --json -E "import <darwin-secrets> { host=\"$XHOST\"; user=\"$XUSER\"; }")
 
 USERCMDS=$(cat <<EOF
 #!/usr/bin/env zsh
@@ -124,23 +103,6 @@ pushd ~/.deploy
 sudo -E -s <<'EOF'
 EOFX
 )
-
-function run() {
-    if [ -n "$INSTALL_REMOTE" ]; then
-        ssh -S "$SOCKET" "$REMOTE_HOST" "zsh -c '$1'"
-    else
-        zsh -c "$1"
-    fi
-}
-
-if [ -n "$INSTALL_REMOTE" ]; then
-    ## Install remotely
-    vared -p "SSH destination in <user>@<ipaddr> form: " -c REMOTE_HOST
-
-    SOCKET="$HOME/ssh_mux_$$.sock"
-    print_green "Setting up SSH ControlMaster connection to $REMOTE_HOST in background"
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -fNM -S "$SOCKET" "$REMOTE_HOST"
-fi
 
 ## Create a clean deployment directory in host
 print_green "Creating clean deployment directory in ~/.deploy at $XHOST"

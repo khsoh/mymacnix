@@ -21,7 +21,7 @@ let
   isVM = config.machineInfo.is_vm;
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
-  pkdata = import <darwin-secrets/getpkinfo.nix>;
+  pkdata = import <darwin-secrets> { };
   pkhostDir = "${secretsDir}/host/${pkdata.pkhost.name}";
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.PUBFILE);
 

@@ -1,9 +1,19 @@
+{
+  host ? null,
+  user ? null,
+}:
+assert
+  (host == null) == (user == null)
+  || throw "Error: Both 'host' and 'user' must be provided or NEITHER provided (force detect local user and host)";
 let
   pkgs = import <nixpkgs> { };
   lib = pkgs.lib;
 
   currentUser = (import <darwin-config/userinfo.nix>).name;
   currentHost = (import "/etc/nix-darwin/machine-info.nix").hostname;
+
+  effectiveHost = if host != null then host else currentHost;
+  effectiveUser = if user != null then user else currentUser;
 
   # Helper: List all directories in a path
   getDirs =
@@ -27,9 +37,11 @@ let
   users = importKeys ./user;
   hosts = importKeys ./host;
 
-  # Get the matching host/user pk info
-  pkhost = hosts."${currentHost}" or hosts.__default__;
-  pkuser = users."${pkhost.users."${currentUser}" or pkhost.users.__default__}";
+  #### Get the target host/user pk info
+  ## Will fallback to hosts.__default__ if effectiveHost not available
+  pkhost = hosts."${effectiveHost}" or hosts.__default__;
+  ## Will fallback to users.__default__ if effectiveUser not available
+  pkuser = users."${pkhost.users."${effectiveUser}" or pkhost.users.__default__}";
 in
 {
   users = users;

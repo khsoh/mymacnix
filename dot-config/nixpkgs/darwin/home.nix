@@ -34,7 +34,7 @@ let
   # 2. Strip the 'darwin-secrets=' prefix to get the raw path string
   #baseDir = lib.removePrefix "darwin-secrets=" secretEntry;
 
-  pkdata = import <darwin-secrets/getpkinfo.nix>;
+  pkdata = import <darwin-secrets> { };
   secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.name}/secrets.json.age";
   userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE);
   userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PUBFILE);
