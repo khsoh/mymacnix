@@ -96,8 +96,8 @@ function deploy_secrets() {
     ## Need to wait for completed file to appear n ~/.deploy folder
     SSH_STATE=0 # 0=no connection, 1=waiting for auth, 2=connected
     printf "${GREEN}Waiting for deployment to complete in ~/.deploy folder...${ESC}\n"
-    printf "${RED}At the remote host, do the following:${ESC}\n"
-    printf "${RED}${BOLD}1. Execute the installScripts/deploySecrets.sh script and enter ${USER_NAME}@${IP_ADDR} as the Remote Host${ESC}\n"
+    printf "${RED}At the remote host, execute the following script with the argument:${ESC}\n"
+    printf "${RED}${BOLD}   installScripts/deploySecrets.sh ${USER_NAME}@${IP_ADDR}${ESC}\n"
     while [ ! -f ~/.deploy/completed ]; do
         printf "${GREEN}.${ESC}"
         while IFS= read -r line; do
