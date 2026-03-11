@@ -127,12 +127,6 @@ in
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
-      ### The following are to setup use of Yubikey
-      yubikey-manager
-      yubico-piv-tool
-
-      protonmail-desktop
-      bitwarden-desktop
       squashfsTools
       discord
       google-chrome
@@ -164,7 +158,7 @@ in
       exiftool
       # The following packages are to support neovim-related builds
       go
-      nodejs_25
+      nodejs_22
 
       vlc-bin
       audacity
@@ -182,7 +176,15 @@ in
     ++ lib.optionals install_onepassword [
       _1password-cli # Helpful for deploying secrets
       _1password-gui
-    ];
+    ]
+    ++ lib.optionals (!isVM) [    # Included in builds of the real thing
+      ### The following are to setup use of Yubikey
+      yubikey-manager
+      yubico-piv-tool
+
+      protonmail-desktop
+      bitwarden-desktop
+    ]
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
