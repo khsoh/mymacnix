@@ -177,14 +177,15 @@ in
       _1password-cli # Helpful for deploying secrets
       _1password-gui
     ]
-    ++ lib.optionals (!isVM) [    # Included in builds of the real thing
+    ++ lib.optionals (!isVM) [
+      # Included in builds of the real thing
       ### The following are to setup use of Yubikey
       yubikey-manager
       yubico-piv-tool
 
       protonmail-desktop
       bitwarden-desktop
-    ]
+    ];
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
