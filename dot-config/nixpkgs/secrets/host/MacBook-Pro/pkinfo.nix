@@ -26,6 +26,7 @@ in
         "rm -f ${agepubfile}"
         "age-keygen -y -o ${agepubfile} ${agepkfile}"
         "chmod 644 ${agepubfile}"
+        "echo \"Generated ${agepubfile} from ${agepkfile}\""
       ];
     }
   ];

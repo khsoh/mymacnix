@@ -91,6 +91,7 @@ readonly BOLD="\$(tput bold)"
 readonly GREEN="\$(tput setaf 2)"
 readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
+printf "\${GREEN}\${BOLD}"
 EOF
 )
 HOSTCMDS=$(cat <<EOFX
@@ -101,6 +102,7 @@ readonly GREEN="\$(tput setaf 2)"
 readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 sudo -E -s <<'EOF'
+printf "\${GREEN}\${BOLD}"
 EOFX
 )
 
@@ -120,11 +122,11 @@ echo $PKDATA | jq '.pkuser.DEPLOY' | jq -c '.[]' | while read -r item; do
   USERCMDS=$(cat <<EOF
 $USERCMDS
 $cmds
-printf "\${GREEN}\${BOLD}Installed $file\${ESC}\\n"
+echo "Installed $file"
 EOF
 )
 done
-USERCMDS="$USERCMDS\npopd\n"
+USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
 echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
 
 ## Copy the host secrets
@@ -139,11 +141,11 @@ echo $PKDATA | jq '.pkhost.DEPLOY' | jq -c '.[]' | while read -r item; do
 $HOSTCMDS
 mkdir -p \$(dirname $file)
 $cmds
-printf "\${GREEN}\${BOLD}Installed $file\${ESC}\\n"
+echo "Installed $file"
 EOF
 )
 done
-HOSTCMDS="$HOSTCMDS\nEOF\npopd\n"
+HOSTCMDS="$HOSTCMDS\nEOF\npopd\nprintf \"\${ESC}\""
 echo "$HOSTCMDS" | run "cat > ~/.deploy/hostdeploy.sh && chmod +x ~/.deploy/hostdeploy.sh && touch ~/.deploy/completed"
 
 if [ -n "$INSTALL_REMOTE" ]; then

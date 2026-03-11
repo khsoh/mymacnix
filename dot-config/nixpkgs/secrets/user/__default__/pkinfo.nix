@@ -20,6 +20,7 @@ in
         "rm -f ${agepubfile}"
         "age-keygen -y -o ${agepubfile} ${agepkfile}"
         "chmod 644 ${agepubfile}"
+        "echo \"Generated ${agepubfile} from ${agepkfile}\""
       ];
     }
     {
@@ -28,6 +29,7 @@ in
       POSTCMD = [
         "ssh-keygen -y -f ~/.ssh/nixid_ed25519 > ~/.ssh/nixid_ed25519.pub"
         "chmod 644 ~/.ssh/nixid_ed25519.pub"
+        "echo \"Generated ~/.ssh/nixid_ed25519.pub from ~/.ssh/nixid_ed25519\""
       ];
     }
   ];
