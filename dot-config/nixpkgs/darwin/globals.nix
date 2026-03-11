@@ -15,6 +15,17 @@ in
     type = lib.types.raw;
 
     default = {
+      # Find the entry in the list that starts with your key
+      getNixPathEntry =
+        key:
+        let
+          prefix = "${key}=";
+          entry = lib.findFirst (
+            s: lib.hasPrefix prefix s
+          ) (throw "Key '${key}' not found in nix.nixPath") config.nix.nixPath;
+        in
+        lib.removePrefix prefix entry;
+
       ## Function to replace "~/" with actual home directory
       resolvePath =
         home: path:

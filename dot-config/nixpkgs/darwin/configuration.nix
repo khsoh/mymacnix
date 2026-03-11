@@ -1,5 +1,6 @@
 {
   config,
+  options,
   pkgs,
   lib,
   ...
@@ -19,9 +20,10 @@ let
 
   isVM = config.machineInfo.is_vm;
 
-  pkdata = import ../secrets/getpkinfo.nix;
+  secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
+  pkdata = import <darwin-secrets/getpkinfo.nix>;
+  pkhostDir = "${secretsDir}/host/${pkdata.pkhost.name}";
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.PUBFILE);
-  pkhostDir = "${dirOf config.environment.darwinConfig}/secrets/host/${pkdata.pkhost.name}";
 
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
@@ -162,7 +164,7 @@ in
       exiftool
       # The following packages are to support neovim-related builds
       go
-      nodejs_22
+      nodejs_25
 
       vlc-bin
       audacity
@@ -185,6 +187,11 @@ in
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
   environment.darwinConfig = "${userInfo.home}/.config/nixpkgs/darwin";
+
+  # Append a darwin-secrets path
+  nix.nixPath = options.nix.nixPath.default ++ [
+    "darwin-secrets=${secretsDir}"
+  ];
 
   # Launch daemon to make root channels public
   launchd.daemons.makeRootChannelsPublic = {

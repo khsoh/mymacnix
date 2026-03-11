@@ -88,7 +88,7 @@ sudo chmod a+r /etc/nix-channels/system-channels
 
 print_arrow "Installing nix-darwin"
 
-sudo -H $darwintmpDir/result/bin/darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
+sudo -H $darwintmpDir/result/bin/darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin -I darwin-secrets=$HOME/.config/nixpkgs/secrets
 EOF
 
 popd

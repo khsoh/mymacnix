@@ -31,13 +31,17 @@ let
 
   backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
 
-  pkdata = import ../secrets/getpkinfo.nix;
+  # 2. Strip the 'darwin-secrets=' prefix to get the raw path string
+  #baseDir = lib.removePrefix "darwin-secrets=" secretEntry;
+
+  pkdata = import <darwin-secrets/getpkinfo.nix>;
   secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.name}/secrets.json.age";
   userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE);
   userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PUBFILE);
   hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
-  pkuserDir = "${dirOf osConfig.environment.darwinConfig}/../secrets/user/${pkdata.pkuser.name}";
+  #pkuserDir = "${dirOf osConfig.environment.darwinConfig}/../secrets/user/${pkdata.pkuser.name}";
+  pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkdata.pkuser.name}";
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -216,8 +220,8 @@ in
       source = pkgs.fetchFromGitHub {
         owner = ghcfg.username;
         repo = "kickstart.nvim";
-        rev="7e5f106854857e946a17a3971dc90bb6e894a63b";
-        sha256="sha256-PPPnYAfw61kroK8s3EpYZilwNnPVd9i6KWkVJ/GIwHA=";
+        rev = "7e5f106854857e946a17a3971dc90bb6e894a63b";
+        sha256 = "sha256-PPPnYAfw61kroK8s3EpYZilwNnPVd9i6KWkVJ/GIwHA=";
         #sha256 = lib.fakeSha256;
       };
       recursive = true;
