@@ -21,7 +21,7 @@ let
 
   pkdata = import ../secrets/getpkinfo.nix;
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.PUBFILE);
-  pkhostDir = "${dirOf config.environment.darwinConfig}/../secrets/host/${pkdata.pkhost.name}";
+  pkhostDir = "${dirOf config.environment.darwinConfig}/secrets/host/${pkdata.pkhost.name}";
 
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
