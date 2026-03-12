@@ -1,13 +1,13 @@
 let
-  pkinfo = import ./default.nix { };
+  pkinfo = (import ./default.nix { });
 
   # Create logical groups for easy use in the 'in' block
-  allHosts = builtins.attrValues pkinfo.hosts;
-  allUsers = builtins.attrValues pkinfo.users;
+  allHosts = builtins.attrValues pkinfo.hosts.content;
+  allUsers = builtins.attrValues pkinfo.users.content;
 
   # Relative paths for host and user
-  hostDir = "host/${pkinfo.pkhost.name}";
-  userDir = "user/${pkinfo.pkuser.name}";
+  hostDir = "host/${pkinfo.pkhost.agecfg.name}";
+  userDir = "user/${pkinfo.pkuser.agecfg.name}";
 
   # Define current host and current user secrets.nix
   hostSecrets = ./. + "/${hostDir}/secrets.nix";
@@ -31,7 +31,7 @@ let
 in
 {
   "mac-raise2.json.age" = {
-    publicKeys = map (x: x.pubkey) (allHosts ++ allUsers);
+    publicKeys = map (x: x.agecfg.pubkey) (allHosts ++ allUsers);
     armor = true;
   };
 }
