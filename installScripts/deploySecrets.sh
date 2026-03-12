@@ -112,7 +112,7 @@ run "rm -rf ~/.deploy && mkdir -p ~/.deploy/root"
 
 
 ## Copy the user secrets
-echo $PKDATA | jq '.pkuser.DEPLOY' | jq -c '.[]' | while read -r item; do
+echo $PKDATA | jq '.pkuser.deployment' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
   cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
@@ -130,7 +130,7 @@ USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
 echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
 
 ## Copy the host secrets
-echo $PKDATA | jq '.pkhost.DEPLOY' | jq -c '.[]' | while read -r item; do
+echo $PKDATA | jq '.pkhost.deployment' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
   cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
