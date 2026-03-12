@@ -21,9 +21,13 @@ let
   isVM = config.machineInfo.is_vm;
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
-  pkdata = import <darwin-secrets/getpkinfo.nix>;
-  pkhostDir = "${secretsDir}/host/${pkdata.pkhost.name}";
-  pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.PUBFILE);
+  pkdata = import <darwin-secrets> {
+    inherit pkgs lib config;
+    host = config.machineInfo.hostname;
+    user = userInfo.name;
+  };
+  pkhostDir = "${secretsDir}/host/${pkdata.pkhost.agecfg.name}";
+  pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.agecfg.PUBFILE);
 
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
@@ -52,8 +56,8 @@ in
   ######### Configuration of modules #########
 
   ##### agenix configuration
-  age.identityPaths = lib.mkIf (builtins.pathExists pkdata.pkhost.PKFILE) [
-    pkdata.pkhost.PKFILE
+  age.identityPaths = lib.mkIf (builtins.pathExists pkdata.pkhost.agecfg.PKFILE) [
+    pkdata.pkhost.agecfg.PKFILE
   ];
 
   ##### home-manager configuration
@@ -127,12 +131,6 @@ in
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
-      ### The following are to setup use of Yubikey
-      yubikey-manager
-      yubico-piv-tool
-
-      protonmail-desktop
-      bitwarden-desktop
       squashfsTools
       discord
       google-chrome
@@ -164,7 +162,7 @@ in
       exiftool
       # The following packages are to support neovim-related builds
       go
-      nodejs_25
+      nodejs_22
 
       vlc-bin
       audacity
@@ -182,6 +180,15 @@ in
     ++ lib.optionals install_onepassword [
       _1password-cli # Helpful for deploying secrets
       _1password-gui
+    ]
+    ++ lib.optionals (!isVM) [
+      # Included in builds of the real thing
+      ### The following are to setup use of Yubikey
+      yubikey-manager
+      yubico-piv-tool
+
+      protonmail-desktop
+      bitwarden-desktop
     ];
 
   # Use a custom configuration.nix location.
@@ -254,7 +261,7 @@ in
     };
   };
 
-  launchd.daemons.host-age-validator = lib.mkIf (builtins.pathExists pkdata.pkhost.PKFILE) {
+  launchd.daemons.host-age-validator = lib.mkIf (builtins.pathExists pkdata.pkhost.agecfg.PKFILE) {
     serviceConfig = {
       Label = "org.nixos.darwin.host-age-validator";
       RunAtLoad = true;
@@ -264,7 +271,7 @@ in
       AbandonProcessGroup = true;
 
       WatchPaths = [
-        "${dirOf pkdata.pkhost.PKFILE}"
+        "${dirOf pkdata.pkhost.agecfg.PKFILE}"
       ];
       StandardErrorPath = "/var/log/host-age-check-error.log";
       ProgramArguments = [
@@ -274,21 +281,21 @@ in
           sleep 2   # Wait a while for file to be completely updated
 
           # Runs as root - can read 600 files
-          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkdata.pkhost.PKFILE} 2>/dev/null)
+          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkdata.pkhost.agecfg.PKFILE} 2>/dev/null)
 
           if [ "$DERIVED" != "${pkhostPUBFILEstring}" ]; then
             # Find the ID of the currently logged-in user
             CURRENT_USER_ID=$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))
 
             # Send notification into that user's session
-            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Host Age Private key file ${pkdata.pkhost.PKFILE} does not match with its public key file ${pkdata.pkhost.PUBFILE}!" with title "Security Alert"'
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Host Age Private key file ${pkdata.pkhost.agecfg.PKFILE} does not match with its public key file ${pkdata.pkhost.agecfg.PUBFILE}!" with title "Security Alert"'
           fi
 
-          if [ "${pkhostPUBFILEstring}" != "${pkdata.pkhost.pubkey}" ]; then
+          if [ "${pkhostPUBFILEstring}" != "${pkdata.pkhost.agecfg.pubkey}" ]; then
             CURRENT_USER_ID=''${USERID:-$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))}
 
             # Send notification into that user's session
-            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Contents of Host Age Public key file ${pkdata.pkhost.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/pkinfo.nix!" with title "Security Alert"'
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Contents of Host Age Public key file ${pkdata.pkhost.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!" with title "Security Alert"'
           fi
         ''
       ];

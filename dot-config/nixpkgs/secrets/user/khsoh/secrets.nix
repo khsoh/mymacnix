@@ -1,5 +1,5 @@
 let
-  pubkey = (import ./pkinfo.nix).pubkey;
+  pubkey = (import ./key.nix).pubkey;
 in
 {
   "secrets.json.age" = {

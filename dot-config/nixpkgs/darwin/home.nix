@@ -34,14 +34,23 @@ let
   # 2. Strip the 'darwin-secrets=' prefix to get the raw path string
   #baseDir = lib.removePrefix "darwin-secrets=" secretEntry;
 
-  pkdata = import <darwin-secrets/getpkinfo.nix>;
-  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.name}/secrets.json.age";
-  userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PKFILE);
-  userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.PUBFILE);
-  hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.PKFILE);
+  pkdata = import <darwin-secrets> {
+    inherit
+      pkgs
+      lib
+      config
+      osConfig
+      ;
+    host = osConfig.machineInfo.hostname;
+    user = user.name;
+  };
+  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.agecfg.name}/secrets.json.age";
+  userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.agecfg.PKFILE);
+  userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.agecfg.PUBFILE);
+  hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.agecfg.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
   #pkuserDir = "${dirOf osConfig.environment.darwinConfig}/../secrets/user/${pkdata.pkuser.name}";
-  pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkdata.pkuser.name}";
+  pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkdata.pkuser.agecfg.name}";
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -677,8 +686,8 @@ in
             if [ "$DERIVED" != "${pkuserPUBFILEstring}" ]; then
               /usr/bin/osascript -e 'display notification "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!" with title "Security Alert" sound name "Glass"'
             fi
-            if [ "${pkuserPUBFILEstring}" != "${pkdata.pkuser.pubkey}" ]; then
-              /usr/bin/osascript -e 'display notification "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/pkinfo.nix!" with title "Security Alert" sound name "Glass"'
+            if [ "${pkuserPUBFILEstring}" != "${pkdata.pkuser.agecfg.pubkey}" ]; then
+              /usr/bin/osascript -e 'display notification "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/default.nix!" with title "Security Alert" sound name "Glass"'
             fi
           ''
         ];
