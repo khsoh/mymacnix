@@ -38,12 +38,14 @@ let
 
   # PATH RESOLUTION (No /nix/store copies)
   # Uses '+' to keep paths on local disk
-  resolvePath =
+  resolveName =
     base: sub:
     let
       p = base + "/${sub}";
     in
-    if builtins.pathExists p then p else (base + "/__default__");
+    if builtins.pathExists p then sub else "__default__";
+
+  resolvePath = base: sub: (base + "/${resolveName base sub}");
 
   # Helper: List all directories in a path
   getDirs =
@@ -62,7 +64,7 @@ let
       specialArgs = {
         pkgs = finalPkgs;
         lib = finalLib;
-        xhost = hName;
+        xhost = resolveName ./host hName;
       };
     };
 
@@ -77,7 +79,7 @@ let
       specialArgs = {
         pkgs = finalPkgs;
         lib = finalLib;
-        xuser = uName;
+        xuser = resolveName ./user uName;
       };
     };
 
@@ -85,6 +87,7 @@ let
   ## These are the key data for current host and current user
   pkhost = (mkHostEval { hName = effectiveHost; }).config;
 
+  # Translate the user based on the host usermap
   xUser = if user != null then user else currentUser;
   effectiveUser = pkhost.usermap."${xUser}" or "__default__";
   pkuser =

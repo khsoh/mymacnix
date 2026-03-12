@@ -112,6 +112,8 @@ run "rm -rf ~/.deploy && mkdir -p ~/.deploy/root"
 
 
 ## Copy the user secrets
+XUSER=$(echo $PKDATA | jq '.pkuser.agecfg.name')
+print_green "Deploying secrets from <darwin-secrets>/user/${XUSER}"
 echo $PKDATA | jq '.pkuser.deployment' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
@@ -130,6 +132,8 @@ USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
 echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
 
 ## Copy the host secrets
+XHOST=$(echo $PKDATA | jq '.pkhost.agecfg.name')
+print_green "Deploying secrets from <darwin-secrets>/host/${XHOST}"
 echo $PKDATA | jq '.pkhost.deployment' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
