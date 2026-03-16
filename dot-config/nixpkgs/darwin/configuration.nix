@@ -162,7 +162,7 @@ in
       exiftool
       # The following packages are to support neovim-related builds
       go
-      nodejs_22
+      nodejs_25
 
       vlc-bin
       audacity
