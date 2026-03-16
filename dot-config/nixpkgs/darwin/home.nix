@@ -126,7 +126,8 @@ in
   ## User-specific aliases
   home.shellAliases = {
     cdnix = "cd $(readlink -f ${toString ./.})";
-    dru = "\"${toString ./.}/../../../darwinupdate\"";
+    dru = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../../darwinupdate\"')";
+    checknix = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../../checkNixpkgs.sh\"')";
     hbb = "brew bundle";
     hbu = "brew update";
 
@@ -229,8 +230,8 @@ in
       source = pkgs.fetchFromGitHub {
         owner = ghcfg.username;
         repo = "kickstart.nvim";
-        rev = "9b94cd541f791a09e41d40530ffa603913426711";
-        sha256 = "sha256-sWHUXHAofflW6XDVXdYpdLJB8vPPFfbyfiXGM3hg3KM=";
+        rev = "a7ed66d92ac9ce42907840d55dbe669813eba73c";
+        sha256 = "sha256-Y4E4mhrC27sjHG7zEa7LdP/ASmymOmzXiD9g6y0tVI8=";
         #sha256 = lib.fakeSha256;
       };
       recursive = true;
