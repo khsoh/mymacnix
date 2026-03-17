@@ -136,6 +136,11 @@ in
   };
 
   home.file = {
+    onepassword_mobileconfig = lib.mkIf onepassword_enable {
+      target = "${config.xdg.configHome}/profiles/1Password_8_profile.mobileconfig";
+      source = ./profiles/1Password_8_profile.mobileconfig;
+    };
+
     resize_app = {
       ## AppleScript file to resize app
       target = "${config.xdg.configHome}/jxa/resize_app.js";
@@ -230,8 +235,8 @@ in
       source = pkgs.fetchFromGitHub {
         owner = ghcfg.username;
         repo = "kickstart.nvim";
-        rev = "a7ed66d92ac9ce42907840d55dbe669813eba73c";
-        sha256 = "sha256-Y4E4mhrC27sjHG7zEa7LdP/ASmymOmzXiD9g6y0tVI8=";
+        rev = "bd04f15139f9857a910f560baefc222e59976cb6";
+        sha256 = "sha256-3JYqibJ2cHy4yh3O5DwZolwmFXEHk5fMu/0ywvTBkHU=";
         #sha256 = lib.fakeSha256;
       };
       recursive = true;
@@ -898,6 +903,24 @@ in
   };
 
   home.activation = {
+    install1PasswordCfg = lib.mkIf onepassword_enable (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        CFGFILE="${homecfg.file.onepassword_mobileconfig.source}"
+        PAYLOADID=$(/usr/libexec/PlistBuddy -c "Print :PayloadIdentifier" "$CFGFILE")
+        PAYLOADUUID=$(/usr/libexec/PlistBuddy -c "Print :PayloadUUID" "$CFGFILE")
+
+        INSTALLED_UUID=$(/usr/bin/profiles show -output stdout-xml | \
+          /usr/bin/plutil -convert xml1 -o - - | \
+          /usr/bin/awk "/<string>$PAYLOADID<\/string>/{f=1} f && /<key>PayloadUUID<\/key>/{getline; print; exit}" | \
+          /usr/bin/sed -e 's/<string>//' -e 's/<\/string>//' -e 's/^[[:space:]]*//')
+          
+        if [ "$PAYLOADUUID" != "$INSTALLED_UUID" ] ; then
+          echo "Installing Profile for 1Password"
+          /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
+        fi
+      ''
+    );
+
     start1Password = lib.mkIf onepassword_enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         # Create the .1password directory if it does not exist
