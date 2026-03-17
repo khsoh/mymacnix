@@ -910,11 +910,26 @@ in
         PAYLOADUUID=$(/usr/libexec/PlistBuddy -c "Print :PayloadUUID" "$CFGFILE")
 
         INSTALLED_UUID=$(/usr/bin/profiles show -output stdout-xml | \
-          /usr/bin/plutil -convert xml1 -o - - | \
-          /usr/bin/awk "/<string>$PAYLOADID<\/string>/{f=1} f && /<key>PayloadUUID<\/key>/{getline; print; exit}" | \
-          /usr/bin/sed -e 's/<string>//' -e 's/<\/string>//' -e 's/^[[:space:]]*//')
-          
+        ${pkgs.python3}/bin/python3 -c '
+        import sys, plistlib
+        try:
+          data = plistlib.loads(sys.stdin.buffer.read())
+          # Get the user profiles
+          profiles = data.get("${user.name}", [])
+          # Find the profile where ProfileIdentifier matches our target
+          match = next((p for p in profiles if p.get("ProfileIdentifier") == "'$PAYLOADID'"), None)
+          if match:
+            print(match.get("ProfileUUID", ""))
+
+        except Exception: 
+          pass
+        ')
+
         if [ "$PAYLOADUUID" != "$INSTALLED_UUID" ] ; then
+          if [ -n "$INSTALLED_UUID" ]; then
+            echo Removing old 1Password profile before installing new profile
+            /usr/bin/profiles remove -identifier "$PAYLOADID"
+          fi
           echo "Installing Profile for 1Password"
           /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
         fi
