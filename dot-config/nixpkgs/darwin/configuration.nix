@@ -102,10 +102,18 @@ in
   #   "google-chrome-144.0.7559.97"
   # ];
 
-  # Setup user specific logfile rotation for all users
-  environment.etc."newsyslog.d/${userInfo.name}.conf".text = ''
-    ${userInfo.home}/log/*.log      644  5  1024  *  NJ
-  '';
+  # Files to symlink in /etc
+  environment.etc = {
+    # Setup user specific logfile rotation for all users
+    "newsyslog.d/${userInfo.name}.conf".text = ''
+      ${userInfo.home}/log/*.log      644  5  1024  *  NJ
+    '';
+
+    # Quad9 Profiles
+    "mobileconfig/quad9_secured_dns.mobileconfig" = {
+      source = ./profiles/Quad9_Secured_DNS_over_HTTPS_ECS_20260119.mobileconfig;
+    };
+  };
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
@@ -394,7 +402,80 @@ in
   # '';
 
   system.activationScripts.postActivation.text = lib.mkBefore ''
-    echo "======== nixpkgs Apps re-registration =====-"
+    CFGFILE="${config.environment.etc."mobileconfig/quad9_secured_dns.mobileconfig".source}"
+    TMPFILE=$(/usr/bin/mktemp /tmp/quad9.XXXXXX)
+    TMPCFG="$TMPFILE".mobileconfig
+    rm -f "$TMPFILE"
+
+
+    ### Validate the configuration file and save the clean config into temporary file
+    if /usr/bin/openssl smime -inform DER -verify -in "$CFGFILE" -noverify >"$TMPCFG" 2>/dev/null; then
+      PAYLOAD_JSON=$(/usr/bin/plutil -convert json -o - "$TMPCFG")
+      PAYLOAD_ID=$(${pkgs.jq}/bin/jq -r ".PayloadIdentifier" <<<"$PAYLOAD_JSON")
+      PAYLOAD_UUID=$(${pkgs.jq}/bin/jq -r ".PayloadUUID" <<<"$PAYLOAD_JSON")
+      PAYLOAD_VERSION=$(${pkgs.jq}/bin/jq -r ".PayloadVersion" <<<"$PAYLOAD_JSON")
+      TARGET_DNS=$(${pkgs.jq}/bin/jq -r '.PayloadContent[0].DNSSettings.ServerAddresses | join(" ")' <<<"$PAYLOAD_JSON")
+
+      INSTALLED_JSON=$(/usr/bin/profiles show -output stdout-xml | \
+        /usr/bin/plutil -convert json -o - - | \
+        ${pkgs.jq}/bin/jq -c --arg id "$PAYLOAD_ID" \
+        '.["_computerlevel"][]? | select (.ProfileIdentifier == $id)')
+      INSTALLED_UUID=$(${pkgs.jq}/bin/jq -r '.ProfileUUID' <<< "$INSTALLED_JSON")
+      INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< "$INSTALLED_JSON")
+
+      if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
+        if [ -n "$INSTALLED_UUID" ]; then
+          echo "Removing old Quad9 Secured DNS profile before installing new profile"
+          /usr/bin/profiles remove -identifier "$PAYLOAD_ID"
+          echo "Removed old Quad9 Secured DNS profile UUID $INSTALLED_UUID version $INSTALLED_VERSION"
+        fi
+        echo "Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for Quad9 Secured DNS"
+        /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
+        read -n 1 -s -r -p "Press any key after you have installed the profile..."
+        echo ""
+
+      fi
+
+      ## Check the DNS setup
+      # 1. Get the list of all network services
+      service_order=$(networksetup -listnetworkserviceorder)
+      TOUCHED=false
+
+      networksetup -listallnetworkservices | grep -v "\*" | while read -r service; do
+        # Find the device ID (en0, en1, etc.)
+        device=$(echo "$service_order" | grep -A 1 "$service" | grep -oE "en[0-9]+" || :)
+
+        if [[ -n "$device" ]]; then
+          # Check if interface is 'active' (online)
+          if ifconfig "$device" 2>/dev/null | grep -q "status: active" && ifconfig "$device" | grep -q "inet "; then
+            # Get current DNS (v4 and v6 are returned together)
+            current_dns=$(networksetup -getdnsservers "$service" | xargs)
+              
+            # Compare current to target
+            if [[ "$current_dns" != "$TARGET_DNS" ]]; then
+              echo "===== Updating $service ($device): DNS is currently ($current_dns) ======"
+                  
+              # Single command for both IPv4 and IPv6
+              # shellcheck disable=SC2086
+              networksetup -setdnsservers "$service" $TARGET_DNS
+              TOUCHED=true
+            else
+              echo "$service ($device) is already set to Quad9."
+            fi
+          fi
+        fi
+      done
+
+      # 2. Flush cache if any change was made
+      if [ "$TOUCHED" = true ]; then
+        dscacheutil -flushcache
+        killall -HUP mDNSResponder
+        echo "Changes applied and DNS cache flushed."
+      fi
+    fi
+    rm -f "$TMPCFG"
+
+    echo "======== nixpkgs Apps re-registration ========"
     PRINT_HEADER=1
 
     # 1. Map previous binaries to their store paths
