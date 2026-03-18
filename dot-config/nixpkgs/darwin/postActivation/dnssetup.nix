@@ -69,7 +69,7 @@
           # Check if interface is 'active' (online)
           if ifconfig "$device" 2>/dev/null | grep -q "status: active" && ifconfig "$device" | grep -q "inet "; then
             # Get current DNS (v4 and v6 are returned together)
-            current_dns=$(networksetup -getdnsservers "$service" | xargs)
+            current_dns=$(networksetup -getdnsservers "$service" | xargs 2>/dev/null || :)
               
             # Compare current to target
             if [[ "$current_dns" != "$TARGET_DNS" ]]; then
