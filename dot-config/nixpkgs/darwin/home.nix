@@ -582,6 +582,9 @@ in
       font-family = "FiraMono Nerd Font Mono";
       font-size = 18;
 
+      # Save window state
+      window-save-state = "always";
+
       # Match Kitty's standard text brightness
       foreground = "#cdd6f4";
 
