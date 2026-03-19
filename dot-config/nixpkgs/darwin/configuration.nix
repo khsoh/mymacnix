@@ -312,6 +312,68 @@ in
     };
   };
 
+  launchd.user.agents.monitorQuad9 = {
+    serviceConfig = {
+      Label = "org.nixdarwin.user.monitorQuad9";
+      RunAtLoad = true;
+      KeepAlive = false;
+      ProcessType = "Background";
+      StartCalendarInterval = [ { Minute = 33; } ];
+      StandardErrorPath = "${userInfo.home}/log/org.nixdarwin.user.monitorQuad9-error.log";
+      StandardOutPath = "${userInfo.home}/log/org.nixdarwin.user.monitorQuad9-out.log";
+      ProgramArguments = [
+        "${pkgs.bashInteractive}/bin/bash"
+        "-c"
+        ''
+          REPO="Quad9DNS/documentation"
+          PATH_IN_REPO="docs/assets/mobileconfig"
+          ABS_CURRENT_FILE="${
+            toString config.environment.etc."mobileconfig/quad9_secured_dns.mobileconfig".source
+          }"
+          CURRENT_FILE="$(basename $ABS_CURRENT_FILE)"
+
+          API_URL="https://api.github.com/repos/$REPO/contents/$PATH_IN_REPO"
+          # Fetch file list from GitHub API
+          JQ_PATTERN="Quad9_Secured_DNS_over_HTTPS_ECS_[0-9]{8}\\\\.mobileconfig"
+          Q9JSON=$(/usr/bin/curl -s $API_URL | ${pkgs.jq}/bin/jq -c "[.[] | select(.name | test(\"$JQ_PATTERN\"))] | sort_by(.name) | last")
+
+          if [ "$Q9JSON" == "null" ]; then
+            >&2 echo "========================"
+            >&2 date
+            >&2 echo "Error: Could not find any mobileconfig files in the repository."
+          else
+            LATEST_FILE=$(echo "$Q9JSON" | ${pkgs.jq}/bin/jq -r '.name')
+            DOWNLOAD_URL=$(echo "$Q9JSON" | ${pkgs.jq}/bin/jq -r '.download_url')
+            FILE_SHA=$(echo "$Q9JSON" | jq -r '.sha')
+
+            if [ "$LATEST_FILE" != "$CURRENT_FILE" ]; then
+              >&2 echo "========================"
+              >&2 date
+              >&2 echo "NEW QUAD9 UPDATE AVAILABLE!"
+              >&2 echo "--------------------"
+              >&2 echo "Current file: $ABS_CURRENT_FILE"
+              >&2 echo "Latest file : $LATEST_FILE"
+              >&2 echo "Download URL: $DOWNLOAD_URL"
+              >&2 echo "SHA         : $FILE_SHA"
+              /usr/bin/osascript -e 'beep' -e "display alert \"QUAD9 Update available\" message \"Latest file : $LATEST_FILE\nDownload URL: $DOWNLOAD_URL\n\nClick OK to download the new update\" buttons {\"Cancel\", \"OK\"} default button \"OK\"" \
+              -e "if button returned of result is \"OK\" then open location \"$DOWNLOAD_URL\""
+            else
+              ## Validate the SHA of the current file
+              CURRENT_SHA=$(${pkgs.git}/bin/git hash-object "$ABS_CURRENT_FILE")
+              if [ "$FILE_SHA" == "$CURRENT_SHA" ]; then
+                echo "========================"
+                date
+                echo "Quad9 profile is up to date ($ABS_CURRENT_FILE)."
+              else
+                /usr/bin/osascript -e 'beep' -e "display alert \"Current QUAD9 mobileconfig corrupted!!\" message \"Current SHA-1 of Quad9 mobileconfig at $ABS_CURRENT_FILE did not match official SHA-1\nCurrent : $CURRENT_SHA\nOfficial: $FILE_SHA\""
+              fi
+            fi
+          fi
+        ''
+      ];
+    };
+  };
+
   environment.enableAllTerminfo = true;
   nix.optimise.automatic = true;
 
