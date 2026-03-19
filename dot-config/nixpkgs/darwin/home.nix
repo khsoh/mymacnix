@@ -802,10 +802,15 @@ in
           "-e"
           ''
             const TERMAPP="${TERMPROG}";
+            const terminal = Application(TERMAPP);
             try {
               // Use the path to target the specific Kitty installation
               if (TERMAPP != "Terminal.app") {
-                Application("${TERMPROG}").activate();
+                const endTime = Date.now() + 15000;
+                while (!terminal.running() && Date.now() < endTime) {
+                  delay(1);
+                }
+                terminal.activate();
               }
             } catch (err) {
               // err contains the message;
@@ -813,8 +818,6 @@ in
 
             }
             if (TERMAPP == "Terminal.app" || TERMAPP == "Terminal") {
-              const terminal = Application(TERMAPP);
-
               terminal.activate();
 
               // Reopen Terminal if no windows exist
