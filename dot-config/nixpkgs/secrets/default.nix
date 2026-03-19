@@ -58,6 +58,7 @@ let
       modules = [
         ./common/options-age.nix
         ./common/options-deploy.nix
+        ./common/options-wsgx.nix
         ./host/options-usermap.nix
         (resolvePath ./host hName)
       ];

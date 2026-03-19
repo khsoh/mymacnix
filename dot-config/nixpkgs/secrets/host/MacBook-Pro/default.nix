@@ -14,6 +14,8 @@ in
     kokhong = "khsoh";
   };
 
+  install_wsgx = true;
+
   agecfg = {
     name = xhost;
     OPURI = "op://MacBook-Pro-Secrets/Host age secret key/notesPlain";

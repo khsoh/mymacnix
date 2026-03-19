@@ -318,7 +318,7 @@ in
       RunAtLoad = true;
       KeepAlive = false;
       ProcessType = "Background";
-      StartCalendarInterval = [ { Minute = 33; } ];
+      StartInterval = 60 * 60 * 2; # Check every 2 hours
       StandardErrorPath = "${userInfo.home}/log/org.nixdarwin.user.monitorQuad9-error.log";
       StandardOutPath = "${userInfo.home}/log/org.nixdarwin.user.monitorQuad9-out.log";
       ProgramArguments = [

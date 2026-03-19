@@ -682,7 +682,8 @@ in
         WatchPaths = [
           "${dirOf userPKFILEPath}"
         ];
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.age-key-check-error.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.age-key-check-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.age-key-check-Error.log";
 
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
@@ -693,10 +694,10 @@ in
             DERIVED=$(${pkgs.age}/bin/age-keygen -y ${userPKFILEPath} 2>/dev/null)
 
             if [ "$DERIVED" != "${pkuserPUBFILEstring}" ]; then
-              /usr/bin/osascript -e 'display notification "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!" with title "Security Alert" sound name "Glass"'
+              /usr/bin/osascript -e 'display alert "AGE key Security Alert" message "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!"'
             fi
             if [ "${pkuserPUBFILEstring}" != "${pkdata.pkuser.agecfg.pubkey}" ]; then
-              /usr/bin/osascript -e 'display notification "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/default.nix!" with title "Security Alert" sound name "Glass"'
+              /usr/bin/osascript -e 'display alert "AGE key Security Alert" message "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/default.nix!"'
             fi
           ''
         ];
@@ -785,13 +786,15 @@ in
             '')
             + ''
               fi
-              echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
+              date
+              echo "$UPDATENIXPKGS"
             ''
           )
         ];
         RunAtLoad = true;
         StartInterval = 60 * 20;
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.detectNixUpdates-error.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.detectNixUpdates-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.detectNixUpdates-Error.log";
       };
     };
     LoginStartTerminal = {
@@ -836,7 +839,7 @@ in
           ''
         ];
         RunAtLoad = true;
-        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.loginterm.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.logintermOut.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.logintermError.log";
       };
     };
@@ -867,20 +870,20 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "
-          >&2 date
-          [ -d ${homecfg.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
-           >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins\"
-           >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all\"
-           >&2 ${pkgs.tmux}/bin/tmux -c \"${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins\"
-           >&2 echo \"Completed TPM plugin updates\"
-          "
+          ''
+            date
+            [ -d ${homecfg.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
+             ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins"
+             ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all"
+             ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins"
+             echo "Completed TPM plugin updates"
+          ''
         ];
         RunAtLoad = true;
         KeepAlive = {
           SuccessfulExit = false;
         };
-        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdate.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdateOut.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdateError.log";
       };
     };
@@ -892,18 +895,119 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          "
-          >&2 date
-          ${pkgs.neovim}/bin/nvim --headless \"+Lazy! sync\" \"+MasonUpdate\" \"+MasonToolsUpdateSync\" \"+qa\" 
-          >&2 echo \"\"
-          "
+          ''
+            date
+            ${pkgs.neovim}/bin/nvim --headless "+Lazy! sync" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa" 
+            echo ""
+          ''
         ];
         RunAtLoad = true;
         KeepAlive = {
           SuccessfulExit = false;
         };
-        StandardOutputPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdate.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateOut.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateError.log";
+      };
+    };
+
+    monitor-wsgx = lib.mkIf pkdata.pkhost.install_wsgx {
+      enable = true;
+      config = {
+        Label = "org.nixos.user.monitor-wsgx";
+        RunAtLoad = true;
+        KeepAlive = false;
+        StartInterval = 60 * 60 * 2;
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.monitor-wsgx-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.monitor-wsgx-Error.log";
+        ProgramArguments = [
+          "${pkgs.bashInteractive}/bin/bash"
+          "-l"
+          "-c"
+          ''
+            ICLOUD_DIR="${homecfg.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
+
+            # Check if iCloud drive exists
+            if [ ! -d "$ICLOUD_DIR" ]; then
+              >&2 date
+              >&2 echo "iCloud Drive not yet mounted"
+              >&2 echo "==================="
+              exit 0
+            fi
+
+            WSGX_FILE="$ICLOUD_DIR/WSGX/non-sim.mobileconfig";
+            if [ ! -f "$WSGX_FILE" ]; then
+              >&2 date
+              >&2 echo "Warning: Wireless@SGx Profile file absent from WSGX folder in iCloud drive"
+              >&2 echo "==================="
+              /usr/bin/osascript -e 'display alert "Wireless@SGx not installed" message "Click OK to download Wireless@SGx mobile profile for non-SIM host" buttons { "Cancel", "OK" } default button "OK"' \
+                -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
+              exit 0
+            fi
+
+            # Get the signing time
+            SIGNTIME=$(/usr/bin/openssl cms -inform DER -in "$WSGX_FILE" -cmsout -print|grep -A 2 "signingTime"|grep "UTCTIME" | ${pkgs.gnused}/bin/sed 's/.*UTCTIME://')
+            EXPIRE_DATE="$(date -j -v+6m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%b %d %Y")"
+            WARN_EPOCH="$(date -j -v+5m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%s")"
+
+            # Check if need to update the profile
+            if [ "$(date "+%s")" -gt "$WARN_EPOCH" ]; then
+              >&2 date
+              >&2 echo "Warning: Wireless@SGx Profile will expire on $EXPIRE_DATE"
+              >&2 echo "==================="
+              /usr/bin/osascript -e 'display alert "Wireless@SGx profile expiring soon" message "Click OK to download Wireless@SGx mobile profile for non-SIM host" buttons { "Cancel", "OK" } default button "OK"' \
+                -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
+              exit 0
+            fi
+
+            # Verify the profile
+            TMPFILE=$(/usr/bin/mktemp /tmp/wsgx.XXXXXX)
+            TMPCFG="$TMPFILE".mobileconfig
+            rm -f "$TMPFILE"
+
+            if /usr/bin/openssl smime -inform DER -verify -in "$WSGX_FILE" -noverify >"$TMPCFG" 2>/dev/null; then
+              PAYLOAD_JSON=$(/usr/bin/plutil -convert json -o - "$TMPCFG")
+              PAYLOAD_ID=$(${pkgs.jq}/bin/jq -r ".PayloadIdentifier" <<<"$PAYLOAD_JSON")
+              PAYLOAD_UUID=$(${pkgs.jq}/bin/jq -r ".PayloadUUID" <<<"$PAYLOAD_JSON")
+              PAYLOAD_VERSION=$(${pkgs.jq}/bin/jq -r ".PayloadVersion" <<<"$PAYLOAD_JSON")
+
+              INSTALLED_JSON=$(/usr/bin/profiles show -output stdout-xml | \
+                  /usr/bin/plutil -convert json -o - - | \
+                  ${pkgs.jq}/bin/jq -c --arg id "$PAYLOAD_ID" \
+                  '.[env.USER][]? | select (.ProfileIdentifier == $id)')
+              INSTALLED_UUID=$(${pkgs.jq}/bin/jq -r '.ProfileUUID' <<< "$INSTALLED_JSON")
+              INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< "$INSTALLED_JSON")
+
+              if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
+                /usr/bin/osascript <<EOT
+                  set cfgFile to POSIX file "$TMPCFG"
+                  -- Display the alert
+                  display alert "Install Wireless@SGx profile" ¬
+                    message "Click OK to install Wireless@SGx mobile profile for non-SIM host" ¬
+                    buttons { "Cancel", "OK" } default button "OK"
+
+                  -- Check user response
+                  if button returned of result is "OK" then 
+                    -- 1. Stage the mobileconfig file for installation
+                    tell application "Finder" to open cfgFile
+
+                    -- 2. Open System Settings to the Profiles/Device Management pane
+                    tell application "System Settings"
+                      activate
+                      reveal pane id "com.apple.preferences.configurationfiles"
+                    end tell
+                  end if
+            EOT
+              fi
+            else
+              >&2 date
+              >&2 echo "Warning: Wireless@SGx Profile file is CORRUPTED: $WSGX_FILE"
+              >&2 echo "==================="
+              /usr/bin/osascript -e 'display alert "Wireless@SGx profile corrupted" message "Click OK to download Wireless@SGx mobile profile for non-SIM host" buttons { "Cancel", "OK" } default button "OK"' \
+                -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
+            fi
+            rm -f "$TMPCFG"
+          ''
+        ];
       };
     };
   };

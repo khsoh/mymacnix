@@ -95,8 +95,11 @@
         # shellcheck disable=SC2059
         printf "''${GREEN}..Changes applied and DNS cache flushed.''${ESC}\n"
       fi
+    else
+      ## Corrupted DNS mobileconfig file
+      # shellcheck disable=SC2059
+      printf "''${RED}''${BOLD}..!!!CORRUPTED mobileconfig file: $CFGFILE''${ESC}\n"
     fi
     rm -f "$TMPCFG"
-
   '';
 }
