@@ -12,14 +12,13 @@ nix-instantiate --eval --json -E --raw "
     # Get only fetchFromGitHub files
     ghfiles = lib.attrsets.filterAttrs (n: v: v.source ? githubBase) _files;
   in
-    lib.concatLines (lib.attrsets.mapAttrsToList (name: value:  \"https://\" +
-      value.source.githubBase + \"/\" +
-      value.source.owner + \"/\" +
-      value.source.repo
+    lib.concatLines (lib.attrsets.mapAttrsToList (name: value:
+      \"\${value.source.owner}:\${value.source.repo}\"
       ) ghfiles)
-" | while IFS= read -r repo; do
-    rev=$(git ls-remote $repo HEAD|awk '{print $1}')
-    hash=$(nix --experimental-features nix-command hash convert --hash-algo sha256 --to sri $(nix-prefetch-url --unpack $repo/archive/${rev}.tar.gz 2> /dev/null))
-    printf "REPO=$repo\nrev=\"$rev\";\nsha256=\"$hash\";\n\n"
+" | while IFS=':' read -r owner repo; do
+  # Skip empty lines or lines that do not match the format
+  [[ -z "$owner" || -z "$repo" ]] && continue
+
+  nix-prefetch-github $owner $repo
 done
 
