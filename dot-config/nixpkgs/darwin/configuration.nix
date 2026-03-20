@@ -130,6 +130,7 @@ in
       nixd # LSP for nix
       python3
       age
+      nix-prefetch-github
       (callPackage <agenix/pkgs/agenix.nix> { })
 
       ### The following are for kickstart.nvim
