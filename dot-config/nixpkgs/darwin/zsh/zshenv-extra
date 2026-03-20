@@ -7,3 +7,17 @@ resize_app() {
     ~/.config/jxa/resize_app.js $@
 }
 
+nx-pfgh () {
+    nix-prefetch-github --nix $@ | tail -n 7 | sed -e 's/pkgs.fetchFromGitHub //'
+}
+
+tmux () {
+    [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
+    if [[ -z ${1+x} ]]; then
+        resize_app
+        /run/current-system/sw/bin/tmux new-session -A
+    else
+        /run/current-system/sw/bin/tmux $@
+    fi
+}
+

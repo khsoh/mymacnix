@@ -19,6 +19,8 @@ nix-instantiate --eval --json -E --raw "
   # Skip empty lines or lines that do not match the format
   [[ -z "$owner" || -z "$repo" ]] && continue
 
-  nix-prefetch-github --nix $owner $repo | tail -n +4 | sed -e 's/pkgs.fetchFromGitHub {/{/'
+  ## Run the alias for this command
+  # nix-prefetch-github --nix $owner $repo | tail -n +4 | sed -e 's/pkgs.fetchFromGitHub {/{/'
+  nx-pfgh $owner $repo
 done
 
