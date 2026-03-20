@@ -218,19 +218,6 @@ in
       # The Label is required for launchd
       Label = "org.nixos.makeRootChannelsPublic";
 
-      # ProgramArguments defines what command to run.
-      # We use a shell command to execute all the steps sequentially.
-      ProgramArguments = [
-        "${pkgs.bashInteractive}/bin/bash"
-        "-c"
-        ''
-          mkdir -p /etc/nix-channels
-          chmod a+rx /etc/nix-channels
-          cp /var/root/.nix-channels /etc/nix-channels/system-channels
-          chmod a+r /etc/nix-channels/system-channels
-        ''
-      ];
-
       # Monitor this file for modifications
       WatchPaths = [
         "/var/root/.nix-channels"
@@ -244,19 +231,29 @@ in
       RunAtLoad = true;
       # Do not keep the process alive; launchd will restart it when the file changes
       KeepAlive = false;
+
+      StandardOutPath = "/var/log/org.nixos.makeRootChannelsPublic-Out.log";
+      StandardErrorPath = "/var/log/org.nixos.makeRootChannelsPublic-Error.log";
+
+      # ProgramArguments defines what command to run.
+      # We use a shell command to execute all the steps sequentially.
+      ProgramArguments = [
+        "${pkgs.bashInteractive}/bin/bash"
+        "-c"
+        ''
+          mkdir -p /etc/nix-channels
+          chmod a+rx /etc/nix-channels
+          cp /var/root/.nix-channels /etc/nix-channels/system-channels
+          chmod a+r /etc/nix-channels/system-channels
+        ''
+      ];
     };
   };
 
   launchd.daemons.generateMachineInfo = {
-
     serviceConfig = {
       # The Label is required for launchd
-      Label = "org.nixos.darwin.generateMachineInfo";
-      # Set 'exec' to the absolute path of the generated script in the Nix store
-      ProgramArguments = [
-        "/etc/nix-darwin/generate_machine_info.sh"
-        "/etc/nix-darwin/machine-info.nix"
-      ];
+      Label = "org.nixos.generateMachineInfo";
 
       # Monitor this file for modifications
       WatchPaths = [
@@ -266,14 +263,20 @@ in
       # Other launchd options
       RunAtLoad = true;
       StartInterval = 3600;
-      StandardOutPath = "/var/log/generate-machine-info.log";
-      StandardErrorPath = "/var/log/generate-machine-info-error.log";
+      StandardOutPath = "/var/log/org.nixos.generate-machine-info-Out.log";
+      StandardErrorPath = "/var/log/org.nixos.generate-machine-info-Error.log";
+
+      # Set 'exec' to the absolute path of the generated script in the Nix store
+      ProgramArguments = [
+        "/etc/nix-darwin/generate_machine_info.sh"
+        "/etc/nix-darwin/machine-info.nix"
+      ];
     };
   };
 
   launchd.daemons.host-age-validator = lib.mkIf (builtins.pathExists pkdata.pkhost.agecfg.PKFILE) {
     serviceConfig = {
-      Label = "org.nixos.darwin.host-age-validator";
+      Label = "org.nixos.host-age-validator";
       RunAtLoad = true;
 
       # Use the one-shot settings to prevent looping
@@ -283,7 +286,8 @@ in
       WatchPaths = [
         "${dirOf pkdata.pkhost.agecfg.PKFILE}"
       ];
-      StandardErrorPath = "/var/log/host-age-check-error.log";
+      StandardOutPath = "/var/log/org.nixos.host-age-check-Out.log";
+      StandardErrorPath = "/var/log/org.nixos.host-age-check-Error.log";
       ProgramArguments = [
         "${pkgs.bashInteractive}/bin/bash"
         "-c"
@@ -314,13 +318,13 @@ in
 
   launchd.user.agents.monitorQuad9 = {
     serviceConfig = {
-      Label = "org.nixdarwin.user.monitorQuad9";
+      Label = "org.nixos.user.monitorQuad9";
       RunAtLoad = true;
       KeepAlive = false;
       ProcessType = "Background";
       StartInterval = 60 * 60 * 2; # Check every 2 hours
-      StandardErrorPath = "${userInfo.home}/log/org.nixdarwin.user.monitorQuad9-error.log";
-      StandardOutPath = "${userInfo.home}/log/org.nixdarwin.user.monitorQuad9-out.log";
+      StandardOutPath = "${userInfo.home}/log/org.nixos.user.monitorQuad9-Out.log";
+      StandardErrorPath = "${userInfo.home}/log/org.nixos.user.monitorQuad9-Error.log";
       ProgramArguments = [
         "${pkgs.bashInteractive}/bin/bash"
         "-c"

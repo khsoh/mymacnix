@@ -69,10 +69,12 @@ sudo -H launchctl disable system/org.nixos.nix-daemon
 sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist
 sudo -H launchctl disable system/org.nixos.darwin-store
 sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist
-sudo -H launchctl disable system/org.nixos.darwin.generateMachineInfo
-sudo rm -f /Library/LaunchDaemons/org.nixos.darwin.generateMachineInfo.plist
+sudo -H launchctl disable system/org.nixos.generateMachineInfo
+sudo rm -f /Library/LaunchDaemons/org.nixos.generateMachineInfo.plist
 sudo -H launchctl disable system/org.nixos.makeRootChannelsPublic
 sudo rm -f /Library/LaunchDaemons/org.nixos.makeRootChannelsPublic.plist
+sudo -H launchctl disable system/org.nixos.host-age-validator
+sudo rm -f /Library/LaunchDaemons/org.nixos.host-age-validator.plist
 
 # Remove the nixbld group and the _nixbuildN users
 sudo -H dscl . -delete /Groups/nixbld

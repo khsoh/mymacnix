@@ -44,7 +44,7 @@ if [ "$OUTPUT" -eq 1 ]; then
         case ${opt} in
             k)
                 # Kickstart the daemon
-                launchctl kickstart gui/$(id -u)/org.nixos.detectNixUpdates
+                launchctl kickstart gui/$(id -u)/org.nixos.hm.detectNixUpdates
                 exit 0
                 ;;
             \?)

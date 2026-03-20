@@ -672,7 +672,7 @@ in
     age-key-validator = lib.mkIf (builtins.pathExists userPKFILEPath) {
       enable = true;
       config = {
-        Label = "org.nixos.user.age-key-validator";
+        Label = "org.nixos.hm.age-key-validator";
         RunAtLoad = true;
 
         # Use the one-shot settings to prevent looping
@@ -682,8 +682,8 @@ in
         WatchPaths = [
           "${dirOf userPKFILEPath}"
         ];
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.age-key-check-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.age-key-check-Error.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.age-key-check-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.age-key-check-Error.log";
 
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
@@ -706,7 +706,11 @@ in
     detectNixUpdates = {
       enable = true;
       config = {
-        Label = "org.nixos.user.detectNixUpdates";
+        Label = "org.nixos.hm.detectNixUpdates";
+        RunAtLoad = true;
+        StartInterval = 60 * 20;
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.detectNixUpdates-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.detectNixUpdates-Error.log";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
@@ -791,16 +795,15 @@ in
             ''
           )
         ];
-        RunAtLoad = true;
-        StartInterval = 60 * 20;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.detectNixUpdates-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.detectNixUpdates-Error.log";
       };
     };
     LoginStartTerminal = {
       enable = true;
       config = {
-        Label = "org.nixos.user.LoginStartTerminal";
+        Label = "org.nixos.hm.LoginStartTerminal";
+        RunAtLoad = true;
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.LoginStartTerminal-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.LoginStartTerminal-Error.log";
         ProgramArguments = [
           "osascript"
           "-l"
@@ -838,34 +841,18 @@ in
             }
           ''
         ];
-        RunAtLoad = true;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.logintermOut.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.logintermError.log";
       };
     };
-    # LoginStartTmux = {
-    #   enable = true;
-    #   config = {
-    #     Label = "org.nixos.user.LoginStartTmux";
-    #     ProgramArguments = [
-    #       "osascript"
-    #       "-e" "
-    #       tell application \"Terminal\"
-    #         if not (exists window 1) then reopen
-    #         activate
-    #         set winID to id of window 1
-    #         do script \"tmux 2>/dev/null\" in window id winID
-    #       end tell
-    #       return
-    #       "
-    #       ];
-    #     RunAtLoad = true;
-    #   };
-    # };
     updateTmuxPlugins = {
       enable = true;
       config = {
-        Label = "org.nixos.user.updateTmuxPlugins";
+        Label = "org.nixos.hm.updateTmuxPlugins";
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateTmuxPlugins-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateTmuxPlugins-Error.log";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
@@ -879,18 +866,18 @@ in
              echo "Completed TPM plugin updates"
           ''
         ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdateOut.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.tmuxupdateError.log";
       };
     };
     updateNvimPlugins = {
       enable = true;
       config = {
-        Label = "org.nixos.user.updateNvimPlugins";
+        Label = "org.nixos.hm.updateNvimPlugins";
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Error.log";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
@@ -901,24 +888,18 @@ in
             echo ""
           ''
         ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateOut.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.nvimupdateError.log";
       };
     };
 
     monitor-wsgx = lib.mkIf pkdata.pkhost.install_wsgx {
       enable = true;
       config = {
-        Label = "org.nixos.user.monitor-wsgx";
+        Label = "org.nixos.hm.monitor-wsgx";
         RunAtLoad = true;
         KeepAlive = false;
         StartInterval = 60 * 60 * 2;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.user.monitor-wsgx-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.user.monitor-wsgx-Error.log";
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.monitor-wsgx-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.monitor-wsgx-Error.log";
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
