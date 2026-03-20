@@ -8,6 +8,10 @@ nixclean () {
     sudo -H nix-collect-garbage --delete-older-than ${DDAYS}
 }
 
+nx-pfgh () {
+    nix-prefetch-github --nix $@ | tail -n 7 | sed -e 's/pkgs.fetchFromGitHub //'
+}
+
 tmux () {
     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
     if [[ -z ${1+x} ]]; then

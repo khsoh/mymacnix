@@ -130,6 +130,7 @@ in
     checknix = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../../checkNixpkgs.sh\"')";
     hbb = "brew bundle";
     hbu = "brew update";
+    nvim-tmp = "nvim - +'set buftype=nofile'";
 
     # Standard agenix wrapper to include age key file
     anix = "agenix -i ${userPKFILEPath}";
@@ -179,28 +180,12 @@ in
         owner = ghcfg.username;
         repo = "tmuxconf";
         rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
-        sha256 = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
-        #sha256 = lib.fakeSha256;
+        hash = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
+        #hash = lib.fakeSha256;
       };
       recursive = true;
     };
 
-    # home.file.kitty = {
-    #   ## The defaults are commented out
-    #
-    #   # Enable kitty config if kitty is installed in Nix or homebrew
-    #   enable = Helpers.pkgInstalled pkgs.kitty || Helpers.brewAppInstalled "kitty";
-    #   target = "${config.xdg.configHome}/kitty";
-    #   #source = ../kitty;
-    #   source = pkgs.fetchFromGitHub {
-    #     owner = ghcfg.username;
-    #     repo = "kittyconf";
-    #     rev="98fe859b971f83faa2af7741b01ab23f347f544d";
-    #     sha256="sha256-95SXw7wdfP1p81eEFOH+wTzhyw25eWrnAFQhZgkVDNA=";
-    #     #sha256 = lib.fakeSha256;
-    #   };
-    #   recursive = true;
-    # };
     kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
       # Enable kitty config if kitty is installed in Nix or homebrew
       enable = true;
@@ -236,8 +221,8 @@ in
         owner = ghcfg.username;
         repo = "kickstart.nvim";
         rev = "bd04f15139f9857a910f560baefc222e59976cb6";
-        sha256 = "sha256-3JYqibJ2cHy4yh3O5DwZolwmFXEHk5fMu/0ywvTBkHU=";
-        #sha256 = lib.fakeSha256;
+        hash = "sha256-3JYqibJ2cHy4yh3O5DwZolwmFXEHk5fMu/0ywvTBkHU=";
+        #hash = lib.fakeSha256;
       };
       recursive = true;
     };
