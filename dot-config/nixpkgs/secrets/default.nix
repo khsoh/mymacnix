@@ -11,6 +11,11 @@ let
     path:
     builtins.attrNames (lib.filterAttrs (name: type: type == "directory") (builtins.readDir path));
 
+  xhost = config._module.args.xhost or null;
+  xuser = config._module.args.xuser or null;
+
+  secretsLib = import ./secrets-lib.nix { inherit lib; };
+
   mkHostConfig =
     {
       name,
@@ -72,21 +77,36 @@ in
     users = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule mkUserConfig);
     };
+
+    target = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.unspecified;
+
+      default = {
+        # Point to target host
+        host =
+          let
+            hName = if xhost != null then xhost else config.machineInfo.hostname or "__default__";
+          in
+          cfg.hosts."${hName}" or cfg.hosts.__default__;
+
+        # Point to target user
+        user =
+          let
+            hName = if xhost != null then xhost else config.machineInfo.hostname or "__default__";
+            uName = if xuser != null then xuser else config.system.primaryUser or "__default__";
+            myhostcfg = cfg.hosts."${hName}" or cfg.hosts.__default__;
+            mappedName = myhostcfg.usermap."${uName}" or myhostcfg.usermap.__default__ or uName;
+          in
+          cfg.users."${mappedName}" or cfg.users.__default__;
+      };
+
+    };
   };
 
-  config.secrets.hosts = importConfig ./host;
-  config.secrets.users = importConfig ./user;
-
-  config.lib.secrets = {
-    getMyHostConfig = cfg.hosts."${config.machineInfo.hostname}" or cfg.hosts.__default__;
-
-    getMyUserConfig =
-      let
-        uName = config.system.primaryUser;
-        myhostcfg = config.lib.secrets.getMyHostConfig;
-        mappedName = myhostcfg.usermap."${uName}" or myhostcfg.usermap.__default__;
-      in
-      cfg.users."${mappedName}";
+  config = {
+    secrets.hosts = importConfig ./host;
+    secrets.users = importConfig ./user;
   };
+
 }
 # vim: set ts=2 sw=2 et ft=nix:

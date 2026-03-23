@@ -82,7 +82,7 @@ fi
 XHOST=$(run "/usr/sbin/scutil --get LocalHostName")
 XUSER=$(run "/usr/bin/id -un")
 
-PKDATA=$(nix-instantiate --eval --strict --json -E "import <darwin-secrets> { host=\"$XHOST\"; user=\"$XUSER\"; }")
+PKDATA=$(nix-instantiate --eval --strict --json -E "(import (<darwin-secrets> + \"/standalone.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; }).target")
 
 USERCMDS=$(cat <<EOF
 #!/usr/bin/env zsh
@@ -112,9 +112,9 @@ run "rm -rf ~/.deploy && mkdir -p ~/.deploy/root"
 
 
 ## Copy the user secrets
-XUSER=$(echo $PKDATA | jq '.pkuser.agecfg.name')
+XUSER=$(echo $PKDATA | jq '.user.name')
 print_green "Deploying secrets from <darwin-secrets>/user/${XUSER}"
-echo $PKDATA | jq '.pkuser.deployment' | jq -c '.[]' | while read -r item; do
+echo $PKDATA | jq '.user.deployment' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
   cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
@@ -132,9 +132,9 @@ USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
 echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
 
 ## Copy the host secrets
-XHOST=$(echo $PKDATA | jq '.pkhost.agecfg.name')
+XHOST=$(echo $PKDATA | jq '.host.name')
 print_green "Deploying secrets from <darwin-secrets>/host/${XHOST}"
-echo $PKDATA | jq '.pkhost.deployment' | jq -c '.[]' | while read -r item; do
+echo $PKDATA | jq '.host.deployment' | jq -c '.[]' | while read -r item; do
   opuri=$(echo "$item" | jq -r ".OPURI")
   file=$(echo "$item" | jq -r ".FILE")
   cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')

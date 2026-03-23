@@ -21,7 +21,7 @@ let
   isVM = config.machineInfo.is_vm;
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
-  pkhostcfg = config.lib.secrets.getMyHostConfig;
+  pkhostcfg = config.secrets.target.host;
   pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkhostcfg.agecfg.PUBFILE);
 

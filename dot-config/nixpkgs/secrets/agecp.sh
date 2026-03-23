@@ -23,7 +23,7 @@ fi
 JSON_OUTPUT=$(nix-instantiate --eval --strict --json --expr "
   let
     config = (import <darwin> {}).config;
-    myusercfg = config.lib.secrets.getMyUserConfig;
+    myusercfg = config.secrets.helpers.getMyUserConfig;
     secretFile = config.home-manager.users.\"$USER_NAME\".age.secrets.\"$SECRET_NAME\".file;
   in {
     FILE = toString secretFile;
