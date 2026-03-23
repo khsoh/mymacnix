@@ -82,7 +82,8 @@ fi
 XHOST=$(run "/usr/sbin/scutil --get LocalHostName")
 XUSER=$(run "/usr/bin/id -un")
 
-PKDATA=$(nix-instantiate --eval --strict --json -E "(import (<darwin-secrets> + \"/standalone.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; }).target")
+#PKDATA=$(nix-instantiate --eval --strict --json -E "(import (<darwin-secrets> + \"/standalone.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; }).target")
+PKDATA=$(nix-instantiate --eval --strict --json -E "(import (<darwin-secrets> + \"/deploy.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; })")
 
 USERCMDS=$(cat <<EOF
 #!/usr/bin/env zsh
