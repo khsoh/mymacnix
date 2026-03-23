@@ -1,17 +1,14 @@
 {
   config,
-  pkgs,
-  xuser,
+  lib,
   ...
 }:
 let
-  lib = pkgs.lib;
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
 in
 {
   agecfg = {
-    name = xuser;
     OPURI = "op://Nix Bootstrap/NIXID age private key/notesPlain";
     PKFILE = "~/.age/nixid_key.txt";
     PUBFILE = "~/.age/nixid_public.txt";

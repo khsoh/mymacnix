@@ -1,17 +1,14 @@
 {
   config,
-  pkgs,
-  xuser,
+  lib,
   ...
 }:
 let
-  lib = pkgs.lib;
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
 in
 {
   agecfg = {
-    name = xuser;
     OPURI = "op://Private/Personal age private key/notesPlain";
     PKFILE = "~/.age/key.txt";
     PUBFILE = "~/.age/public.txt";

@@ -1,11 +1,9 @@
 {
   config,
-  pkgs,
-  xhost,
+  lib,
   ...
 }:
 let
-  lib = pkgs.lib;
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
 in
@@ -17,7 +15,6 @@ in
   install_wsgx = true;
 
   agecfg = {
-    name = xhost;
     OPURI = "op://MacBook-Pro-Secrets/Host age secret key/notesPlain";
     PKFILE = "/etc/age/key.txt";
     PUBFILE = "/etc/age/public.txt";

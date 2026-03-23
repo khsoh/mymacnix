@@ -1,13 +1,14 @@
 let
-  pkinfo = (import ./default.nix { });
+  config = (import <darwin> { }).config;
+  cfgsec = config.secrets;
 
   # Create logical groups for easy use in the 'in' block
-  allHosts = builtins.attrValues pkinfo.hosts.content;
-  allUsers = builtins.attrValues pkinfo.users.content;
+  allHosts = builtins.attrValues cfgsec.hosts;
+  allUsers = builtins.attrValues cfgsec.users;
 
   # Relative paths for host and user
-  hostDir = "host/${pkinfo.pkhost.agecfg.name}";
-  userDir = "user/${pkinfo.pkuser.agecfg.name}";
+  hostDir = "host/${(config.lib.secrets.getMyHostConfig).name}";
+  userDir = "user/${(config.lib.secrets.getMyUserConfig).name}";
 
   # Define current host and current user secrets.nix
   hostSecrets = ./. + "/${hostDir}/secrets.nix";

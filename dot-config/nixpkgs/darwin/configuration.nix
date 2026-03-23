@@ -21,13 +21,9 @@ let
   isVM = config.machineInfo.is_vm;
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
-  pkdata = import <darwin-secrets> {
-    inherit pkgs lib config;
-    host = config.machineInfo.hostname;
-    user = userInfo.name;
-  };
-  pkhostDir = "${secretsDir}/host/${pkdata.pkhost.agecfg.name}";
-  pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkdata.pkhost.agecfg.PUBFILE);
+  pkhostcfg = config.lib.secrets.getMyHostConfig;
+  pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
+  pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkhostcfg.agecfg.PUBFILE);
 
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
@@ -49,6 +45,7 @@ in
     ./globals.nix
     <home-manager/nix-darwin>
     <agenix/modules/age.nix>
+    <darwin-secrets>
     ./brews.nix
     ./machine.nix
     ./postActivation/dnssetup.nix
@@ -58,8 +55,8 @@ in
   ######### Configuration of modules #########
 
   ##### agenix configuration
-  age.identityPaths = lib.mkIf (builtins.pathExists pkdata.pkhost.agecfg.PKFILE) [
-    pkdata.pkhost.agecfg.PKFILE
+  age.identityPaths = lib.mkIf (builtins.pathExists pkhostcfg.agecfg.PKFILE) [
+    pkhostcfg.agecfg.PKFILE
   ];
 
   ##### home-manager configuration
@@ -275,7 +272,7 @@ in
     };
   };
 
-  launchd.daemons.host-age-validator = lib.mkIf (builtins.pathExists pkdata.pkhost.agecfg.PKFILE) {
+  launchd.daemons.host-age-validator = lib.mkIf (builtins.pathExists pkhostcfg.agecfg.PKFILE) {
     serviceConfig = {
       Label = "org.nixos.host-age-validator";
       RunAtLoad = true;
@@ -285,7 +282,7 @@ in
       AbandonProcessGroup = true;
 
       WatchPaths = [
-        "${dirOf pkdata.pkhost.agecfg.PKFILE}"
+        "${dirOf pkhostcfg.agecfg.PKFILE}"
       ];
       StandardOutPath = "/var/log/org.nixos.host-age-check-Out.log";
       StandardErrorPath = "/var/log/org.nixos.host-age-check-Error.log";
@@ -296,21 +293,21 @@ in
           sleep 2   # Wait a while for file to be completely updated
 
           # Runs as root - can read 600 files
-          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkdata.pkhost.agecfg.PKFILE} 2>/dev/null)
+          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkhostcfg.agecfg.PKFILE} 2>/dev/null)
 
           if [ "$DERIVED" != "${pkhostPUBFILEstring}" ]; then
             # Find the ID of the currently logged-in user
             CURRENT_USER_ID=$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))
 
             # Send notification into that user's session
-            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Host Age Private key file ${pkdata.pkhost.agecfg.PKFILE} does not match with its public key file ${pkdata.pkhost.agecfg.PUBFILE}!" with title "Security Alert"'
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Host Age Private key file ${pkhostcfg.agecfg.PKFILE} does not match with its public key file ${pkhostcfg.agecfg.PUBFILE}!" with title "Security Alert"'
           fi
 
-          if [ "${pkhostPUBFILEstring}" != "${pkdata.pkhost.agecfg.pubkey}" ]; then
+          if [ "${pkhostPUBFILEstring}" != "${pkhostcfg.agecfg.pubkey}" ]; then
             CURRENT_USER_ID=''${USERID:-$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))}
 
             # Send notification into that user's session
-            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Contents of Host Age Public key file ${pkdata.pkhost.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!" with title "Security Alert"'
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Contents of Host Age Public key file ${pkhostcfg.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!" with title "Security Alert"'
           fi
         ''
       ];

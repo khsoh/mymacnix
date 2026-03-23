@@ -1,11 +1,9 @@
 {
   config,
-  pkgs,
-  xhost,
+  lib,
   ...
 }:
 let
-  lib = pkgs.lib;
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
 in
@@ -15,7 +13,6 @@ in
   };
 
   agecfg = {
-    name = xhost;
     OPURI = "op://Nix Bootstrap/Default Machine age secret key/notesPlain";
     PKFILE = "/etc/age/nixid_host_key.txt";
     PUBFILE = "/etc/age/nixid_host_public.txt";

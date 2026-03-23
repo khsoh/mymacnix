@@ -34,23 +34,14 @@ let
   # 2. Strip the 'darwin-secrets=' prefix to get the raw path string
   #baseDir = lib.removePrefix "darwin-secrets=" secretEntry;
 
-  pkdata = import <darwin-secrets> {
-    inherit
-      pkgs
-      lib
-      config
-      osConfig
-      ;
-    host = osConfig.machineInfo.hostname;
-    user = user.name;
-  };
-  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkdata.pkuser.agecfg.name}/secrets.json.age";
-  userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.agecfg.PKFILE);
-  userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkuser.agecfg.PUBFILE);
-  hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkdata.pkhost.agecfg.PKFILE);
+  pkusercfg = osConfig.lib.secrets.getMyUserConfig;
+  pkhostcfg = osConfig.lib.secrets.getMyHostConfig;
+  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/secrets.json.age";
+  userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkusercfg.agecfg.PKFILE);
+  userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkusercfg.agecfg.PUBFILE);
+  hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkhostcfg.agecfg.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
-  #pkuserDir = "${dirOf osConfig.environment.darwinConfig}/../secrets/user/${pkdata.pkuser.name}";
-  pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkdata.pkuser.agecfg.name}";
+  pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkusercfg.name}";
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -681,7 +672,7 @@ in
             if [ "$DERIVED" != "${pkuserPUBFILEstring}" ]; then
               /usr/bin/osascript -e 'display alert "AGE key Security Alert" message "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!"'
             fi
-            if [ "${pkuserPUBFILEstring}" != "${pkdata.pkuser.agecfg.pubkey}" ]; then
+            if [ "${pkuserPUBFILEstring}" != "${pkusercfg.agecfg.pubkey}" ]; then
               /usr/bin/osascript -e 'display alert "AGE key Security Alert" message "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/default.nix!"'
             fi
           ''
@@ -876,7 +867,7 @@ in
       };
     };
 
-    monitor-wsgx = lib.mkIf pkdata.pkhost.install_wsgx {
+    monitor-wsgx = lib.mkIf pkhostcfg.install_wsgx {
       enable = true;
       config = {
         Label = "org.nixos.hm.monitor-wsgx";

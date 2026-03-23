@@ -7,7 +7,7 @@ fi
 
 # Define paths (adjust if yours are in non-standard locations)
 #CONFIG_FILE="$HOME/.nixpkgs/darwin-configuration.nix"
-USER_NAME="$(whoami)"
+USER_NAME="$(id -un)"
 SOURCE_NAME="$1"
 SECRET_NAME="$2"
 
@@ -20,20 +20,15 @@ fi
 
 # Evaluate the configuration to extract the secret's attributes
 # We access the secret via: config.home-manager.users.<username>.age.secrets.<name>
-SECRET_SOURCE=$(nix-instantiate --eval --strict --json --expr "
+JSON_OUTPUT=$(nix-instantiate --eval --strict --json --expr "
   let
-    pkgs = import <nixpkgs> { system = builtins.currentSystem; };
-    evalDarwin = import <darwin/eval-config.nix>;
-
-    eval = evalDarwin {
-      lib = pkgs.lib;
-      modules = [ 
-        <darwin-config> 
-        { nixpkgs.pkgs = pkgs; }
-      ];
-    };
-    secretFile = eval.config.home-manager.users.\"$USER_NAME\".age.secrets.\"$SECRET_NAME\".file;
-  in toString secretFile
+    config = (import <darwin> {}).config;
+    myusercfg = config.lib.secrets.getMyUserConfig;
+    secretFile = config.home-manager.users.\"$USER_NAME\".age.secrets.\"$SECRET_NAME\".file;
+  in {
+    FILE = toString secretFile;
+    KEY = myusercfg.agecfg.PKFILE;
+  }
 " 2>/dev/null)
 
 if [ "$?" -ne 0 ]; then
@@ -41,12 +36,15 @@ if [ "$?" -ne 0 ]; then
     exit 1
 fi
 
+IFS=$'\n' read -r -d '' SECRET_SOURCE KEY <<< "$(echo "$JSON_OUTPUT" | jq -r '.FILE, .KEY')"
+KEY="${KEY/#\~/$HOME}"
+
 LOCAL_PATH=$(echo "$SECRET_SOURCE" | tr -d '"')
 SECRET_PATH=$(dirname "$LOCAL_PATH")
 
 # Copy and encrypt the source file
 pushd $SECRET_PATH >/dev/null
-cat "$SOURCE_NAME" | EDITOR='cp /dev/stdin' agenix -e "$(basename $LOCAL_PATH)"
+cat "$SOURCE_NAME" | EDITOR='cp /dev/stdin' agenix -i "$KEY" -e "$(basename $LOCAL_PATH)"
 popd >/dev/null
 
 
