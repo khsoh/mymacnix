@@ -449,6 +449,8 @@ in
         "/System/Applications/Phone.app"
         "/System/Applications/iPhone Mirroring.app"
         "/System/Applications/Photos.app"
+        "/System/Applications/Notes.app"
+        "/System/Applications/Reminders.app"
       ]
       ++ map (p: Helpers.getMacBundleAppName p) allTerminalPackages
       ++ lib.optional (Helpers.pkgInstalled pkgs.google-chrome) (
