@@ -10,9 +10,9 @@ let
 
   # The following is example of fixing specific packages to an earlier nixpkgs revision
   # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
-  # pkgs-pinned = import (builtins.fetchTarball {
-  #   url = "https://github.com/NixOS/nixpkgs/archive/ed142ab.tar.gz";
-  # }) { };
+  pkgs-pinned = import (fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
+  }) { };
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
@@ -139,7 +139,7 @@ in
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
-      squashfsTools
+      pkgs-pinned.squashfsTools
       discord
       google-chrome
       bat
