@@ -95,7 +95,7 @@ in
             hName = if xhost != null then xhost else config.machineInfo.hostname or "__default__";
             uName = if xuser != null then xuser else config.system.primaryUser or "__default__";
             myhostcfg = cfg.hosts."${hName}" or cfg.hosts.__default__;
-            mappedName = myhostcfg.usermap."${uName}" or myhostcfg.usermap.__default__ or uName;
+            mappedName = myhostcfg.usermap."${uName}" or uName;
           in
           cfg.users."${mappedName}" or cfg.users.__default__;
       };

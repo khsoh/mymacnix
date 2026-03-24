@@ -8,10 +8,6 @@ let
   agepubfile = config.agecfg.PUBFILE;
 in
 {
-  usermap = {
-    __default__ = "__default__";
-  };
-
   agecfg = {
     OPURI = "op://Nix Bootstrap/Default Machine age secret key/notesPlain";
     PKFILE = "/etc/age/nixid_host_key.txt";

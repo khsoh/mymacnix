@@ -10,5 +10,8 @@
       An attribute set mapping the username in the current host to folder names under the 
       <darwin-secrets>/user directory.
     '';
+    default = {
+      __default__ = "__default__";
+    };
   };
 }
