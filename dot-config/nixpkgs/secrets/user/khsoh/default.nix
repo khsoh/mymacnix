@@ -6,6 +6,8 @@
 let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
+  sshpkfile = config.sshcfg.PKFILE;
+  sshpubfile = config.sshcfg.PUBFILE;
 in
 {
   agecfg = {
@@ -15,10 +17,17 @@ in
     pubkey = (import ./key.nix).pubkey;
   };
 
+  sshcfg = {
+    OPURI = "op://Private/OPENSSH ED25519 Key";
+    PKFILE = null;
+    PUBFILE = "~/.ssh/id_ed25519.pub";
+    pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUfgkqOXhnONi4FAsFfZFeqW0Bkij6c/6zJf8Il1oCX";
+  };
+
   deployment = lib.mkDefault [
     {
       OPURI = config.agecfg.OPURI;
-      FILE = config.agecfg.PKFILE;
+      FILE = agepkfile;
       POSTCMD = lib.mkDefault [
         "rm -f ${agepubfile}"
         "age-keygen -y -o ${agepubfile} ${agepkfile}"
@@ -27,10 +36,10 @@ in
       ];
     }
     {
-      OPURI = "op://Private/OPENSSH ED25519 Key/public key";
-      FILE = "~/.ssh/id_ed25519.pub";
+      OPURI = "${config.sshcfg.OPURI}/public key";
+      FILE = sshpubfile;
       POSTCMD = [
-        "chmod 644 ~/.ssh/id_ed25519.pub"
+        "chmod 644 ${sshpubfile}"
       ];
     }
   ];

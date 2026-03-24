@@ -14,8 +14,6 @@ let
   xhost = config._module.args.xhost or null;
   xuser = config._module.args.xuser or null;
 
-  secretsLib = import ./secrets-lib.nix { inherit lib; };
-
   mkHostConfig =
     {
       name,
@@ -35,6 +33,7 @@ let
         ./common/options-deploy.nix
         ./common/options-wsgx.nix
         ./common/options-age.nix
+        ./common/options-ssh.nix
         ./host/options-usermap.nix
       ];
     };
@@ -57,6 +56,7 @@ let
       imports = [
         ./common/options-deploy.nix
         ./common/options-age.nix
+        ./common/options-ssh.nix
       ];
     };
 
