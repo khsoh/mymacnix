@@ -20,11 +20,10 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  onepassword_enable = onepasscfg.enable;
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK =
-    if onepassword_enable then
+    if onepasscfg.enable then
       "${homecfg.homeDirectory}/.1password/agent.sock"
     else
       "${homecfg.homeDirectory}/.ssh/ssh-agent.sock";
@@ -110,7 +109,7 @@ in
     #group = "staff";
   };
 
-  services.ssh-agent = lib.mkIf (!onepassword_enable) {
+  services.ssh-agent = lib.mkIf (!onepasscfg.enable) {
     enable = true;
   };
 
@@ -128,7 +127,7 @@ in
   };
 
   home.file = {
-    onepassword_mobileconfig = lib.mkIf onepassword_enable {
+    onepassword_mobileconfig = lib.mkIf onepasscfg.enable {
       target = "${config.xdg.configHome}/profiles/1Password_8_profile.mobileconfig";
       source = ./profiles/1Password_8_profile.mobileconfig;
     };
@@ -236,7 +235,7 @@ in
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
     }
-    // lib.optionalAttrs onepassword_enable {
+    // lib.optionalAttrs onepasscfg.enable {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -256,7 +255,7 @@ in
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
     }
-    // lib.optionalAttrs onepassword_enable {
+    // lib.optionalAttrs onepasscfg.enable {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -278,7 +277,7 @@ in
 
   ### Enable ssh configuration
   programs.ssh = lib.mkMerge [
-    (lib.mkIf onepassword_enable {
+    (lib.mkIf onepasscfg.enable {
       enable = true;
       enableDefaultConfig = false;
       matchBlocks."*" = {
@@ -298,7 +297,7 @@ in
       '';
     })
 
-    (lib.mkIf (!onepassword_enable) {
+    (lib.mkIf (!onepasscfg.enable) {
       enable = true;
       enableDefaultConfig = false;
       matchBlocks."*" = {
@@ -970,7 +969,7 @@ in
   };
 
   home.activation = {
-    install1PasswordCfg = lib.mkIf onepassword_enable (
+    install1PasswordCfg = lib.mkIf onepasscfg.enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         CFGFILE="${homecfg.file.onepassword_mobileconfig.source}"
         PAYLOAD_ID=$(/usr/libexec/PlistBuddy -c "Print :PayloadIdentifier" "$CFGFILE")
@@ -996,7 +995,7 @@ in
       ''
     );
 
-    start1Password = lib.mkIf onepassword_enable (
+    start1Password = lib.mkIf onepasscfg.enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         # Create the .1password directory if it does not exist
         /bin/mkdir -p "$(dirname "${SSHSOCK}")"
