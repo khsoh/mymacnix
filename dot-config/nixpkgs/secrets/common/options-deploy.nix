@@ -24,3 +24,4 @@
     description = "A list of deployments";
   };
 }
+# vim: set ts=2 sw=2 et ft=nix:
