@@ -17,9 +17,7 @@ let
   mkHostConfig =
     {
       name,
-      config,
       lib,
-      options,
       ...
     }:
     {
@@ -35,15 +33,14 @@ let
         ./common/options-age.nix
         ./common/options-ssh.nix
         ./host/options-usermap.nix
+        ./host/options-1password.nix
       ];
     };
 
   mkUserConfig =
     {
       name,
-      config,
       lib,
-      options,
       ...
     }:
     {
@@ -72,10 +69,26 @@ in
 {
   options.secrets = {
     hosts = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule mkHostConfig);
+      type = lib.types.attrsOf (
+        lib.types.submoduleWith {
+          modules = [ mkHostConfig ];
+          specialArgs = {
+            inherit pkgs;
+            osConfig = config;
+          };
+        }
+      );
     };
     users = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule mkUserConfig);
+      type = lib.types.attrsOf (
+        lib.types.submoduleWith {
+          modules = [ mkUserConfig ];
+          specialArgs = {
+            inherit pkgs;
+            osConfig = config;
+          };
+        }
+      );
     };
 
     target = lib.mkOption {

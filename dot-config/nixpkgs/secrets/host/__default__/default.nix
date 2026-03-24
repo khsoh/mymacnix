@@ -1,4 +1,5 @@
 {
+  osConfig,
   config,
   lib,
   ...
@@ -13,6 +14,10 @@ in
     PKFILE = "/etc/age/nixid_host_key.txt";
     PUBFILE = "/etc/age/nixid_host_public.txt";
     pubkey = (import ./key.nix).pubkey;
+  };
+
+  onepassword = {
+    enable = !osConfig.machineInfo.is_vm;
   };
 
   deployment = lib.mkDefault [

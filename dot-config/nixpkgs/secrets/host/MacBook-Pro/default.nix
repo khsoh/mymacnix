@@ -1,4 +1,5 @@
 {
+  osConfig,
   config,
   lib,
   ...
@@ -10,6 +11,10 @@ in
 {
   usermap = {
     kokhong = "khsoh";
+  };
+
+  onepassword = {
+    enable = true;
   };
 
   install_wsgx = true;

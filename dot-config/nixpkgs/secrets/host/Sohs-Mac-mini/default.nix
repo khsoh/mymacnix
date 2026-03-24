@@ -1,4 +1,5 @@
 {
+  osConfig,
   config,
   lib,
   ...
@@ -17,6 +18,10 @@ in
     PKFILE = "/etc/age/key.txt";
     PUBFILE = "/etc/age/public.txt";
     pubkey = (import ./key.nix).pubkey;
+  };
+
+  onepassword = {
+    enable = true;
   };
 
   deployment = lib.mkDefault [

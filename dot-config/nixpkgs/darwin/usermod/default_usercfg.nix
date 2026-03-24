@@ -13,12 +13,6 @@ in
 {
   # User configuration settings for home-manager modules
   config = {
-    ##### onepassword configuration
-    # onepassword = {
-    #    enable = lib.mkDefault (user.hasAppleID);
-    #    SSHSIGN_PROGRAM = lib.mkDefault "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
-    # };
-
     ##### github configuration
     # github = {
     #   enable = lib.mkDefault true;

@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ lib, ... }:
 {
   options.agecfg = lib.mkOption {
     type = lib.types.submodule {

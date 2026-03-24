@@ -35,7 +35,7 @@ let
   );
 
   # 3. Get the onepassword.enable setting of all user packages
-  install_onepassword = builtins.any (cfg: cfg.onepassword.enable) allHomeConfigs;
+  install_onepassword = pkhostcfg.onepassword.enable;
 
   # Shortcut to get helper functions
   Helpers = config.helpers;

@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ lib, ... }:
 {
   options.install_wsgx = lib.mkOption {
     type = lib.types.bool;

@@ -40,6 +40,7 @@ let
     builtins.concatStringsSep " " (lib.take 2 parts);
 
   cfgsec = osConfig.secrets.target.user;
+  onepasscfg = osConfig.secrets.target.host.onepassword;
   sshcfg = cfgsec.sshcfg;
   sshpkfile = if sshcfg != null then sshcfg.PKFILE else null;
   sshpubfile = if sshcfg != null then sshcfg.PUBFILE else null;
@@ -56,16 +57,9 @@ in
   imports = [
     ./github.nix
     ./gitlab.nix
-    ./onepassword.nix
     ./terminal.nix
   ]
   ++ lib.optional (builtins.pathExists usercfgFile) usercfg;
-
-  ##### onepassword configuration
-  config.onepassword = {
-    enable = lib.mkDefault (user.hasAppleID);
-    SSHSIGN_PROGRAM = lib.mkDefault "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
-  };
 
   ##### github configuration
   config.github = {
@@ -116,13 +110,12 @@ in
     # If 1Password is disabled then must use key files
     {
       assertion =
-        (config.onepassword.enable && (sshpkfile == null))
-        || ((!config.onepassword.enable) && (sshpkfile != null));
+        (onepasscfg.enable && (sshpkfile == null)) || ((!onepasscfg.enable) && (sshpkfile != null));
       message =
-        if config.onepassword.enable then
-          "onepassword.enable is true - should not not define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}"
+        if onepasscfg.enable then
+          "config.secrets.target.host.onepassword.enable is true - should not not define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}"
         else
-          "onepassword.enable is false - must define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}";
+          "config.secrets.target.host.onepassword.enable is false - must define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}";
     }
   ];
 

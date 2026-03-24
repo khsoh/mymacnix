@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ lib, ... }:
 {
   options.deployment = lib.mkOption {
     type = lib.types.listOf (

@@ -10,14 +10,12 @@
     SSHSIGN_PROGRAM = lib.mkOption {
       type = lib.types.str;
       default = "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
-      description = "Relative path to current user's secret key file";
+      description = "Absolute path to 1Password SSH signing program";
     };
 
     enable = lib.mkOption {
       type = lib.types.bool;
-      description = ''
-        Indicate whether to install 1Password and CLI program
-      '';
+      description = "Indicate whether to install 1Password and CLI program";
     };
   };
 }

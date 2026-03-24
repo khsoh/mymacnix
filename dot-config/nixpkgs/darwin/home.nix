@@ -8,7 +8,7 @@
 }:
 let
   homecfg = config.home;
-  onepasscfg = config.onepassword;
+  onepasscfg = osConfig.secrets.target.host.onepassword;
   sshcfg = osConfig.secrets.target.user.sshcfg;
   ghcfg = config.github;
   glcfg = config.gitlab;
@@ -20,7 +20,7 @@ let
   ## Default git email - will be available to public
   default_git_email = "hju37823@outlook.com";
 
-  onepassword_enable = config.onepassword.enable;
+  onepassword_enable = onepasscfg.enable;
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK =

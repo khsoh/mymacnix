@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ lib, ... }:
 {
   ## SSH private and public keys for the host/user
 
