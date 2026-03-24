@@ -36,7 +36,7 @@ NONWORKFILE=~/.nonworking-nixpkgs
 [ -f $WORKFILE ] || touch $WORKFILE
 [ -f $NONWORKFILE ] || touch $NONWORKFILE
 LAST_GOOD_REV=$(awk 'END {print $1}' $WORKFILE || echo 0)
-LATEST_NIXPKGS_REV=$(NIX_PATH=nixpkgs=channel:nixpkgs-unstable nix-instantiate --eval --expr "(import <nixpkgs> {}).lib.version"|sed -e 's/"//g' -e 's/.*\.//')
+LATEST_NIXPKGS_REV=$(curl -Ls -o /dev/null -w %{url_effective} $(grep "nixpkgs$" /etc/nix-channels/system-channels | awk '{print $1}') | sed -e 's/.*\.//')
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
 if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
