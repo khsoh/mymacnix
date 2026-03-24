@@ -8,7 +8,6 @@
 }:
 let
   isVM = osConfig.machineInfo.is_vm;
-  homeDir = config.home.homeDirectory;
   defaultTermPackages = [
     pkgs.ghostty-bin
   ]
@@ -16,19 +15,35 @@ let
     pkgs.kitty
   ]);
 
-  sshcfg = config.sshkeys;
-
   ## Function to extract first 2 elements of the public key file
+  mkAbsPath =
+    filePath:
+    let
+      absfile =
+        if builtins.substring 0 1 filePath == "~" then
+          user.home + builtins.substring 1 (builtins.stringLength filePath) filePath
+        else
+          filePath;
+    in
+    absfile;
+
   readPubkey =
     pubkeyfile:
     let
+      absfile = mkAbsPath pubkeyfile;
       # Read the file and strip the trailing newline
-      content = lib.removeSuffix "\n" (builtins.readFile pubkeyfile);
+      content = lib.removeSuffix "\n" (builtins.readFile absfile);
       # Split by spaces into a list of strings
       parts = lib.splitString " " content;
     in
     # Take the first two elements and join them with a space
     builtins.concatStringsSep " " (lib.take 2 parts);
+
+  cfgsec = osConfig.secrets.target.user;
+  sshcfg = cfgsec.sshcfg;
+  sshpkfile = if sshcfg != null then sshcfg.PKFILE else null;
+  sshpubfile = if sshcfg != null then sshcfg.PUBFILE else null;
+  sshpubkey = if sshcfg != null then sshcfg.pubkey else null;
 
   default_usercfg = ./default_usercfg.nix;
   default_usercfgFile = toString default_usercfg;
@@ -42,62 +57,9 @@ in
     ./github.nix
     ./gitlab.nix
     ./onepassword.nix
-    ./sshkeys.nix
     ./terminal.nix
   ]
   ++ lib.optional (builtins.pathExists usercfgFile) usercfg;
-
-  ##### sshkeys configuration
-  config.sshkeys = lib.mkMerge [
-    (lib.mkIf config.onepassword.enable {
-      PUBFILE = lib.mkDefault "${homeDir}/.ssh/id_ed25519.pub";
-      pubkey = lib.mkDefault (
-        if ((sshcfg.PUBFILE != null) && (builtins.pathExists sshcfg.PUBFILE)) then
-          (readPubkey sshcfg.PUBFILE)
-        else
-          null
-      );
-    })
-    (lib.mkIf (!config.onepassword.enable) {
-      PKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
-      PUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
-
-      # Read from PUBFILE if it exists
-      pubkey = lib.mkDefault (if (sshcfg.PUBFILE != null) then (readPubkey sshcfg.PUBFILE) else null);
-    })
-  ];
-
-  ## Setup checks and asserts for the SSH private and public key files based on
-  ## user configuration
-  config.assertions = [
-    # Check the private key file
-    {
-      assertion = (sshcfg.PKFILE == null) || (builtins.pathExists sshcfg.PKFILE);
-      message = "The ${sshcfg.PKFILE} SSH private key file is absent - file must be present to build";
-    }
-
-    # The the public key file contents and pubkey match
-    {
-      assertion =
-        (sshcfg.PUBFILE == null)
-        || (!builtins.pathExists sshcfg.PUBFILE)
-        || ((readPubkey sshcfg.PUBFILE) == sshcfg.pubkey);
-      message = "Contents of ${sshcfg.PUBFILE} do not match with the pubkey string";
-    }
-
-    # If 1Password is enabled then should not use key files
-    # If 1Password is disabled then must use key files
-    {
-      assertion =
-        (config.onepassword.enable && (sshcfg.PKFILE == null))
-        || ((!config.onepassword.enable) && (sshcfg.PKFILE != null));
-      message =
-        if config.onepassword.enable then
-          "onepassword.enable is true - should not not define sshkeys.PKFILE"
-        else
-          "onepassword.enable is false - must define sshkeys.PKFILE";
-    }
-  ];
 
   ##### onepassword configuration
   config.onepassword = {
@@ -131,5 +93,38 @@ in
       fi
     ''
   );
+
+  ## Setup checks and asserts for the SSH private and public key files based on
+  ## user configuration
+  config.assertions = [
+    # Check the private key file
+    {
+      assertion = (sshpkfile == null) || (builtins.pathExists (mkAbsPath sshpkfile));
+      message = "The ${sshpkfile} SSH private key file is absent - file must be present to build";
+    }
+
+    # The the public key file contents and pubkey match
+    {
+      assertion =
+        (sshpubfile == null)
+        || (!builtins.pathExists (mkAbsPath sshpubfile))
+        || ((readPubkey sshpubfile) == sshpubkey);
+      message = "Contents of ${sshpubfile} do not match with the pubkey string";
+    }
+
+    # If 1Password is enabled then should not use key files
+    # If 1Password is disabled then must use key files
+    {
+      assertion =
+        (config.onepassword.enable && (sshpkfile == null))
+        || ((!config.onepassword.enable) && (sshpkfile != null));
+      message =
+        if config.onepassword.enable then
+          "onepassword.enable is true - should not not define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}"
+        else
+          "onepassword.enable is false - must define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}";
+    }
+  ];
+
 }
 # vim: set ts=2 sw=2 et ft=nix:

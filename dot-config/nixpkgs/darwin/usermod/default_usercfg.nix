@@ -13,25 +13,6 @@ in
 {
   # User configuration settings for home-manager modules
   config = {
-    ##### sshkeys configuration
-    # sshkeys = lib.mkMerge [
-    #   (lib.mkIf config.onepassword.enable {
-    #     pubkey = lib.mkDefault (
-    #       if ((sshcfg.PUBFILE != null) && (builtins.pathExists sshcfg.PUBFILE)) then
-    #         (readPubkey sshcfg.PUBFILE)
-    #       else
-    #         null
-    #     );
-    #   })
-    #   (lib.mkIf (!config.onepassword.enable) {
-    #     PKFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519";
-    #     PUBFILE = lib.mkDefault "${homeDir}/.ssh/nixid_ed25519.pub";
-    #
-    #     # Read from PUBFILE if it exists
-    #     pubkey = lib.mkDefault (if (sshcfg.PUBFILE != null) then (readPubkey sshcfg.PUBFILE) else null);
-    #   })
-    # ];
-
     ##### onepassword configuration
     # onepassword = {
     #    enable = lib.mkDefault (user.hasAppleID);

@@ -9,7 +9,7 @@
 let
   homecfg = config.home;
   onepasscfg = config.onepassword;
-  sshcfg = config.sshkeys;
+  sshcfg = osConfig.secrets.target.user.sshcfg;
   ghcfg = config.github;
   glcfg = config.gitlab;
   termcfg = config.terminal;
