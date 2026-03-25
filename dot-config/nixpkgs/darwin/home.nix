@@ -933,7 +933,71 @@ in
               INSTALLED_UUID=$(${pkgs.jq}/bin/jq -r '.ProfileUUID' <<< "$INSTALLED_JSON")
               INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< "$INSTALLED_JSON")
 
-              if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
+              if [ "$PAYLOAD_UUID" == "$INSTALLED_UUID" ] ; then
+                ANNOUNCEMENT="ANNOUNCE: $(date -j '+Week %V %Y')"
+                if ! grep -q "$ANNOUNCEMENT" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
+                  EXIT_STATUS=0
+                  if [ -f "${config.age.secrets."secrets.json".path}" ]; then
+                    IMSGID=$(jq '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                    if [ -n "$IMSGID" ]; then
+                      LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+                      osascript -l JavaScript <<EOF1
+                        const app = Application.currentApplication();
+                        app.includeStandardAdditions = true;
+                        ObjC.import('stdlib');
+
+                        const Messages = Application('Messages');
+                        // Test that iMessage service is enabled
+                        const iMessageService = Messages.accounts().find(s => {
+                          try {
+                            return s.enabled() && s.serviceType() === 'iMessage';
+                          } catch (e) {
+                            return false;
+                          }
+                        });
+                        if (!iMessageService) {
+                          // No iMessage Service - just get out as we cannot send iMessage
+                          console.log("No iMessage service enabled - will not send iMessage");
+                          $.exit(1);
+                        }
+
+                        // Wait for IP address to be up before trying to send iMessage
+                        let currentIP = "";
+                        let found = false;
+                        for (let i = 0; i < 30; i++) {
+                          currentIP = app.systemInfo().ipv4Address;
+                          if (currentIP &&
+                              currentIP != "127.0.0.1" &&
+                              !currentIP.startsWith("169.254")) {
+                            found = true;
+                            break;
+                          }
+                          delay(2); // Wait 2 seconds before retrying
+                        }
+                        if (!found) {
+                          app.displayNotification(\`Cannot send iMessage from IP address \''${currentIP}\`, { withTitle: 'Network not yet available' });
+                          $.exit(1);
+                        } else {
+                          const person = Messages.participants.whose({ handle: $IMSGID })()
+                            .find(p => p.account().serviceType() === 'iMessage');
+                          if (person) {
+                            var msgText = "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
+                            Messages.send(msgText, { to: person });
+                          } else {
+                            $.exit(1);
+                          }
+                        }
+            EOF1
+                      EXIT_STATUS=$?
+                    fi
+                  fi
+                  if [ $EXIT_STATUS -eq 0 ]; then
+                    echo "$ANNOUNCEMENT"
+                    date -j "+Date: %d %b %Y"
+                    echo "Wireless@SGx profile is still valid - will expire on $EXPIRE_DATE"
+                  fi
+                fi
+              else
                 /usr/bin/osascript <<EOT
                   set cfgFile to POSIX file "$TMPCFG"
                   -- Display the alert
