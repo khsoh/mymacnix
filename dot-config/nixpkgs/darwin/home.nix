@@ -132,14 +132,20 @@ in
       source = ./profiles/1Password_8_profile.mobileconfig;
     };
 
+    sendimsg = {
+      ## JavaScript (JXA) script to send iMessage
+      target = "${config.xdg.configHome}/jxa/sendimsg.js";
+      source = ./jxa/sendimsg.js;
+    };
+
     resize_app = {
-      ## AppleScript file to resize app
+      ## JavaScript (JXA) script to resize app
       target = "${config.xdg.configHome}/jxa/resize_app.js";
       source = ./jxa/resize_app.js;
     };
 
     waitapp = {
-      ## JavaScript (JXA) file to wait for DisplayLink Manager to start
+      ## JavaScript (JXA) script to wait for DisplayLink Manager to start
       target = "${config.xdg.configHome}/jxa/waitapp.js";
       source = ./jxa/waitapp.js;
     };
@@ -708,60 +714,12 @@ in
               EOF
             ''
             + (lib.optionalString (builtins.pathExists secretsjsonPath) ''
-                IMSGID=$(jq '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
-                if [ -n "$IMSGID" ]; then
-                  MSGSTR=$(cat <<MYMSG
-              $LOCALHOSTNAME nix-channel updates:
-              $UPDATENIXPKGS
-              MYMSG
-              )
-                  export MSGSTR
-                  osascript -l JavaScript <<EOF1
-                    const app = Application.currentApplication();
-                    app.includeStandardAdditions = true;
-                    ObjC.import('stdlib');
-
-                    const Messages = Application('Messages');
-                    // Test that iMessage service is enabled
-                    const iMessageService = Messages.accounts().find(s => {
-                      try {
-                        return s.enabled() && s.serviceType() === 'iMessage';
-                      } catch (e) {
-                        return false;
-                      }
-                    });
-                    if (!iMessageService) {
-                      // No iMessage Service - just get out as we cannot send iMessage
-                      console.log("No iMessage service enabled - will not send iMessage");
-                      $.exit(0);
-                    }
-
-                    // Wait for IP address to be up before trying to send iMessage
-                    let currentIP = "";
-                    let found = false;
-                    for (let i = 0; i < 30; i++) {
-                      currentIP = app.systemInfo().ipv4Address;
-                      if (currentIP &&
-                          currentIP != "127.0.0.1" &&
-                          !currentIP.startsWith("169.254")) {
-                        found = true;
-                        break;
-                      }
-                      delay(2); // Wait 2 seconds before retrying
-                    }
-                    if (!found) {
-                      app.displayNotification(\`Cannot send iMessage from IP address \''${currentIP}\`, { withTitle: 'Network not yet available' });
-                    } else {
-                      const person = Messages.participants.whose({ handle: $IMSGID })()
-                        .find(p => p.account().serviceType() === 'iMessage');
-                      if (person) {
-                        var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('MSGSTR'));
-                        updateText = updateText ? String(updateText) : "No updates found";
-                        Messages.send(updateText, { to: person });
-                      }
-                    }
-              EOF1
-                fi
+              IMSGID=$(jq '.iMessageID' ${
+                config.age.secrets."secrets.json".path
+              } 2>/dev/null | sed 's/^"//;s/"$//')
+              if [ -n "$IMSGID" ]; then
+                "${config.xdg.configHome}/jxa/sendimsg.js" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
+              fi
             '')
             + ''
               fi
@@ -939,56 +897,12 @@ in
                 if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                   EXIT_STATUS=0
                   if [ -f "${config.age.secrets."secrets.json".path}" ]; then
-                    IMSGID=$(jq '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                    IMSGID=$(jq '.iMessageID' ${
+                      config.age.secrets."secrets.json".path
+                    } 2>/dev/null | sed 's/^"//;s/"$//')
                     if [ -n "$IMSGID" ]; then
                       LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                      osascript -l JavaScript <<EOF1
-                        const app = Application.currentApplication();
-                        app.includeStandardAdditions = true;
-                        ObjC.import('stdlib');
-
-                        const Messages = Application('Messages');
-                        // Test that iMessage service is enabled
-                        const iMessageService = Messages.accounts().find(s => {
-                          try {
-                            return s.enabled() && s.serviceType() === 'iMessage';
-                          } catch (e) {
-                            return false;
-                          }
-                        });
-                        if (!iMessageService) {
-                          // No iMessage Service - just get out as we cannot send iMessage
-                          console.log("No iMessage service enabled - will not send iMessage");
-                          $.exit(1);
-                        }
-
-                        // Wait for IP address to be up before trying to send iMessage
-                        let currentIP = "";
-                        let found = false;
-                        for (let i = 0; i < 30; i++) {
-                          currentIP = app.systemInfo().ipv4Address;
-                          if (currentIP &&
-                              currentIP != "127.0.0.1" &&
-                              !currentIP.startsWith("169.254")) {
-                            found = true;
-                            break;
-                          }
-                          delay(2); // Wait 2 seconds before retrying
-                        }
-                        if (!found) {
-                          app.displayNotification(\`Cannot send iMessage from IP address \''${currentIP}\`, { withTitle: 'Network not yet available' });
-                          $.exit(1);
-                        } else {
-                          const person = Messages.participants.whose({ handle: $IMSGID })()
-                            .find(p => p.account().serviceType() === 'iMessage');
-                          if (person) {
-                            var msgText = "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
-                            Messages.send(msgText, { to: person });
-                          } else {
-                            $.exit(1);
-                          }
-                        }
-            EOF1
+                      "${config.xdg.configHome}/jxa/sendimsg.js" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
                       EXIT_STATUS=$?
                     fi
                   fi
