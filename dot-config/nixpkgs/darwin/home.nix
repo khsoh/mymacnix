@@ -28,7 +28,7 @@ let
     else
       "${homecfg.homeDirectory}/.ssh/ssh-agent.sock";
 
-  backdropImgPath = "~/" + "${homecfg.file.termBackdrop.target}";
+  backdropImgPath = "~/" + "${config.xdg.configFile.termBackdrop.target}";
 
   # 2. Strip the 'darwin-secrets=' prefix to get the raw path string
   #baseDir = lib.removePrefix "darwin-secrets=" secretEntry;
@@ -60,6 +60,97 @@ in
 
   ##### xdg configuration
   xdg.enable = true;
+
+  ### XDG configuration files
+  xdg.configFile = {
+    sendimsg = {
+      ## JavaScript (JXA) script to send iMessage
+      target = "jxa/sendimsg.js";
+      source = ./jxa/sendimsg.js;
+    };
+
+    onepassword_mobileconfig = lib.mkIf onepasscfg.enable {
+      target = "profiles/1Password_8_profile.mobileconfig";
+      source = ./profiles/1Password_8_profile.mobileconfig;
+    };
+
+    resize_app = {
+      ## JavaScript (JXA) script to resize app
+      target = "jxa/resize_app.js";
+      source = ./jxa/resize_app.js;
+    };
+
+    waitapp = {
+      ## JavaScript (JXA) script to wait for DisplayLink Manager to start
+      target = "jxa/waitapp.js";
+      source = ./jxa/waitapp.js;
+    };
+
+    # setting up neovide to use neovim binary
+    "neovide/config.toml".text = ''
+      # Ensure Neovide uses the exact Neovim binary from your Nix store
+      neovim-bin = "${pkgs.neovim}/bin/nvim"
+    '';
+
+    tmux = {
+      ## The defaults are commented out
+      # enable = true;
+
+      target = "tmux";
+      #source = ../tmux;
+      source = pkgs.fetchFromGitHub {
+        owner = ghcfg.username;
+        repo = "tmuxconf";
+        rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
+        hash = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
+        #hash = lib.fakeSha256;
+      };
+      recursive = true;
+    };
+
+    kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+      # Enable kitty config if kitty is installed in Nix or homebrew
+      enable = true;
+
+      target = "kitty/startup.conf";
+      text = ''
+        cd ~/github
+        layout splits
+        launch zsh
+        launch --location hsplit zsh
+        launch --type overlay zsh -c "${homecfg.homeDirectory}/${config.xdg.configFile.waitapp.target} 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && \"${homecfg.homeDirectory}/${config.xdg.configFile.resize_app.target}\" kitty >>& ~/log/kittyStart.log"
+      '';
+    };
+
+    termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
+      # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
+      enable = true;
+      target = "backdrop/totoro-dimmed.jpeg";
+      source = ./images/totoro-dimmed.jpeg;
+    };
+
+    kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
+      # Enable kitty tab bar if kitty is installed in Nix or homebrew
+      enable = true;
+      target = "kitty/tab_bar.py";
+      source = ./kitty/tab_bar.py;
+    };
+
+    nvim = {
+      ## The defaults are commented out
+      # enable = true;
+
+      target = "nvim";
+      source = pkgs.fetchFromGitHub {
+        owner = ghcfg.username;
+        repo = "kickstart.nvim";
+        rev = "bd04f15139f9857a910f560baefc222e59976cb6";
+        hash = "sha256-3JYqibJ2cHy4yh3O5DwZolwmFXEHk5fMu/0ywvTBkHU=";
+        #hash = lib.fakeSha256;
+      };
+      recursive = true;
+    };
+  };
 
   ##### agenix configuration
   age.identityPaths = [
@@ -127,35 +218,6 @@ in
   };
 
   home.file = {
-    onepassword_mobileconfig = lib.mkIf onepasscfg.enable {
-      target = "${config.xdg.configHome}/profiles/1Password_8_profile.mobileconfig";
-      source = ./profiles/1Password_8_profile.mobileconfig;
-    };
-
-    sendimsg = {
-      ## JavaScript (JXA) script to send iMessage
-      target = "${config.xdg.configHome}/jxa/sendimsg.js";
-      source = ./jxa/sendimsg.js;
-    };
-
-    resize_app = {
-      ## JavaScript (JXA) script to resize app
-      target = "${config.xdg.configHome}/jxa/resize_app.js";
-      source = ./jxa/resize_app.js;
-    };
-
-    waitapp = {
-      ## JavaScript (JXA) script to wait for DisplayLink Manager to start
-      target = "${config.xdg.configHome}/jxa/waitapp.js";
-      source = ./jxa/waitapp.js;
-    };
-
-    # setting up neovide to use neovim binary
-    ".config/neovide/config.toml".text = ''
-      # Ensure Neovide uses the exact Neovim binary from your Nix store
-      neovim-bin = "${pkgs.neovim}/bin/nvim"
-    '';
-
     gitAllowedSigners = {
       ## Generate the allowed signers file
       # enable = true;
@@ -164,63 +226,6 @@ in
       text = ''
         ${default_git_email} namespaces="git" ${sshcfg.pubkey}
       '';
-    };
-
-    tmux = {
-      ## The defaults are commented out
-      # enable = true;
-
-      target = "${config.xdg.configHome}/tmux";
-      #source = ../tmux;
-      source = pkgs.fetchFromGitHub {
-        owner = ghcfg.username;
-        repo = "tmuxconf";
-        rev = "cd93e8f43024f2527fd673f8397c99bd69497604";
-        hash = "sha256-QcOi0RlC4wP23Xfx17K/SIx2QlBgA9jwMnryroDSFCE=";
-        #hash = lib.fakeSha256;
-      };
-      recursive = true;
-    };
-
-    kittyStartup = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-      # Enable kitty config if kitty is installed in Nix or homebrew
-      enable = true;
-
-      target = "${config.xdg.configHome}/kitty/startup.conf";
-      text = ''
-        cd ~/github
-        layout splits
-        launch zsh
-        launch --location hsplit zsh
-        launch --type overlay zsh -c "${config.xdg.configHome}/jxa/waitapp.js 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js kitty >>& ~/log/kittyStart.log"
-      '';
-    };
-    termBackdrop = lib.mkIf (hasTermPackages || Helpers.brewAppInstalled "kitty") {
-      # Enable image backdrop for terminals if kitty or ghostty is installed in Nix or homebrew
-      enable = true;
-      target = "${config.xdg.configHome}/backdrop/totoro-dimmed.jpeg";
-      source = ./images/totoro-dimmed.jpeg;
-    };
-    kitty_tabbar_py = lib.mkIf (hasTermKitty || Helpers.brewAppInstalled "kitty") {
-      # Enable kitty tab bar if kitty is installed in Nix or homebrew
-      enable = true;
-      target = "${config.xdg.configHome}/kitty/tab_bar.py";
-      source = ./kitty/tab_bar.py;
-    };
-
-    nvim = {
-      ## The defaults are commented out
-      # enable = true;
-
-      target = "${config.xdg.configHome}/nvim";
-      source = pkgs.fetchFromGitHub {
-        owner = ghcfg.username;
-        repo = "kickstart.nvim";
-        rev = "bd04f15139f9857a910f560baefc222e59976cb6";
-        hash = "sha256-3JYqibJ2cHy4yh3O5DwZolwmFXEHk5fMu/0ywvTBkHU=";
-        #hash = lib.fakeSha256;
-      };
-      recursive = true;
     };
   };
 
@@ -718,7 +723,7 @@ in
                 config.age.secrets."secrets.json".path
               } 2>/dev/null | sed 's/^"//;s/"$//')
               if [ -n "$IMSGID" ]; then
-                "${config.xdg.configHome}/jxa/sendimsg.js" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
+                "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
               fi
             '')
             + ''
@@ -902,7 +907,7 @@ in
                     } 2>/dev/null | sed 's/^"//;s/"$//')
                     if [ -n "$IMSGID" ]; then
                       LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                      "${config.xdg.configHome}/jxa/sendimsg.js" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
+                      "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
                       EXIT_STATUS=$?
                     fi
                   fi
@@ -949,7 +954,7 @@ in
   home.activation = {
     install1PasswordCfg = lib.mkIf onepasscfg.enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        CFGFILE="${homecfg.file.onepassword_mobileconfig.source}"
+        CFGFILE="${config.xdg.configFile.onepassword_mobileconfig.source}"
         PAYLOAD_ID=$(/usr/libexec/PlistBuddy -c "Print :PayloadIdentifier" "$CFGFILE")
         PAYLOAD_UUID=$(/usr/libexec/PlistBuddy -c "Print :PayloadUUID" "$CFGFILE")
         PAYLOAD_VERSION=$(/usr/libexec/PlistBuddy -c "Print :PayloadVersion" "$CFGFILE")
