@@ -934,8 +934,9 @@ in
               INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< "$INSTALLED_JSON")
 
               if [ "$PAYLOAD_UUID" == "$INSTALLED_UUID" ] ; then
-                ANNOUNCEMENT="ANNOUNCE: $(date -j '+Week %V %Y')"
-                if ! grep -q "$ANNOUNCEMENT" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
+                ANNOUNCEMENT="ANNOUNCE: $(date -j '+Week %V %d %b %Y')"
+                GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
+                if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                   EXIT_STATUS=0
                   if [ -f "${config.age.secrets."secrets.json".path}" ]; then
                     IMSGID=$(jq '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
@@ -993,7 +994,6 @@ in
                   fi
                   if [ $EXIT_STATUS -eq 0 ]; then
                     echo "$ANNOUNCEMENT"
-                    date -j "+Date: %d %b %Y"
                     echo "Wireless@SGx profile is still valid - will expire on $EXPIRE_DATE"
                   fi
                 fi
