@@ -100,17 +100,32 @@ else
 fi
 brew upgrade
 
-typeset -A kitty_perms
+TERMPROGS=("ghostty" "kitty")
 
-while IFS='|' read -r service client auth_value; do
-    kitty_perms[$service]=$auth_value
-done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
-    "SELECT service, client, auth_value FROM access WHERE client LIKE '%net.kovidgoyal.kitty%';")
+typeset -A term_perms
 
-for svc val in "${(@kv)kitty_perms}"; do
-    if [ $val -ne 2 ]; then
-        echo "$svc permission for kitty is disabled"
+for termprg in "${TERMPROGS[@]}"; do
+    idprog=$(/usr/bin/osascript -e "id of application \"$termprg\"" 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        # Terminal program not installed - so skip
+        continue
     fi
+    term_perms=()
+    while IFS='|' read -r service client auth_value; do
+        term_perms[$service]=$auth_value
+    done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
+        "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
+
+    echo ""
+    echo "==============="
+    echo "$termprg security settings"
+    for svc val in "${(@kv)term_perms}"; do
+        if [ $val -ne 2 ]; then
+            echo "$svc permission for $termprg is disabled"
+        else
+            echo "$svc permission for $termprg is enabled"
+        fi
+    done
 done
 
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"

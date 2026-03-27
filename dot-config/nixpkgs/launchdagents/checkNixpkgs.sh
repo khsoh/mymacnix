@@ -127,20 +127,30 @@ if [ $OUTPUT -eq 2 ]; then
     exit 0
 fi
 
-declare -A kitty_perms
+TERMPROGS=("ghostty" "kitty")
 
-while IFS='|' read -r service client auth_value; do
-    kitty_perms[$service]=$auth_value
-done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
-    "SELECT service, client, auth_value FROM access WHERE client LIKE '%net.kovidgoyal.kitty%';")
+declare -A term_perms
 
-echo ""
-echo "==============="
-echo "kitty security settings"
-for svc in "${!kitty_perms[@]}"; do
-    if [ ${kitty_perms[$svc]} -ne 2 ]; then
-        echo "$svc permission for kitty is disabled" >&"$OUTPUT"
-    else
-        echo "$svc permission for kitty is enabled"
+for termprg in "${TERMPROGS[@]}"; do
+    idprog=$(/usr/bin/osascript -e "id of application \"$termprg\"" 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        # Terminal program not installed - so skip
+        continue
     fi
+    term_perms=()
+    while IFS='|' read -r service client auth_value; do
+        term_perms[$service]=$auth_value
+    done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
+        "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
+
+    echo ""
+    echo "==============="
+    echo "$termprg security settings"
+    for svc in "${!term_perms[@]}"; do
+        if [ ${term_perms[$svc]} -ne 2 ]; then
+            echo "$svc permission for $termprg is disabled" >&"$OUTPUT"
+        else
+            echo "$svc permission for $termprg is enabled"
+        fi
+    done
 done
