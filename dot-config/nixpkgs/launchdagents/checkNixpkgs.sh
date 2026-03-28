@@ -143,6 +143,7 @@ for termprg in "${TERMPROGS[@]}"; do
     done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
         "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
 
+    echo ""
     echo "==============="
     echo "$termprg security settings"
     if [ ${#term_perms[@]} -gt 0 ]; then
@@ -156,5 +157,4 @@ for termprg in "${TERMPROGS[@]}"; do
     else
         echo "No security permissions for $termprg found" >&"$OUTPUT"
     fi
-    echo "+++++++++++++++"
 done
