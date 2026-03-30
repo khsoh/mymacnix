@@ -40,6 +40,7 @@ let
     builtins.concatStringsSep " " (lib.take 2 parts);
 
   cfgsec = osConfig.secrets.target.user;
+  cfghost = osConfig.secrets.target.host;
   onepasscfg = osConfig.secrets.target.host.onepassword;
   sshcfg = cfgsec.sshcfg;
   sshpkfile = if sshcfg != null then sshcfg.PKFILE else null;
@@ -94,7 +95,7 @@ in
     # Check the private key file
     {
       assertion = (sshpkfile == null) || (builtins.pathExists (mkAbsPath sshpkfile));
-      message = "The ${sshpkfile} SSH private key file is absent - file must be present to build";
+      message = "Check the sshcfg.PKFILE definition in ${<darwin-secrets>}/user/${cfgsec.name}/default.nix.  The ${sshpkfile} SSH private key file is absent - file must be present to build";
     }
 
     # The the public key file contents and pubkey match
@@ -103,7 +104,7 @@ in
         (sshpubfile == null)
         || (!builtins.pathExists (mkAbsPath sshpubfile))
         || ((readPubkey sshpubfile) == sshpubkey);
-      message = "Contents of ${sshpubfile} do not match with the pubkey string";
+      message = "Check the sshcfg.PUBFILE and sshcfg.pubkey definition in ${<darwin-secrets>}/user/${cfgsec.name}/default.nix.  Contents of ${sshpubfile} do not match the sshcfg.pubkey string";
     }
 
     # If 1Password is enabled then should not use key files
@@ -113,9 +114,9 @@ in
         (onepasscfg.enable && (sshpkfile == null)) || ((!onepasscfg.enable) && (sshpkfile != null));
       message =
         if onepasscfg.enable then
-          "config.secrets.target.host.onepassword.enable is true - should not not define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}"
+          "The onepassword.enable flag is set to true in ${<darwin-secrets>}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be set to null in ${<darwin-secrets>}/user/${cfgsec.name}/default.nix"
         else
-          "config.secrets.target.host.onepassword.enable is false - must define sshcfg.PKFILE in ${<darwin-secrets>}/user/${cfgsec.name}";
+          "The onepassword.enable flag is set to false in ${<darwin-secrets>}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be defined in ${<darwin-secrets>}/user/${cfgsec.name}/default.nix";
     }
   ];
 
