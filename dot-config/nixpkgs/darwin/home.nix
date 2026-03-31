@@ -954,6 +954,19 @@ in
   home.activation = {
     install1PasswordCfg = lib.mkIf onepasscfg.enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        # shellcheck disable=SC2034
+        ESC="\x1b[0m"
+        # shellcheck disable=SC2034
+        BOLD="\x1b[1m"
+        # shellcheck disable=SC2034
+        RED="\x1b[31m"
+        # shellcheck disable=SC2034
+        GREEN="\x1b[32m"
+        # shellcheck disable=SC2034
+        YELLOW="\x1b[33m"
+        # shellcheck disable=SC2034
+        BLUE="\x1b[34m"
+
         CFGFILE="${config.xdg.configFile.onepassword_mobileconfig.source}"
         PAYLOAD_ID=$(/usr/libexec/PlistBuddy -c "Print :PayloadIdentifier" "$CFGFILE")
         PAYLOAD_UUID=$(/usr/libexec/PlistBuddy -c "Print :PayloadUUID" "$CFGFILE")
@@ -967,12 +980,13 @@ in
         INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< $INSTALLED_JSON)
 
         if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
+          printf "''${GREEN}''${BOLD}Updating 1Password mobileconfig profile...''${ESC}\n"
           if [ -n "$INSTALLED_UUID" ]; then
-            echo "Removing old 1Password profile before installing new profile"
+            printf "''${BLUE}''${BOLD}==>''${ESC} Removing old 1Password profile before installing new profile\n"
             /usr/bin/profiles remove -identifier "$PAYLOAD_ID"
-            echo "Removed old 1Password profile UUID $INSTALLED_UUID version $INSTALLED_VERSION"
+            printf "''${BLUE}''${BOLD}==>''${ESC} Removed old 1Password profile UUID $INSTALLED_UUID version $INSTALLED_VERSION\n"
           fi
-          echo "Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for 1Password"
+          printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for 1Password"
           /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
         fi
       ''
@@ -980,6 +994,19 @@ in
 
     start1Password = lib.mkIf onepasscfg.enable (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        # shellcheck disable=SC2034
+        ESC="\x1b[0m"
+        # shellcheck disable=SC2034
+        BOLD="\x1b[1m"
+        # shellcheck disable=SC2034
+        RED="\x1b[31m"
+        # shellcheck disable=SC2034
+        GREEN="\x1b[32m"
+        # shellcheck disable=SC2034
+        YELLOW="\x1b[33m"
+        # shellcheck disable=SC2034
+        BLUE="\x1b[34m"
+
         # Create the .1password directory if it does not exist
         /bin/mkdir -p "$(dirname "${SSHSOCK}")"
 
@@ -989,13 +1016,13 @@ in
 
         # Check that 1Password is running
         if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
-          printf "\n\033[1;34m--- Executing 1Password ---\033[0m\n"
+          printf "\n''${GREEN}''${BOLD}--- Executing 1Password ---''${ESC}\n"
           /usr/bin/open -a "1Password" --args --silent
           /bin/sleep 2
 
           # Ensure at least one account is configured on this machine
           if ! ${OPCLI} account list > /dev/null 2>&1; then
-            printf "\033[1;34mNo 1Password account found. Starting initial setup...\033[0m\n"
+            printf "''${BLUE}''${BOLD}==>''${ESC} No 1Password account found. Starting initial setup...\n"
             ${OPCLI} account add
           fi
 
@@ -1005,27 +1032,40 @@ in
     );
 
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      # shellcheck disable=SC2034
+      ESC="\x1b[0m"
+      # shellcheck disable=SC2034
+      BOLD="\x1b[1m"
+      # shellcheck disable=SC2034
+      RED="\x1b[31m"
+      # shellcheck disable=SC2034
+      GREEN="\x1b[32m"
+      # shellcheck disable=SC2034
+      YELLOW="\x1b[33m"
+      # shellcheck disable=SC2034
+      BLUE="\x1b[34m"
+
       COUNT=15
       APPNAME="${Helpers.getMacAppName pkgs.neovide}"
-      noteEcho "Waiting for up to $COUNT seconds to get ID of $APPNAME"
+      printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
       FOUND=0
 
       for (( i=$COUNT; i>0; i-- )); do
         if /usr/bin/osascript -e "id of app \"$APPNAME\"" &>/dev/null; then
           FOUND=1
           [ $i -ne $COUNT ] && printf "\n"
-          printf "  ID of %s is now available!\n" "$APPNAME"
+          printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is now available!\n" "$APPNAME"
           break
         fi
 
         # Update countdown on the same line
-        printf "\r  Checking... %2d seconds remaining" "$i"
+        printf "\r''${BLUE}''${BOLD}==>''${ESC}  Checking... %2d seconds remaining" "$i"
 
         sleep 1
       done
 
       if [ $FOUND -eq 0 ]; then
-        printf "\n  Timeout: ID of %s could not be found\n" "$APPNAME"
+        printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPNAME"
         exit 0
       fi
 

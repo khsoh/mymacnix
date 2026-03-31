@@ -14,8 +14,12 @@
     RED="\x1b[31m"
     # shellcheck disable=SC2034
     GREEN="\x1b[32m"
+    # shellcheck disable=SC2034
+    YELLOW="\x1b[33m"
+    # shellcheck disable=SC2034
+    BLUE="\x1b[34m"
     # shellcheck disable=SC2059
-    printf "''${GREEN}======== DNS Setup ========''${ESC}\n"
+    printf "''${GREEN}''${BOLD}======== DNS Setup ========''${ESC}\n"
     CFGFILE="${config.environment.etc."mobileconfig/quad9_secured_dns.mobileconfig".source}"
     TMPFILE=$(/usr/bin/mktemp /tmp/quad9.XXXXXX)
     TMPCFG="$TMPFILE".mobileconfig
@@ -40,17 +44,17 @@
       if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
         if [ -n "$INSTALLED_UUID" ]; then
           # shellcheck disable=SC2059
-          printf "''${GREEN}''${BOLD}..Removing old Quad9 Secured DNS profile before installing new profile''${ESC}\n"
+          printf "''${BLUE}''${BOLD}==>''${ESC} Removing old Quad9 Secured DNS profile before installing new profile\n"
           /usr/bin/profiles remove -identifier "$PAYLOAD_ID"
           # shellcheck disable=SC2059
-          printf "''${GREEN}''${BOLD}..Removed old Quad9 Secured DNS profile UUID $INSTALLED_UUID version $INSTALLED_VERSION''${ESC}\n"
+          printf "''${BLUE}''${BOLD}==>''${ESC} Removed old Quad9 Secured DNS profile UUID $INSTALLED_UUID version $INSTALLED_VERSION\n"
         fi
         # shellcheck disable=SC2059
-        printf "''${GREEN}''${BOLD}..Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for Quad9 Secured DNS''${ESC}\n"
+        printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for Quad9 Secured DNS\n"
         /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
         # shellcheck disable=SC2059
         printf "''${RED}"
-        read -n 1 -s -r -p "..Press any key after you have installed the profile..."
+        read -n 1 -s -r -p "...Press any key after you have installed the profile..."
         # shellcheck disable=SC2059
         printf "''${ESC}"
         echo ""
@@ -74,7 +78,7 @@
             # Compare current to target
             if [[ "$current_dns" != "$TARGET_DNS" ]]; then
               # shellcheck disable=SC2059
-              printf "''${GREEN}===== Updating $service ($device): DNS is currently ($current_dns) ======''${ESC}\n"
+              printf "''${BLUE}''${BOLD}==>''${ESC} Updating $service ($device): DNS is currently ($current_dns)\n"
                   
               # Single command for both IPv4 and IPv6
               # shellcheck disable=SC2086
@@ -82,7 +86,7 @@
               TOUCHED=true
             else
               # shellcheck disable=SC2059
-              printf "''${GREEN}..DNS for $service ($device) is already setup to use Quad9.''${ESC}\n"
+              printf "''${BLUE}''${BOLD}==>''${ESC} DNS for $service ($device) is already setup to use Quad9.\n"
             fi
           fi
         fi
@@ -93,12 +97,12 @@
         dscacheutil -flushcache
         killall -HUP mDNSResponder
         # shellcheck disable=SC2059
-        printf "''${GREEN}..Changes applied and DNS cache flushed.''${ESC}\n"
+        printf "''${BLUE}''${BOLD}==>''${ESC} Changes applied and DNS cache flushed.\n"
       fi
     else
       ## Corrupted DNS mobileconfig file
       # shellcheck disable=SC2059
-      printf "''${RED}''${BOLD}..!!!CORRUPTED mobileconfig file: $CFGFILE''${ESC}\n"
+      printf "''${RED}''${BOLD}...!!!CORRUPTED mobileconfig file: $CFGFILE''${ESC}\n"
     fi
     rm -f "$TMPCFG"
   '';

@@ -18,8 +18,12 @@ in
     RED="\x1b[31m"
     # shellcheck disable=SC2034
     GREEN="\x1b[32m"
+    # shellcheck disable=SC2034
+    YELLOW="\x1b[33m"
+    # shellcheck disable=SC2034
+    BLUE="\x1b[34m"
     # shellcheck disable=SC2059
-    printf "''${GREEN}======== nixpkgs Apps re-registration ========''${ESC}\n"
+    printf "''${GREEN}''${BOLD}======== nixpkgs Apps re-registration ========''${ESC}\n"
     PRINT_HEADER=1
 
     # 1. Map previous binaries to their store paths
@@ -59,7 +63,8 @@ in
         OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1)
 
         if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
-          printf "\n\033[1;34m--- Modified or New Mac Applications ---\033[0m\n"
+          # shellcheck disable=SC2059
+          printf "\n''${BLUE}''${BOLD}--- Modified or New Mac Applications ---''${ESC}\n"
           PRINT_HEADER=0
         fi
 
