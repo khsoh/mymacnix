@@ -93,5 +93,7 @@ in
         fi
       ''
     ) (lib.filter (p: Helpers.getMacAppName p != "") config.environment.systemPackages)}
+    # shellcheck disable=SC2059
+    printf "''${BLUE}''${BOLD}==>''${ESC} Completed nixpkgs Apps re-registration\n"
   '';
 }
