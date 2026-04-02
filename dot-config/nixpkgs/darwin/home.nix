@@ -729,7 +729,7 @@ in
             + ''
               fi
               date
-              echo "$UPDATENIXPKGS"
+              echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
             ''
           )
         ];
