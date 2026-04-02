@@ -4,6 +4,16 @@
 ## referenced in home.nix and computes the SRI SHA256 checksum for each repo
 ## The outputs can then be used to replace the corresponding entries in the home.nix file
 
+function cleanup() {
+  if [ -n "$ULIMIT" ]; then
+    ulimit -n $ULIMIT
+  fi
+}
+
+trap cleanup EXIT INT TERM QUIT
+
+ULIMIT=$(ulimit -n)
+ulimit -n 4096
 nix-instantiate --eval --json -E --raw "
   let
     config = (import <darwin> { }).config;
