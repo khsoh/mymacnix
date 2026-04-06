@@ -116,9 +116,8 @@ in
       text = ''
         cd ~/github
         layout splits
-        launch zsh
-        launch --location hsplit zsh
-        launch --type overlay zsh -c "${homecfg.homeDirectory}/${config.xdg.configFile.waitapp.target} 'DisplayLink Manager.app' && date > ~/log/kittyStart.log && sleep 2 && \"${homecfg.homeDirectory}/${config.xdg.configFile.resize_app.target}\" kitty >>& ~/log/kittyStart.log"
+        launch zsh -c 'L="/tmp/kittyStart-$UID.lock"; touch "$L"; while [ -f "$L" ]; do sleep 0.1; done; ${pkgs.fastfetch}/bin/fastfetch; exec ${pkgs.zsh}/bin/zsh'
+        launch --location hsplit zsh -c 'L="/tmp/kittyStart-$UID.lock"; (trap "rm -f $L" EXIT; ${homecfg.homeDirectory}/${config.xdg.configFile.waitapp.target} "DisplayLink Manager.app" && date > ~/log/kittyStart.log && echo "$L" >> ~/log/kittyStart.log && sleep 2 && "${homecfg.homeDirectory}/${config.xdg.configFile.resize_app.target}" kitty >>& ~/log/kittyStart.log); ${pkgs.fastfetch}/bin/fastfetch; exec ${pkgs.zsh}/bin/zsh'
       '';
     };
 
@@ -563,7 +562,7 @@ in
     # installBatSyntax = true;
     # installVimSyntax = false;
     settings = {
-      initial-command = "${pkgs.zsh}/bin/zsh -c '${config.xdg.configHome}/jxa/waitapp.js \"DisplayLink Manager.app\" && date > ~/log/ghosttyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js ghostty >>& ~/log/ghosttyStart.log; exec ${pkgs.zsh}/bin/zsh'";
+      initial-command = "${pkgs.zsh}/bin/zsh -c 'L=\"/tmp/ghosttyStart-$UID.lock\"; touch $L; (trap \"rm -f $L\" EXIT; ${config.xdg.configHome}/jxa/waitapp.js \"DisplayLink Manager.app\" && date > ~/log/ghosttyStart.log && sleep 2 && ${config.xdg.configHome}/jxa/resize_app.js ghostty >>& ~/log/ghosttyStart.log); exec ${pkgs.zsh}/bin/zsh'";
       theme = "Catppuccin Mocha";
       font-family = "FiraMono Nerd Font Mono";
       font-size = 18;
