@@ -409,10 +409,15 @@ in
       secs=90
       sleep 0.2
       while [[ -f "$L" && $secs -gt 0 ]]; do
-        echo -ne "$secs"
-        sleep 1
+        if [[ $secs -lt 85 ]]; then
+          # Print countdown only after 5 seconds
+          echo -ne "$secs seconds to starting fastfetch"
+          sleep 1
+          echo -ne "\033[0K\r"
+        else
+          sleep 1
+        fi
         ((secs--))
-        echo -ne "\033[0K\r"
       done
       ${pkgs.fastfetch}/bin/fastfetch
     fi
