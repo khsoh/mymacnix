@@ -116,8 +116,8 @@ in
       text = ''
         cd ~/github
         layout splits
-        launch zsh -c 'L="/tmp/kittyStart-$UID.lock"; touch "$L"; while [ -f "$L" ]; do sleep 0.1; done; ${pkgs.fastfetch}/bin/fastfetch; exec ${pkgs.zsh}/bin/zsh'
-        launch --location hsplit zsh -c 'L="/tmp/kittyStart-$UID.lock"; (trap "rm -f $L" EXIT; ${homecfg.homeDirectory}/${config.xdg.configFile.waitapp.target} "DisplayLink Manager.app" && date > ~/log/kittyStart.log && echo "$L" >> ~/log/kittyStart.log && sleep 2 && "${homecfg.homeDirectory}/${config.xdg.configFile.resize_app.target}" kitty >>& ~/log/kittyStart.log); ${pkgs.fastfetch}/bin/fastfetch; exec ${pkgs.zsh}/bin/zsh'
+        launch zsh -c 'L="/tmp/kittyStart-$UID.lock"; touch "$L"; while [ -f "$L" ]; do sleep 0.1; done; exec ${pkgs.zsh}/bin/zsh'
+        launch --location hsplit zsh -c 'L="/tmp/kittyStart-$UID.lock"; (trap "rm -f $L" EXIT; ${homecfg.homeDirectory}/${config.xdg.configFile.waitapp.target} "DisplayLink Manager.app" && date > ~/log/kittyStart.log && echo "$L" >> ~/log/kittyStart.log && sleep 2 && "${homecfg.homeDirectory}/${config.xdg.configFile.resize_app.target}" kitty >>& ~/log/kittyStart.log); exec ${pkgs.zsh}/bin/zsh'
       '';
     };
 

@@ -389,14 +389,13 @@ in
     alias drs="sudo -H darwin-rebuild switch"
     alias drlg="sudo -H darwin-rebuild --list-generations"
     alias ..="cd .."
-    if [[ "$TERM_PROGRAM" = "Apple_Terminal" ]]; then
-    elif [[ "$TERM_PROGRAM" = "ghostty" ]]; then
+    if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
       L="/tmp/ghosttyStart-$UID.lock"
       while [[ -f "$L" ]]; do
         sleep 0.1
       done
-      ${pkgs.fastfetch}/bin/fastfetch
     fi
+    ${pkgs.fastfetch}/bin/fastfetch
   '';
 
   # Auto upgrade nix package
