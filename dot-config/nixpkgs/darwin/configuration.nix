@@ -10,9 +10,9 @@ let
 
   # The following is example of fixing specific packages to an earlier nixpkgs revision
   # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
-  pkgs-pinned = import (fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
-  }) { };
+  # pkgs-pinned = import (fetchTarball {
+  #   url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
+  # }) { };
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
@@ -139,7 +139,7 @@ in
 
       openssh # Install this as macOS disables use of HW security keys for SSH
 
-      pkgs-pinned.squashfsTools
+      squashfsTools
       discord
       google-chrome
       bat
@@ -389,13 +389,33 @@ in
     alias drs="sudo -H darwin-rebuild switch"
     alias drlg="sudo -H darwin-rebuild --list-generations"
     alias ..="cd .."
-    if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
-      L="/tmp/ghosttyStart-$UID.lock"
-      while [[ -f "$L" ]]; do
-        sleep 0.1
+    if [[ $- == *i* ]]; then
+      L="$HOME/resize-$TERM_PROGRAM.lock"
+      if [[ -n "$RESIZE_TERM" ]]; then
+        touch $L
+        XRSZ_TERM=$RESIZE_TERM
+        unset RESIZE_TERM
+        LOGF="$HOME/log/''${XRSZ_TERM}Start.log"
+        ((
+          trap "rm -f $L" EXIT
+          $HOME/.config/jxa/waitapp.js "DisplayLink Manager.app"
+          date > $LOGF
+          sleep 1
+          $HOME/.config/jxa/resize_app.js $XRSZ_TERM >>& $LOGF
+          :
+        ) >/dev/null 2>&1 &)
+      fi
+
+      secs=90
+      sleep 0.2
+      while [[ -f "$L" && $secs -gt 0 ]]; do
+        echo -ne "$secs"
+        sleep 1
+        ((secs--))
+        echo -ne "\033[0K\r"
       done
+      ${pkgs.fastfetch}/bin/fastfetch
     fi
-    ${pkgs.fastfetch}/bin/fastfetch
   '';
 
   # Auto upgrade nix package
