@@ -13,6 +13,8 @@ let
   # pkgs-pinned = import (fetchTarball {
   #   url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
   # }) { };
+
+  ## Store paths of packages installed by environment.systemPackages
   stdPkgsPath = toString pkgs.path;
   darwinPath = toString <darwin>;
   agenixPath = toString <agenix>;
