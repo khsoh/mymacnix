@@ -14,6 +14,8 @@ let
   #   url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
   # }) { };
   stdPkgsPath = toString pkgs.path;
+  darwinPath = toString <darwin>;
+  agenixPath = toString <agenix>;
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
@@ -513,12 +515,16 @@ in
   system.activationScripts.postActivation.text =
     let
       # Filter for packages whose source nixpkgs path is non-standard
-      excludedPkgs = [ "agenix" ];
       isExternal =
         pkg:
-        pkg ? pname
-        && !(builtins.elem pkg.pname excludedPkgs)
-        && !(lib.hasPrefix stdPkgsPath (toString (pkg.meta.position or "")));
+        let
+          pkgPath = pkg.meta.position or "";
+        in
+        !(
+          (lib.hasPrefix stdPkgsPath pkgPath)
+          || (lib.hasPrefix darwinPath pkgPath)
+          || (lib.hasPrefix agenixPath pkgPath)
+        );
 
       externalPkgs = builtins.filter isExternal config.environment.systemPackages;
       names = builtins.concatStringsSep "\n\${BLUE}\${BOLD}>>\${ESC} " (
