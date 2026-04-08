@@ -1045,15 +1045,14 @@ in
       BLUE="\x1b[34m"
 
       COUNT=15
-      APPNAME="${Helpers.getMacAppName pkgs.neovide}"
-      printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
-      FOUND=0
+      APPFILENAME="${Helpers.getMacAppName pkgs.neovide}"
+      printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPFILENAME ---''${ESC}\n"
 
       for (( i=$COUNT; i>0; i-- )); do
-        if /usr/bin/osascript -e "id of app \"$APPNAME\"" &>/dev/null; then
-          FOUND=1
+        idneovide=$(/usr/bin/osascript -e "id of app \"$APPFILENAME\"" 2>/dev/null)
+        if [ -n "$idneovide" ]; then
           [ $i -ne $COUNT ] && printf "\n"
-          printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is now available!\n" "$APPNAME"
+          printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPFILENAME" "$idneovide"
           break
         fi
 
@@ -1063,18 +1062,32 @@ in
         sleep 1
       done
 
-      if [ $FOUND -eq 0 ]; then
-        printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPNAME"
+      if [ ! -n "$idneovide" ]; then
+        printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPFILENAME"
         exit 0
       fi
+      APPNAME=$(/usr/bin/osascript -e "get name of application id \"$idneovide\"" 2>/dev/null)
 
-      idneovide=$(/usr/bin/osascript -e "id of app \"$APPNAME\"")
-
-      # Use duti to set Neovide for plain-text (.txt) files
+      # Use duti to set Neovide for plain-text (.txt) and log (.log) files
       # The 'all' flag applies it to editor, viewer, and shell roles
-      run ${pkgs.duti}/bin/duti -s $idneovide public.plain-text all
-      run ${pkgs.duti}/bin/duti -s $idneovide .txt all
-      run ${pkgs.duti}/bin/duti -s $idneovide .log all
+      filetypes=("txt" "log")
+
+      for ftype in "''${filetypes[@]}"; do
+        # Get the UTI
+        TESTFILE=/tmp/$USER-''${RANDOM}.$ftype
+        touch $TESTFILE
+        UTI=$(/usr/bin/mdls -name kMDItemContentType -raw $TESTFILE 2>/dev/null)
+        rm $TESTFILE
+        hndlr=$(${pkgs.duti}/bin/duti -d $UTI 2>/dev/null)
+        if [ "$hndlr" == "$idneovide" ]; then
+          printf "''${BLUE}''${BOLD}==>''${ESC}  UTI $UTI default handler is already assigned to $APPNAME\n"
+        else
+          appHndlr=$(/usr/bin/osascript -e "get name of application id \"$hndlr\"" 2>/dev/null)
+          printf "''${BLUE}''${BOLD}==>''${ESC}  Changing UTI default handler for $UTI (file extension .$ftype) from $appHndlr to $APPNAME\n"
+          run ${pkgs.duti}/bin/duti -s $idneovide $UTI all
+          run ${pkgs.duti}/bin/duti -s $idneovide .$ftype all
+        fi
+      done
     '';
   };
 
