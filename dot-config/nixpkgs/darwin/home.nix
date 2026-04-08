@@ -951,22 +951,26 @@ in
   };
 
   home.activation = {
-    install1PasswordCfg = lib.mkIf onepasscfg.enable (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        # shellcheck disable=SC2034
-        ESC="\x1b[0m"
-        # shellcheck disable=SC2034
-        BOLD="\x1b[1m"
-        # shellcheck disable=SC2034
-        RED="\x1b[31m"
-        # shellcheck disable=SC2034
-        GREEN="\x1b[32m"
-        # shellcheck disable=SC2034
-        YELLOW="\x1b[33m"
-        # shellcheck disable=SC2034
-        BLUE="\x1b[34m"
+    setupANSIVars = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      # shellcheck disable=SC2034
+      ESC="\x1b[0m"
+      # shellcheck disable=SC2034
+      BOLD="\x1b[1m"
+      # shellcheck disable=SC2034
+      RED="\x1b[31m"
+      # shellcheck disable=SC2034
+      GREEN="\x1b[32m"
+      # shellcheck disable=SC2034
+      YELLOW="\x1b[33m"
+      # shellcheck disable=SC2034
+      BLUE="\x1b[34m"
+    '';
 
-        CFGFILE="${config.xdg.configFile.onepassword_mobileconfig.source}"
+    install1PasswordCfg = lib.mkIf onepasscfg.enable (
+      # Need to put this after linkGeneration
+      # to access config.xdg.configFile.onepassword_mobileconfig.target
+      lib.hm.dag.entryAfter [ "setupANSIVars" "linkGeneration" ] ''
+        CFGFILE="${homecfg.homeDirectory}/${config.xdg.configFile.onepassword_mobileconfig.target}"
         PAYLOAD_ID=$(/usr/libexec/PlistBuddy -c "Print :PayloadIdentifier" "$CFGFILE")
         PAYLOAD_UUID=$(/usr/libexec/PlistBuddy -c "Print :PayloadUUID" "$CFGFILE")
         PAYLOAD_VERSION=$(/usr/libexec/PlistBuddy -c "Print :PayloadVersion" "$CFGFILE")
@@ -982,30 +986,17 @@ in
           printf "''${GREEN}''${BOLD}Updating 1Password mobileconfig profile...''${ESC}\n"
           if [ -n "$INSTALLED_UUID" ]; then
             printf "''${BLUE}''${BOLD}==>''${ESC} Removing old 1Password profile before installing new profile\n"
-            /usr/bin/profiles remove -identifier "$PAYLOAD_ID"
+            run /usr/bin/profiles remove -identifier "$PAYLOAD_ID"
             printf "''${BLUE}''${BOLD}==>''${ESC} Removed old 1Password profile UUID $INSTALLED_UUID version $INSTALLED_VERSION\n"
           fi
           printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for 1Password"
-          /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
+          run /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
         fi
       ''
     );
 
     start1Password = lib.mkIf onepasscfg.enable (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        # shellcheck disable=SC2034
-        ESC="\x1b[0m"
-        # shellcheck disable=SC2034
-        BOLD="\x1b[1m"
-        # shellcheck disable=SC2034
-        RED="\x1b[31m"
-        # shellcheck disable=SC2034
-        GREEN="\x1b[32m"
-        # shellcheck disable=SC2034
-        YELLOW="\x1b[33m"
-        # shellcheck disable=SC2034
-        BLUE="\x1b[34m"
-
+      lib.hm.dag.entryAfter [ "install1PasswordCfg" ] ''
         # Create the .1password directory if it does not exist
         /bin/mkdir -p "$(dirname "${SSHSOCK}")"
 
@@ -1016,7 +1007,7 @@ in
         # Check that 1Password is running
         if ! /usr/bin/pgrep -x "1Password" > /dev/null; then
           printf "\n''${GREEN}''${BOLD}--- Executing 1Password ---''${ESC}\n"
-          /usr/bin/open -a "1Password" --args --silent
+          run /usr/bin/open -a "1Password" --args --silent
           /bin/sleep 2
 
           # Ensure at least one account is configured on this machine
@@ -1030,20 +1021,7 @@ in
       ''
     );
 
-    set-neovide-txt-default = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      # shellcheck disable=SC2034
-      ESC="\x1b[0m"
-      # shellcheck disable=SC2034
-      BOLD="\x1b[1m"
-      # shellcheck disable=SC2034
-      RED="\x1b[31m"
-      # shellcheck disable=SC2034
-      GREEN="\x1b[32m"
-      # shellcheck disable=SC2034
-      YELLOW="\x1b[33m"
-      # shellcheck disable=SC2034
-      BLUE="\x1b[34m"
-
+    set-neovide-txt-default = lib.hm.dag.entryAfter [ "setupANSIVars" ] ''
       COUNT=15
       APPFILENAME="${Helpers.getMacAppName pkgs.neovide}"
       printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPFILENAME ---''${ESC}\n"
