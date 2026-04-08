@@ -432,6 +432,9 @@ in
   # Auto upgrade nix package
   nix.package = pkgs.nix;
 
+  # Increase download buffer size to 500 MB
+  nix.settings.download-buffer-size = 524288000;
+
   # Create /etc/zshrc that loads the nix-darwin environment.
   programs.zsh.enable = true; # default shell on catalina
   # programs.fish.enable = true;
