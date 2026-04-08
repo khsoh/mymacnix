@@ -1039,14 +1039,14 @@ in
     #    basename "$(mdfind "kMDItemCFBundleIdentifier == '<app ID>'")"
     #
     # 5. Get the application ID given the application filename (usually ends with .app)
-    #    mdls -name kMDItemCFBundleIdentifier -raw "$(mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == '<app name>'" | head -n 1)"
+    #    mdls -name kMDItemCFBundleIdentifier -raw "$(mdfind "kMDItemKind == 'Application' && kMDItemFSName == '<app name>'" | head -n 1)"
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "setupANSIVars" ] ''
       COUNT=15
       APPNAME="${Helpers.getMacAppName pkgs.neovide}"
       printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
 
       for (( i=$COUNT; i>0; i-- )); do
-        idneovide=$(/usr/bin/mdls -name kMDItemCFBundleIdentifier -raw "$(/usr/bin/mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == '$APPNAME'" | head -n 1)")
+        idneovide=$(/usr/bin/mdls -name kMDItemCFBundleIdentifier -raw "$(/usr/bin/mdfind "kMDItemKind == 'Application' && kMDItemFSName == '$APPNAME'" | head -n 1)")
         if [ -n "$idneovide" ]; then
           [ $i -ne $COUNT ] && printf "\n"
           printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPNAME" "$idneovide"
