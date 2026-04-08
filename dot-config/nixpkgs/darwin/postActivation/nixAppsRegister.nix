@@ -60,7 +60,7 @@ in
         PKG_NAME="${pkgName}"
 
         # Find the old path by looking for the package name in our map
-        OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" || : | cut -d: -f2- | head -n 1)
+        OLD_PATH=$(echo "$PREV_MAP" | grep "^$APP_NAME:" | cut -d: -f2- | head -n 1 || :)
 
         if [[ $PRINT_HEADER -eq 1 && "$OLD_PATH" != "$NEW_PATH" ]]; then
           # shellcheck disable=SC2059
