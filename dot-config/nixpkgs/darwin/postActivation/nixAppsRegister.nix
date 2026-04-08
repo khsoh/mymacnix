@@ -7,6 +7,18 @@
 let
   # Shortcut to get helper functions
   Helpers = config.helpers;
+
+  ## Get all the terminal packages
+  # 1. Get all user configurations from Home Manager
+  allHomeConfigs = builtins.attrValues config.home-manager.users;
+
+  # 2. Extract the 'termpkg' from each user, filtering out nulls
+  # We use '?' to safely check if the option exists in their home.nix
+  allTerminalPackages = lib.unique (
+    lib.flatten (map (cfg: lib.attrByPath [ "terminal" "packages" ] [ ] cfg) allHomeConfigs)
+  );
+
+  termlist = lib.concatMapStringsSep "|" (p: "\"${Helpers.getMacAppName p}\"") allTerminalPackages;
 in
 {
   system.activationScripts.postActivation.text = lib.mkBefore ''
@@ -80,16 +92,21 @@ in
           echo "  └─ NEW: $NEW_PATH"
         fi
 
-        if [[ "$OLD_PATH" != "$NEW_PATH" && -d "/Applications/Nix Apps/$APP_NAME" ]]; then
-          # Reset permissions for kitty
-          if [[ "$APP_NAME" == "kitty.app" ]]; then
-            tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "/Applications/Nix Apps/$APP_NAME")"
-          fi
+        FULLAPPNAME="/Applications/Nix Apps/$APP_NAME"
+        if [[ "$OLD_PATH" != "$NEW_PATH" && -d "$FULLAPPNAME" ]]; then
+          # Reset permissions for terminal package
+          case "$APP_NAME" in
+            ${termlist})
+              tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "$FULLAPPNAME")"
+              ;;
+            *)
+              ;;
+          esac
 
           # --- Fix macOS Launch Services for Nix Apps ---
           # This forces macOS to recognize the app bundle immediately after rebuild
           echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
-          $LSREGISTER -f "/Applications/Nix Apps/$APP_NAME"
+          $LSREGISTER -f "$FULLAPPNAME"
         fi
       ''
     ) (lib.filter (p: Helpers.getMacAppName p != "") config.environment.systemPackages)}
