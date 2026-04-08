@@ -201,6 +201,8 @@ in
 
       protonmail-desktop
       bitwarden-desktop
+
+      utm
     ];
 
   # Use a custom configuration.nix location.
