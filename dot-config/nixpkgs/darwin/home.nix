@@ -1021,16 +1021,35 @@ in
       ''
     );
 
+    ## Useful helpers to find application file names, display names, ID
+    # 1. To find the UTI of the file type <.ext>
+    #    mdls -name kMDItemContentType -raw <name.ext>
+    # Default return value of .txt: public.plain-text
+    # Default return value of .log: com.apple.log
+    #
+    # 2. To get the app ID of the default handler for a specific UTI
+    #    duti -d <UTI>  { e.g. duti -d public.plain-text }
+    # Default return value of public.plain-text: com.apple.TextEdit
+    # Default return value of com.apple.log: com.apple.Console
+    #
+    # 3. Get the application full path filename from the app ID
+    #    mdfind "kMDItemCFBundleIdentifier == '<app ID>'"
+    #
+    # 4. Get the application filename (usually ends with .app) from the app ID
+    #    basename "$(mdfind "kMDItemCFBundleIdentifier == '<app ID>'")"
+    #
+    # 5. Get the application ID given the application filename (usually ends with .app)
+    #    mdls -name kMDItemCFBundleIdentifier -raw "$(mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == '<app name>'" | head -n 1)"
     set-neovide-txt-default = lib.hm.dag.entryAfter [ "setupANSIVars" ] ''
       COUNT=15
-      APPFILENAME="${Helpers.getMacAppName pkgs.neovide}"
-      printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPFILENAME ---''${ESC}\n"
+      APPNAME="${Helpers.getMacAppName pkgs.neovide}"
+      printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
 
       for (( i=$COUNT; i>0; i-- )); do
-        idneovide=$(/usr/bin/osascript -e "id of app \"$APPFILENAME\"" 2>/dev/null)
+        idneovide=$(/usr/bin/mdls -name kMDItemCFBundleIdentifier -raw "$(/usr/bin/mdfind "kMDItemKind == 'Application' && kMDItemDisplayName == '$APPNAME'" | head -n 1)")
         if [ -n "$idneovide" ]; then
           [ $i -ne $COUNT ] && printf "\n"
-          printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPFILENAME" "$idneovide"
+          printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPNAME" "$idneovide"
           break
         fi
 
@@ -1041,10 +1060,9 @@ in
       done
 
       if [ ! -n "$idneovide" ]; then
-        printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPFILENAME"
+        printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPNAME"
         exit 0
       fi
-      APPNAME=$(/usr/bin/osascript -e "get name of application id \"$idneovide\"" 2>/dev/null)
 
       # Use duti to set Neovide for plain-text (.txt) and log (.log) files
       # The 'all' flag applies it to editor, viewer, and shell roles
@@ -1060,7 +1078,7 @@ in
         if [ "$hndlr" == "$idneovide" ]; then
           printf "''${BLUE}''${BOLD}==>''${ESC}  UTI $UTI default handler is already assigned to $APPNAME\n"
         else
-          appHndlr=$(/usr/bin/osascript -e "get name of application id \"$hndlr\"" 2>/dev/null)
+          appHndlr=$(basename "$(/usr/bin/mdfind "kMDItemCFBundleIdentifier == '$hndlr'")")
           printf "''${BLUE}''${BOLD}==>''${ESC}  Changing UTI default handler for $UTI (file extension .$ftype) from $appHndlr to $APPNAME\n"
           run ${pkgs.duti}/bin/duti -s $idneovide $UTI all
           run ${pkgs.duti}/bin/duti -s $idneovide .$ftype all
