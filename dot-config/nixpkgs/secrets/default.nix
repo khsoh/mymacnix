@@ -11,9 +11,6 @@ let
     path:
     builtins.attrNames (lib.filterAttrs (name: type: type == "directory") (builtins.readDir path));
 
-  xhost = config._module.args.xhost or null;
-  xuser = config._module.args.xuser or null;
-
   mkHostConfig =
     {
       name,
@@ -65,7 +62,36 @@ let
     in
     lib.genAttrs subdirs (name: import (base + "/${name}"));
 
+  ## Function to extract first 2 elements of the public key file
+  mkAbsPath =
+    filePath:
+    let
+      absfile =
+        if builtins.substring 0 1 filePath == "~" then
+          config.users.users.${config.system.primaryUser}.home
+          + builtins.substring 1 (builtins.stringLength filePath) filePath
+        else
+          filePath;
+    in
+    absfile;
+
+  readPubkey =
+    pubkeyfile:
+    let
+      absfile = mkAbsPath pubkeyfile;
+      # Read the file and strip the trailing newline
+      content = lib.removeSuffix "\n" (builtins.readFile absfile);
+      # Split by spaces into a list of strings
+      parts = lib.splitString " " content;
+    in
+    # Take the first two elements and join them with a space
+    builtins.concatStringsSep " " (lib.take 2 parts);
+
   cfg = config.secrets;
+  cfguser = cfg.target.user;
+  sshpkfile = cfguser.sshcfg.PKFILE;
+  sshpubfile = cfguser.sshcfg.PUBFILE;
+  sshpubkey = cfguser.sshcfg.pubkey;
 in
 {
   options.secrets = {
@@ -97,17 +123,13 @@ in
 
       default = {
         # Point to target host
-        host =
-          let
-            hName = if xhost != null then xhost else config.machineInfo.hostname or "__default__";
-          in
-          cfg.hosts."${hName}" or cfg.hosts.__default__;
+        host = cfg.hosts."${config.machineInfo.hostname}" or cfg.hosts.__default__;
 
         # Point to target user
         user =
           let
-            hName = if xhost != null then xhost else config.machineInfo.hostname or "__default__";
-            uName = if xuser != null then xuser else config.system.primaryUser or "__default__";
+            hName = config.machineInfo.hostname or "__default__";
+            uName = config.system.primaryUser or "__default__";
             myhostcfg = cfg.hosts."${hName}" or cfg.hosts.__default__;
             mappedName = myhostcfg.usermap."${uName}" or uName;
           in
@@ -120,6 +142,23 @@ in
   config = {
     secrets.hosts = importConfig ./host;
     secrets.users = importConfig ./user;
+
+    assertions = [
+      {
+        # Check the target user private key file
+        assertion = (sshpkfile == null) || (builtins.pathExists (mkAbsPath sshpkfile));
+        message = "Check the sshcfg.PKFILE definition in ${<darwin-secrets>}/user/${cfguser.name}/default.nix.  The ${sshpkfile} SSH private key file is absent - file must be present to build";
+      }
+
+      {
+        # Check that the target user public key file contents and pubkey match
+        assertion =
+          (sshpubfile == null)
+          || (!builtins.pathExists (mkAbsPath sshpubfile))
+          || ((readPubkey sshpubfile) == sshpubkey);
+        message = "Check the sshcfg.PUBFILE and sshcfg.pubkey definition in ${<darwin-secrets>}/user/${cfguser.name}/default.nix.  Contents of ${sshpubfile} do not match the sshcfg.pubkey string";
+      }
+    ];
   };
 
 }
