@@ -497,6 +497,7 @@ in
       ++ lib.optional (Helpers.pkgInstalled pkgs.google-chrome) (
         Helpers.getMacBundleAppName pkgs.google-chrome
       )
+      ++ lib.optional (Helpers.pkgInstalled pkgs.brave) (Helpers.getMacBundleAppName pkgs.brave)
       ++ lib.optional (Helpers.brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
     );
   };
