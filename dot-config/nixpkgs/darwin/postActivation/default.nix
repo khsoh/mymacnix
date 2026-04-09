@@ -10,6 +10,7 @@ in
   imports = [
     ./dnssetup.nix
     ./nixAppsRegister.nix
+    ./checkPinnedPkgs.nix
   ];
 
   # Setup ANSI terminal control variables - should appear before other postActivation.text

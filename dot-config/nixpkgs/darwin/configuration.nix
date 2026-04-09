@@ -14,11 +14,6 @@ let
   #   url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
   # }) { };
 
-  ## Store paths of packages installed by environment.systemPackages
-  stdPkgsPath = toString pkgs.path;
-  darwinPath = toString <darwin>;
-  agenixPath = toString <agenix>;
-
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
@@ -519,48 +514,6 @@ in
   # system.activationScripts.postActivation.text = lib.mkAfter ''
   #   echo "I am in PostActivation"
   # '';
-
-  system.activationScripts.postActivation.text =
-    let
-      # Filter for packages whose source nixpkgs path is non-standard
-      isExternal =
-        pkg:
-        let
-          pkgPath = pkg.meta.position or "";
-        in
-        !(
-          (lib.hasPrefix stdPkgsPath pkgPath)
-          || (lib.hasPrefix darwinPath pkgPath)
-          || (lib.hasPrefix agenixPath pkgPath)
-        );
-
-      externalPkgs = builtins.filter isExternal config.environment.systemPackages;
-      names = builtins.concatStringsSep "\n\${BLUE}\${BOLD}>>\${ESC} " (
-        map (p: p.pname or (lib.getName p)) externalPkgs
-      );
-    in
-    lib.mkIf (externalPkgs != [ ]) (
-      lib.mkAfter ''
-        # shellcheck disable=SC2034
-        ESC="\x1b[0m"
-        # shellcheck disable=SC2034
-        BOLD="\x1b[1m"
-        # shellcheck disable=SC2034
-        RED="\x1b[31m"
-        # shellcheck disable=SC2034
-        GREEN="\x1b[32m"
-        # shellcheck disable=SC2034
-        YELLOW="\x1b[33m"
-        # shellcheck disable=SC2034
-        BLUE="\x1b[34m"
-        # shellcheck disable=SC2059
-        printf "''${GREEN}''${BOLD}======== Packages NOT from main nixpkgs ========''${ESC}\n"
-        # shellcheck disable=SC2059
-        printf "''${BLUE}''${BOLD}>>''${ESC} ${names}\n"
-        # shellcheck disable=SC2059
-        printf "''${BLUE}''${BOLD}==>''${ESC} Consider if these packages still require pins.\n"
-      ''
-    );
 
   services.openssh.hostKeys = [ ]; # Ensure host keys are not generated
 
