@@ -34,6 +34,7 @@ let
         ./common/options-ssh.nix
         ./host/options-usermap.nix
         ./host/options-1password.nix
+        ./host/options-packages.nix
       ];
     };
 

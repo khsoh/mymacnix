@@ -1,6 +1,7 @@
 {
   osConfig,
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -38,6 +39,10 @@ in
         "echo \"Generated ${agepubfile} from ${agepkfile}\""
       ];
     }
+  ];
+
+  hostPackages = with pkgs; [
+    brave
   ];
 }
 # vim: set ts=2 sw=2 et ft=nix:

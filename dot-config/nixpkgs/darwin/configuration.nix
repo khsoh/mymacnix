@@ -193,6 +193,7 @@ in
       _1password-cli # Helpful for deploying secrets
       _1password-gui
     ]
+    ++ pkhostcfg.hostPackages
     ++ lib.optionals (!isVM) [
       # Included in builds of the real thing
       ### The following are to setup use of Yubikey
