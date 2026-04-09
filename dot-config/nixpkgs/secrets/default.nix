@@ -74,7 +74,7 @@ in
         lib.types.submoduleWith {
           modules = [ mkHostConfig ];
           specialArgs = {
-            inherit pkgs;
+            inherit pkgs options;
             osConfig = config;
           };
         }

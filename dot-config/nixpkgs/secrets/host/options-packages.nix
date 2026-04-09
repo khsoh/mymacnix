@@ -1,11 +1,12 @@
-{ lib, ... }:
+{ lib, options, ... }:
 {
   options.hostPackages = lib.mkOption {
-    type = lib.types.listOf lib.types.package;
+    type = options.environment.systemPackages.type;
     default = [ ];
     example = lib.literalExpression "[ pkgs.firefox pkgs.brave ]";
     description = ''
-      Set of host-specific packages to be appended to environment.systemPackages
+      Set of host-specific packages to be appended to environment.systemPackages.
+      It is same type as environment.systemPackages.
     '';
   };
 }
