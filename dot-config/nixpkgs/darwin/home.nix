@@ -951,7 +951,7 @@ in
   };
 
   home.activation = {
-    setupANSIVars = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    initTermCtrlVars = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       # shellcheck disable=SC2034
       ESC="\x1b[0m"
       # shellcheck disable=SC2034
@@ -969,7 +969,7 @@ in
     install1PasswordCfg = lib.mkIf onepasscfg.enable (
       # Need to put this after linkGeneration
       # to access config.xdg.configFile.onepassword_mobileconfig.target
-      lib.hm.dag.entryAfter [ "setupANSIVars" "linkGeneration" ] ''
+      lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ] ''
         CFGFILE="${homecfg.homeDirectory}/${config.xdg.configFile.onepassword_mobileconfig.target}"
         PAYLOAD_ID=$(/usr/libexec/PlistBuddy -c "Print :PayloadIdentifier" "$CFGFILE")
         PAYLOAD_UUID=$(/usr/libexec/PlistBuddy -c "Print :PayloadUUID" "$CFGFILE")
@@ -1040,7 +1040,7 @@ in
     #
     # 5. Get the application ID given the application filename (usually ends with .app)
     #    mdls -name kMDItemCFBundleIdentifier -raw "$(mdfind "kMDItemKind == 'Application' && kMDItemFSName == '<app name>'" | head -n 1)"
-    set-neovide-txt-default = lib.hm.dag.entryAfter [ "setupANSIVars" ] ''
+    set-neovide-txt-default = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
       COUNT=15
       APPNAME="${Helpers.getMacAppName pkgs.neovide}"
       printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
@@ -1068,20 +1068,21 @@ in
       # The 'all' flag applies it to editor, viewer, and shell roles
       filetypes=("txt" "log")
 
+      DUTI=${pkgs.duti}/bin/duti
       for ftype in "''${filetypes[@]}"; do
         # Get the UTI
         TESTFILE=/tmp/$USER-''${RANDOM}.$ftype
         touch $TESTFILE
         UTI=$(/usr/bin/mdls -name kMDItemContentType -raw $TESTFILE 2>/dev/null)
         rm $TESTFILE
-        hndlr=$(${pkgs.duti}/bin/duti -d $UTI 2>/dev/null)
+        hndlr=$($DUTI -d $UTI 2>/dev/null)
         if [ "$hndlr" == "$idneovide" ]; then
           printf "''${BLUE}''${BOLD}==>''${ESC}  UTI $UTI default handler is already assigned to $APPNAME\n"
         else
           appHndlr=$(basename "$(/usr/bin/mdfind "kMDItemCFBundleIdentifier == '$hndlr'")")
           printf "''${BLUE}''${BOLD}==>''${ESC}  Changing UTI default handler for $UTI (file extension .$ftype) from $appHndlr to $APPNAME\n"
-          run ${pkgs.duti}/bin/duti -s $idneovide $UTI all
-          run ${pkgs.duti}/bin/duti -s $idneovide .$ftype all
+          run $DUTI -s $idneovide $UTI all
+          run $DUTI -s $idneovide .$ftype all
         fi
       done
     '';

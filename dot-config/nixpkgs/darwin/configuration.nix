@@ -53,8 +53,7 @@ in
     <darwin-secrets>
     ./brews.nix
     ./machine.nix
-    ./postActivation/dnssetup.nix
-    ./postActivation/nixAppsRegister.nix
+    ./postActivation
   ];
 
   ######### Configuration of modules #########

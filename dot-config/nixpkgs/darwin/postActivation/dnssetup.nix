@@ -6,18 +6,6 @@
 }:
 {
   system.activationScripts.postActivation.text = lib.mkBefore ''
-    # shellcheck disable=SC2034
-    ESC="\x1b[0m"
-    # shellcheck disable=SC2034
-    BOLD="\x1b[1m"
-    # shellcheck disable=SC2034
-    RED="\x1b[31m"
-    # shellcheck disable=SC2034
-    GREEN="\x1b[32m"
-    # shellcheck disable=SC2034
-    YELLOW="\x1b[33m"
-    # shellcheck disable=SC2034
-    BLUE="\x1b[34m"
     # shellcheck disable=SC2059
     printf "''${GREEN}''${BOLD}======== DNS Setup ========''${ESC}\n"
     CFGFILE="${config.environment.etc."mobileconfig/quad9_secured_dns.mobileconfig".source}"

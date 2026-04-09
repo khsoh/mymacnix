@@ -22,18 +22,6 @@ let
 in
 {
   system.activationScripts.postActivation.text = lib.mkBefore ''
-    # shellcheck disable=SC2034
-    ESC="\x1b[0m"
-    # shellcheck disable=SC2034
-    BOLD="\x1b[1m"
-    # shellcheck disable=SC2034
-    RED="\x1b[31m"
-    # shellcheck disable=SC2034
-    GREEN="\x1b[32m"
-    # shellcheck disable=SC2034
-    YELLOW="\x1b[33m"
-    # shellcheck disable=SC2034
-    BLUE="\x1b[34m"
     # shellcheck disable=SC2059
     printf "''${GREEN}''${BOLD}======== nixpkgs Apps re-registration ========''${ESC}\n"
     PRINT_HEADER=1
