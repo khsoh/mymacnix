@@ -116,7 +116,7 @@ in
       text = ''
         cd ~/github
         layout splits
-        launch /usr/bin/env RESIZE_TERM=kitty ${pkgs.zsh}/bin/zsh
+        launch /usr/bin/env RESIZE_TERM=kitty ${pkgs.zsh}/bin/zsh -l
         launch --location hsplit ${pkgs.zsh}/bin/zsh
       '';
     };
@@ -562,7 +562,7 @@ in
     # installBatSyntax = true;
     # installVimSyntax = false;
     settings = {
-      initial-command = "/usr/bin/env RESIZE_TERM=ghostty ${pkgs.zsh}/bin/zsh";
+      initial-command = "/usr/bin/env RESIZE_TERM=ghostty ${pkgs.zsh}/bin/zsh -l";
       theme = "Catppuccin Mocha";
       font-family = "FiraMono Nerd Font Mono";
       font-size = 18;
