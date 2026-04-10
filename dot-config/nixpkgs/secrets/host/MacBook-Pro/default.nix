@@ -44,5 +44,44 @@ in
   hostPackages = with pkgs; [
     brave
   ];
+
+  hostbrew.brews = [
+  ];
+
+  hostbrew.casks = [
+    {
+      name = "proton-drive";
+      greedy = true;
+    }
+    {
+      name = "displaylink";
+      greedy = true;
+    }
+    {
+      name = "loopback";
+      greedy = true;
+    }
+    {
+      name = "audio-hijack";
+      greedy = true;
+    }
+    {
+      name = "obs";
+      greedy = true;
+    }
+    {
+      name = "youlean-loudness-meter";
+      greedy = true;
+    }
+    {
+      name = "bazecor";
+      greedy = true;
+    }
+  ];
+
+  hostbrew.masApps = {
+    "MoneyWiz" = 1511185140;
+    "Telegram" = 747648890;
+  };
 }
 # vim: set ts=2 sw=2 et ft=nix:

@@ -32,6 +32,7 @@ let
         ./host/options-usermap.nix
         ./host/options-1password.nix
         ./host/options-packages.nix
+        ./host/options-hostbrew.nix
       ];
     };
 

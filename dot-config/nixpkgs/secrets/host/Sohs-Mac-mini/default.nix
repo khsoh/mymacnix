@@ -42,5 +42,19 @@ in
   hostPackages = with pkgs; [
     brave
   ];
+
+  hostbrew.brews = [
+  ];
+
+  hostbrew.casks = [
+    {
+      name = "proton-drive";
+      greedy = true;
+    }
+  ];
+
+  hostbrew.masApps = {
+    "MoneyWiz" = 1511185140;
+  };
 }
 # vim: set ts=2 sw=2 et ft=nix:
