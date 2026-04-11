@@ -16,7 +16,7 @@ let
       name,
       lib,
       ...
-    }:
+    }@args:
     {
       options.name = lib.mkOption {
         type = lib.types.str;
@@ -27,7 +27,7 @@ let
       imports = [
         ./common/options-deploy.nix
         ./common/options-wsgx.nix
-        ./common/options-age.nix
+        (import ./common/options-age.nix (args // { cfgdir = ./host; }))
         ./common/options-ssh.nix
         ./host/options-usermap.nix
         ./host/options-1password.nix
@@ -41,7 +41,7 @@ let
       name,
       lib,
       ...
-    }:
+    }@args:
     {
       options.name = lib.mkOption {
         type = lib.types.str;
@@ -51,7 +51,7 @@ let
 
       imports = [
         ./common/options-deploy.nix
-        ./common/options-age.nix
+        (import ./common/options-age.nix (args // { cfgdir = ./user; }))
         ./common/options-ssh.nix
       ];
     };

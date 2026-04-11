@@ -13,7 +13,6 @@ in
     OPURI = "op://Nix Bootstrap/Default Machine age secret key/notesPlain";
     PKFILE = "/etc/age/nixid_host_key.txt";
     PUBFILE = "/etc/age/nixid_host_public.txt";
-    pubkey = (import ./key.nix).pubkey;
   };
 
   onepassword = {

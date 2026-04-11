@@ -14,7 +14,6 @@ in
     OPURI = "op://Private/Personal age private key/notesPlain";
     PKFILE = "~/.age/key.txt";
     PUBFILE = "~/.age/public.txt";
-    pubkey = (import ./key.nix).pubkey;
   };
 
   sshcfg = {

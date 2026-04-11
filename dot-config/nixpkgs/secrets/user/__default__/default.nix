@@ -14,7 +14,6 @@ in
     OPURI = "op://Nix Bootstrap/NIXID age private key/notesPlain";
     PKFILE = "~/.age/nixid_key.txt";
     PUBFILE = "~/.age/nixid_public.txt";
-    pubkey = (import ./key.nix).pubkey;
   };
 
   sshcfg = {

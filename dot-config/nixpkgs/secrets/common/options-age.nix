@@ -1,7 +1,13 @@
-{ lib, ... }:
 {
-  options.agecfg = lib.mkOption {
-    type = lib.types.submodule {
+  lib,
+  name,
+  cfgdir,
+  ...
+}:
+let
+  ageOptions =
+    { config, ... }:
+    {
       options = {
         OPURI = lib.mkOption {
           type = lib.types.str;
@@ -20,10 +26,19 @@
         # secrets.nix
         pubkey = lib.mkOption {
           type = lib.types.str;
-          description = "AGE public key string - must be assigned by you (not read from PUBFILE in nix)";
+          description = "AGE public key string - will be read from key.nix";
+          readOnly = true;
         };
       };
+
+      config = {
+        pubkey = (import "${cfgdir}/${name}/key.nix").pubkey;
+      };
     };
+in
+{
+  options.agecfg = lib.mkOption {
+    type = lib.types.submodule ageOptions;
     description = "Agenix configuration";
   };
 }

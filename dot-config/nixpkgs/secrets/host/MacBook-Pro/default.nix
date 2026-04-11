@@ -24,7 +24,6 @@ in
     OPURI = "op://MacBook-Pro-Secrets/Host age secret key/notesPlain";
     PKFILE = "/etc/age/key.txt";
     PUBFILE = "/etc/age/public.txt";
-    pubkey = (import ./key.nix).pubkey;
   };
 
   deployment = lib.mkDefault [

@@ -18,7 +18,6 @@ in
     OPURI = "op://Sohs-Mac-Mini-Secrets/Host age secret key/notesPlain";
     PKFILE = "/etc/age/key.txt";
     PUBFILE = "/etc/age/public.txt";
-    pubkey = (import ./key.nix).pubkey;
   };
 
   onepassword = {
