@@ -1040,7 +1040,7 @@ in
     #
     # 5. Get the application ID given the application filename (usually ends with .app)
     #    mdls -name kMDItemCFBundleIdentifier -raw "$(mdfind "kMDItemKind == 'Application' && kMDItemFSName == '<app name>'" | head -n 1)"
-    set-neovide-txt-default = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
+    setNeovideUTIhandler = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
       COUNT=15
       APPNAME="${Helpers.getMacAppName pkgs.neovide}"
       printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
