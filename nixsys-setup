@@ -291,15 +291,6 @@ if [ $? -ne 0 ]; then
     ./git-remote-init.sh
     source "$gitfolder/dostow.sh"
     cd ..
-
-    killall ssh-agent
-    eval $(ssh-agent -s) > /dev/null
-    ssh-add ~/.ssh/nixid_ed25519
-
-    git clone git@${REPOHOST}.com:khsoh/caskmasapps.git
-
-    cd caskmasapps
-    ./dostow.sh
     '
 
     print_arrow "Completed cloning the repository"
