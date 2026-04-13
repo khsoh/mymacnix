@@ -82,14 +82,16 @@ in
 
         FULLAPPNAME="/Applications/Nix Apps/$APP_NAME"
         if [[ "$OLD_PATH" != "$NEW_PATH" && -d "$FULLAPPNAME" ]]; then
+          APPID=$(mdls -name kMDItemCFBundleIdentifier -raw "$FULLAPPNAME")
           # Reset permissions for terminal package
           case "$APP_NAME" in
             ${termlist})
-              tccutil reset Accessibility "$(mdls -name kMDItemCFBundleIdentifier -raw "$FULLAPPNAME")"
+              tccutil reset Accessibility "$APPID"
               ;;
             *)
               ;;
           esac
+          "${<darwin-config>}/jxa/reqCloseApp.js" "$APPID"
 
           # --- Fix macOS Launch Services for Nix Apps ---
           # This forces macOS to recognize the app bundle immediately after rebuild
