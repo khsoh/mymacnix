@@ -26,9 +26,9 @@ in
   ];
   ### End Setup for updates via Nix
 
-  homebrew.brews = map (item: removeAttrs item [ "brewfileLine" ]) cfghost.hostbrew.brews;
+  homebrew.brews = cfghost.hostbrew.brews;
 
-  homebrew.casks = map (item: removeAttrs item [ "brewfileLine" ]) cfghost.hostbrew.casks;
+  homebrew.casks = cfghost.hostbrew.casks;
 
   homebrew.masApps = cfghost.hostbrew.masApps;
 
