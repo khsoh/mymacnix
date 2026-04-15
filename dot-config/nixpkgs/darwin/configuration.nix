@@ -401,7 +401,7 @@ in
           trap "rm -f $L" EXIT
           $HOME/.config/jxa/waitapp.js "DisplayLink Manager.app"
           date > $LOGF
-          sleep 3
+          sleep 1
           $HOME/.config/jxa/resize_app.js $XRSZ_TERM >>& $LOGF
           :
         ) >/dev/null 2>&1 &)
