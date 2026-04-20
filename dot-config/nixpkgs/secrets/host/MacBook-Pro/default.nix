@@ -49,6 +49,10 @@ in
 
   hostbrew.casks = [
     {
+      name = "mouseless";
+      greedy = true;
+    }
+    {
       name = "proton-drive";
       greedy = true;
     }
