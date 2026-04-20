@@ -14,6 +14,7 @@ let
   mkHostConfig =
     {
       name,
+      options,
       lib,
       ...
     }@args:
@@ -39,6 +40,7 @@ let
   mkUserConfig =
     {
       name,
+      options,
       lib,
       ...
     }@args:
@@ -53,6 +55,7 @@ let
         ./common/options-deploy.nix
         (import ./common/options-age.nix (args // { cfgdir = ./user; }))
         ./common/options-ssh.nix
+        ./common/options-hardlinks.nix
       ];
     };
 
@@ -101,7 +104,7 @@ in
         lib.types.submoduleWith {
           modules = [ mkHostConfig ];
           specialArgs = {
-            inherit pkgs options;
+            inherit pkgs options lib;
             osConfig = config;
           };
         }
@@ -112,7 +115,7 @@ in
         lib.types.submoduleWith {
           modules = [ mkUserConfig ];
           specialArgs = {
-            inherit pkgs;
+            inherit pkgs options lib;
             osConfig = config;
           };
         }

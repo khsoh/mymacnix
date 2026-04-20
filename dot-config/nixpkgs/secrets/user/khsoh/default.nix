@@ -42,5 +42,12 @@ in
       ];
     }
   ];
+
+  hardlinks = {
+    mouselss = {
+      source = toString ./homeFile/mouseless.config.yaml;
+      target = "Library/Containers/net.sonuscape.mouseless/Data/.mouseless/configs/config.yaml";
+    };
+  };
 }
 # vim: set ts=2 sw=2 et ft=nix:

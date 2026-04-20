@@ -19,6 +19,7 @@ let
   cfghost = osConfig.secrets.target.host;
   onepasscfg = osConfig.secrets.target.host.onepassword;
   sshcfg = cfgsec.sshcfg;
+  hlcfg = config.hardlinks;
   sshpkfile = if sshcfg != null then sshcfg.PKFILE else null;
 
   default_usercfg = ./default_usercfg.nix;
@@ -33,6 +34,7 @@ in
     ./github.nix
     ./gitlab.nix
     ./terminal.nix
+    ./hardlinks.nix
   ]
   ++ lib.optional (builtins.pathExists usercfgFile) usercfg;
 
@@ -79,5 +81,21 @@ in
     }
   ];
 
+  config.home.activation.createHardlinks = lib.mkIf (hlcfg != { }) (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      ${lib.concatStringsSep "\n" (
+        lib.mapAttrsToList (name: value: ''
+          # Ensure target directory exists
+          run mkdir -p "$(dirname "$HOME/${value.target}")"
+
+          # Remove existing file/link to avoid errors
+          run rm -f "$HOME/${value.target}"
+
+          # Create the hardlink
+          run ln "${value.source}" "$HOME/${value.target}"
+        '') hlcfg
+      )}
+    ''
+  );
 }
 # vim: set ts=2 sw=2 et ft=nix:
