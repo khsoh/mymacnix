@@ -1023,7 +1023,8 @@ in
     );
 
     createHardlinks = lib.mkIf (hlcfg != { }) (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ] ''
+        PRHEAD=
         ${lib.concatStringsSep "\n" (
           lib.mapAttrsToList (name: value: ''
             if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
@@ -1044,6 +1045,7 @@ in
             fi
           '') hlcfg
         )}
+        unset PRHEAD
       ''
     );
 

@@ -54,6 +54,9 @@ in
     packages = lib.mkDefault defaultTermPackages;
   };
 
+  #### hardlinks configuration
+  config.hardlinks = cfgsec.hardlinks;
+
   #### Create a default usercfg.nix in ~/.config/nix and add a symbolic link to it
   config.home.activation.linkusercfg = lib.mkIf (!(builtins.pathExists usercfgFile)) (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
