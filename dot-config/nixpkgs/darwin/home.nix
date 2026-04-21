@@ -13,6 +13,7 @@ let
   ghcfg = config.github;
   glcfg = config.gitlab;
   termcfg = config.terminal;
+  hlcfg = config.hardlinks;
 
   # Shortcut to get helper functions
   Helpers = osConfig.helpers;
@@ -1018,6 +1019,31 @@ in
 
         fi
 
+      ''
+    );
+
+    createHardlinks = lib.mkIf (hlcfg != { }) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: value: ''
+            if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
+              if [[ ! -n "$PRHEAD" ]]; then
+                printf "''${GREEN}''${BOLD}--- Creating hardlinks ---''${ESC}\n"
+                PRHEAD=1
+              fi
+
+              printf "''${BLUE}''${BOLD}==>''${ESC} Linking ${value.source} to $HOME/${value.target}...\n"
+              # Ensure target directory exists
+              run mkdir -p "$(dirname "$HOME/${value.target}")"
+
+              # Remove existing file/link to avoid errors
+              run rm -f "$HOME/${value.target}"
+
+              # Create the hardlink
+              run ln "${value.source}" "$HOME/${value.target}"
+            fi
+          '') hlcfg
+        )}
       ''
     );
 
