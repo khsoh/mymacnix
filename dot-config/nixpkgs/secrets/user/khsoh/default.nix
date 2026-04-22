@@ -1,4 +1,5 @@
 {
+  osConfig,
   config,
   lib,
   ...
@@ -6,8 +7,8 @@
 let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
-  sshpkfile = config.sshcfg.PKFILE;
   sshpubfile = config.sshcfg.PUBFILE;
+  Helpers = osConfig.helpers;
 in
 {
   agecfg = {
@@ -43,8 +44,8 @@ in
     }
   ];
 
-  hardlinks = {
-    mouselss = {
+  hardlinks = lib.mkIf (Helpers.brewAppInstalled "mouseless") {
+    mouseless = {
       source = toString ./homeFile/mouseless.config.yaml;
       target = "Library/Containers/net.sonuscape.mouseless/Data/.mouseless/configs/config.yaml";
     };
