@@ -1,4 +1,9 @@
-{ lib, options, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 let
   ## Function to remove options and suboptions marked as internal or readOnly
   filterOptions =
@@ -47,6 +52,7 @@ let
       options = filterOptions (result.options or { });
     };
 
+  restartApp = config.hostbrew.helpers.restartApp;
 in
 {
   ## Define host-specific homebrew options
@@ -78,6 +84,29 @@ in
         Set of host-specific homebrew masApps packages
       '';
     };
+
+    helpers = lib.mkOption {
+      type = lib.types.raw;
+
+      default = {
+        restartApp = app: ''
+          APPNAME=\"${app}\"
+          pgrep -x \"$APPNAME\" > /dev/null || exit 0
+          pkill -x \"$APPNAME\"
+          count=0
+          while pgrep -x \"$APPNAME\" > /dev/null && [ $count -lt 60 ]; do
+            sleep 0.5
+            count=$((count+1))
+          done
+
+          if pgrep -x \"$APPNAME\" > /dev/null; then
+            pkill -9 -x \"$APPNAME\"
+          fi
+
+          open -a \"$APPNAME\"
+        '';
+      };
+    };
   };
 
   config.hostbrew.brews = lib.mkBefore [
@@ -89,18 +118,22 @@ in
     {
       name = "whatsapp";
       greedy = true;
+      postinstall = restartApp "WhatsApp";
     }
     {
       name = "signal";
       greedy = true;
+      postinstall = restartApp "Signal";
     }
     {
       name = "google-drive";
       greedy = true;
+      postinstall = restartApp "Google Drive";
     }
     {
       name = "logos";
       greedy = true;
+      postinstall = restartApp "Logos";
     }
     {
       name = "microsoft-office";
@@ -109,6 +142,7 @@ in
     {
       name = "zoom";
       greedy = true;
+      postinstall = restartApp "zoom.us";
     }
     {
       name = "affinity";
@@ -125,6 +159,7 @@ in
     {
       name = "dropbox";
       greedy = true;
+      postinstall = restartApp "Dropbox";
     }
   ];
 

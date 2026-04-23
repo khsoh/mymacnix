@@ -8,6 +8,7 @@
 let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
+  restartApp = config.hostbrew.helpers.restartApp;
 in
 {
   usermap = {
@@ -51,22 +52,27 @@ in
     {
       name = "mouseless";
       greedy = true;
+      postinstall = restartApp "Mouseless";
     }
     {
       name = "proton-drive";
       greedy = true;
+      postinstall = restartApp "Proton Drive";
     }
     {
       name = "displaylink";
       greedy = true;
+      postinstall = restartApp "DisplayLink Manager";
     }
     {
       name = "loopback";
       greedy = true;
+      postinstall = restartApp "Loopback";
     }
     {
       name = "audio-hijack";
       greedy = true;
+      postinstall = restartApp "Audio Hijack";
     }
     {
       name = "obs";

@@ -8,6 +8,7 @@
 let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
+  restartApp = config.hostbrew.helpers.restartApp;
 in
 {
   usermap = {
@@ -49,6 +50,7 @@ in
     {
       name = "proton-drive";
       greedy = true;
+      postinstall = restartApp "Proton Drive";
     }
   ];
 
