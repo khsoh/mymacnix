@@ -1042,6 +1042,8 @@ in
 
               # Create the hardlink
               run ln "${value.source}" "$HOME/${value.target}"
+
+              ${value.postHardlinkCmds}
             fi
           '') hlcfg
         )}

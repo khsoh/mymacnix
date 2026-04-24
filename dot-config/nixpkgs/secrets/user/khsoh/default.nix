@@ -1,6 +1,7 @@
 {
   osConfig,
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -44,10 +45,19 @@ in
     }
   ];
 
-  hardlinks = lib.mkIf (Helpers.brewAppInstalled "mouseless") {
-    mouseless = {
+  hardlinks = {
+    mouseless = lib.mkIf (Helpers.brewAppInstalled "mouseless") {
       source = toString ./homeFile/mouseless.config.yaml;
       target = "Library/Containers/net.sonuscape.mouseless/Data/.mouseless/configs/config.yaml";
+    };
+
+    rectangle = lib.mkIf (Helpers.pkgInstalled pkgs.rectangle) {
+      source = toString ./homeFile/com.knollsoft.Rectangle.plist;
+      target = "Library/Preferences/com.knollsoft.Rectangle.plist";
+      postHardlinkCmds = ''
+        /usr/bin/defaults read com.knollsoft.Rectangle > /dev/null
+        killall cfprefsd || true
+      '';
     };
   };
 }

@@ -16,6 +16,11 @@
             type = lib.types.str;
             description = "Path to the target file relative to HOME";
           };
+          postHardlinkCmds = lib.mkOption {
+            type = lib.types.str;
+            description = "Commands to run after hardlink is created";
+            default = "";
+          };
         };
       }
     );
