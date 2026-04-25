@@ -8,7 +8,6 @@
 let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
-  restartApp = config.hostbrew.helpers.restartApp;
 in
 {
   usermap = {
@@ -47,15 +46,9 @@ in
   ];
 
   hostbrew.casks = [
-    {
-      name = "proton-drive";
-      greedy = true;
-      postinstall = restartApp "Proton Drive";
-    }
   ];
 
   hostbrew.masApps = {
-    "MoneyWiz" = 1511185140;
   };
 }
 # vim: set ts=2 sw=2 et ft=nix:

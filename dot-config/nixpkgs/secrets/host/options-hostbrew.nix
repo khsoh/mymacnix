@@ -90,20 +90,8 @@ in
 
       default = {
         restartApp = app: ''
-          APPNAME=\"${app}\"
-          pgrep -x \"$APPNAME\" > /dev/null || exit 0
-          pkill -x \"$APPNAME\"
-          count=0
-          while pgrep -x \"$APPNAME\" > /dev/null && [ $count -lt 60 ]; do
-            sleep 0.5
-            count=$((count+1))
-          done
-
-          if pgrep -x \"$APPNAME\" > /dev/null; then
-            pkill -9 -x \"$APPNAME\"
-          fi
-
-          open -a \"$APPNAME\"
+          APPID=$(/usr/bin/osascript -e 'id of app \"${app}\"')
+          ${<darwin-config>}/jxa/reqCloseApp.js \"$APPID\"
         '';
       };
     };
@@ -129,6 +117,11 @@ in
       name = "google-drive";
       greedy = true;
       postinstall = restartApp "Google Drive";
+    }
+    {
+      name = "proton-drive";
+      greedy = true;
+      postinstall = restartApp "Proton Drive";
     }
     {
       name = "logos";
@@ -170,6 +163,7 @@ in
     "Kindle" = 302584613;
     "Drafts" = 1435957248;
     "CleanMyMac" = 1339170533;
+    "MoneyWiz" = 1511185140;
 
     ## Apple Apps
     "Keynote" = 409183694;

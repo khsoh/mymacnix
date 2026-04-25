@@ -55,11 +55,6 @@ in
       postinstall = restartApp "Mouseless";
     }
     {
-      name = "proton-drive";
-      greedy = true;
-      postinstall = restartApp "Proton Drive";
-    }
-    {
       name = "displaylink";
       greedy = true;
       postinstall = restartApp "DisplayLink Manager";
@@ -89,7 +84,6 @@ in
   ];
 
   hostbrew.masApps = {
-    "MoneyWiz" = 1511185140;
     "Telegram" = 747648890;
   };
 }
