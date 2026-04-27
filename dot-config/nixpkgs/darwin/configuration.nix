@@ -9,10 +9,15 @@ let
   userInfo = import ./userinfo.nix;
 
   # The following is example of fixing specific packages to an earlier nixpkgs revision
-  # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity
-  # pkgs-pinned = import (fetchTarball {
-  #   url = "https://github.com/NixOS/nixpkgs/archive/09061f748ee2.tar.gz";
-  # }) { };
+  # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity as follows
+  # nixpkgs.overlays = [
+  #   (final: prev: {
+  #     audacity = pkgs-pinned.audacity;  # Override audacity
+  #   })
+  # ];
+  pkgs-pinned = import (fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/b86751bc4085.tar.gz";
+  }) { };
 
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
@@ -41,6 +46,13 @@ let
   Helpers = config.helpers;
 in
 {
+  # Replace with pkgs-pinned packages
+  nixpkgs.overlays = [
+    (final: prev: {
+      zsh = pkgs-pinned.zsh; # Override zsh
+    })
+  ];
+
   imports = [
     ./globals.nix
     <home-manager/nix-darwin>

@@ -117,8 +117,8 @@ in
       text = ''
         cd ~/github
         layout splits
-        launch /usr/bin/env RESIZE_TERM=kitty ${pkgs.zsh}/bin/zsh -l
-        launch --location hsplit ${pkgs.zsh}/bin/zsh
+        launch /usr/bin/env RESIZE_TERM=kitty ${pkgs.zsh}/bin/zsh -il
+        launch --location hsplit ${pkgs.zsh}/bin/zsh -il
       '';
     };
 
@@ -245,6 +245,7 @@ in
       LANG = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+      SHELL = "${pkgs.bashInteractive}/bin/bash";
     }
     // lib.optionalAttrs onepasscfg.enable {
       SSH_AUTH_SOCK = "${SSHSOCK}";
@@ -265,6 +266,7 @@ in
       LC_ALL = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+      SHELL = "${pkgs.zsh}/bin/zsh";
     }
     // lib.optionalAttrs onepasscfg.enable {
       SSH_AUTH_SOCK = "${SSHSOCK}";
@@ -563,7 +565,8 @@ in
     # installBatSyntax = true;
     # installVimSyntax = false;
     settings = {
-      initial-command = "/usr/bin/env RESIZE_TERM=ghostty ${pkgs.zsh}/bin/zsh -l";
+      initial-command = "/usr/bin/env RESIZE_TERM=ghostty ${pkgs.zsh}/bin/zsh -il";
+      command = "${pkgs.zsh}/bin/zsh -il";
       theme = "Catppuccin Mocha";
       font-family = "FiraMono Nerd Font Mono";
       font-size = 18;
