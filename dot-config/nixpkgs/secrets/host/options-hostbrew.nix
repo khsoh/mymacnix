@@ -160,7 +160,7 @@ in
     "Cursor Pro" = 1447043133;
     "Bible Study" = 472790630;
     "1Password for Safari" = 1569813296;
-    "Kindle" = 302584613;
+    "Amazon Kindle" = 302584613;
     "Drafts" = 1435957248;
     "CleanMyMac" = 1339170533;
     "MoneyWiz" = 1511185140;
