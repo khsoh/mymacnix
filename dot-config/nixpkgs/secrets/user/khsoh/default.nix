@@ -54,10 +54,15 @@ in
     rectangle = lib.mkIf (Helpers.pkgInstalled pkgs.rectangle) {
       source = toString ./homeFile/com.knollsoft.Rectangle.plist;
       target = "Library/Preferences/com.knollsoft.Rectangle.plist";
-      postHardlinkCmds = ''
-        /usr/bin/defaults read com.knollsoft.Rectangle > /dev/null
-        killall cfprefsd || true
-      '';
+      postHardlinkCmds =
+        let
+          defaults = "/usr/bin/defaults";
+          killall = "/usr/bin/killall";
+        in
+        ''
+          run ${defaults} read com.knollsoft.Rectangle > /dev/null
+          run ${killall} cfprefsd || true
+        '';
     };
   };
 }
