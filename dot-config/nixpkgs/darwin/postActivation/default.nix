@@ -11,6 +11,7 @@ in
     ./dnssetup.nix
     ./nixAppsRegister.nix
     ./checkPinnedPkgs.nix
+    ./masAppsOutdated.nix
   ];
 
   # Setup ANSI terminal control variables - should appear before other postActivation.text
