@@ -54,6 +54,7 @@ in
         passthru = (old.passthru or { }) // {
           ignoredCommits = [
             "01fbdeef22b7"
+            "6368eda62c97"
           ];
         };
       });
