@@ -49,7 +49,14 @@ in
   # Replace with pkgs-pinned packages
   nixpkgs.overlays = [
     (final: prev: {
-      zsh = pkgs-pinned.zsh; # Override zsh
+      # Override zsh
+      zsh = pkgs-pinned.zsh.overrideAttrs (old: {
+        passthru = (old.passthru or { }) // {
+          ignoredCommits = [
+            "01fbdeef22b7"
+          ];
+        };
+      });
     })
   ];
 

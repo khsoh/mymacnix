@@ -13,6 +13,10 @@ in
 {
   system.activationScripts.postActivation.text =
     let
+      revisionFile = stdPkgsPath + "/.git-revision";
+      currentNixpkgsRev =
+        if builtins.pathExists revisionFile then builtins.readFile revisionFile else "unknown";
+
       # Filter for packages whose source nixpkgs path is non-standard
       isExternal =
         pkg:
@@ -25,19 +29,24 @@ in
           || (lib.hasPrefix agenixPath pkgPath)
         );
 
+      excludeCurrentRev =
+        pkg:
+        !(pkg ? ignoredCommits)
+        || (builtins.all (pre: !(lib.hasPrefix pre currentNixpkgsRev)) pkg.ignoredCommits);
       externalPkgs = builtins.filter isExternal config.environment.systemPackages;
+      untestedPkgs = builtins.filter excludeCurrentRev externalPkgs;
       names = builtins.concatStringsSep "\n\${BLUE}\${BOLD}>>\${ESC} " (
-        map (p: p.pname or (lib.getName p)) externalPkgs
+        map (p: p.pname or (lib.getName p)) untestedPkgs
       );
     in
-    lib.mkIf (externalPkgs != [ ]) (
+    lib.mkIf (untestedPkgs != [ ]) (
       lib.mkAfter ''
         # shellcheck disable=SC2059
-        printf "''${GREEN}''${BOLD}======== Packages NOT from main nixpkgs ========''${ESC}\n"
+        printf "''${RED}''${BOLD}======== Packages NOT YET tested with main nixpkgs (${currentNixpkgsRev}) ========''${ESC}\n"
         # shellcheck disable=SC2059
-        printf "''${BLUE}''${BOLD}>>''${ESC} ${names}\n"
+        printf "''${RED}''${BOLD}>>''${ESC} ${names}\n"
         # shellcheck disable=SC2059
-        printf "''${BLUE}''${BOLD}==>''${ESC} Consider if these packages still require pins.\n"
+        printf "''${RED}''${BOLD}==>''${ESC} Consider testing these packages with latest nixpkgs revision.\n"
       ''
     );
 }
