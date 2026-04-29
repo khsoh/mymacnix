@@ -98,7 +98,6 @@ else
         tail -n 20 $NONWORKFILE | sponge $NONWORKFILE
     fi
 fi
-brew upgrade
 
 TERMPROGS=("ghostty" "kitty")
 
