@@ -117,8 +117,8 @@ in
       text = ''
         cd ~/github
         layout splits
-        launch /usr/bin/env RESIZE_TERM=kitty ${pkgs.zsh}/bin/zsh -il
-        launch --location hsplit ${pkgs.zsh}/bin/zsh -il
+        launch /usr/bin/env TERM_PROGRAM=kitty RESIZE_TERM=kitty ${pkgs.zsh}/bin/zsh -il
+        launch --location hsplit /usr/bin/env TERM_PROGRAM=kitty ${pkgs.zsh}/bin/zsh -il
       '';
     };
 
