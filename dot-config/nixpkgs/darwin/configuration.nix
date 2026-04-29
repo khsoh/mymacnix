@@ -417,14 +417,14 @@ in
         XRSZ_TERM=$RESIZE_TERM
         unset RESIZE_TERM
         LOGF="$HOME/log/''${XRSZ_TERM}Start.log"
-        ((
+        ( (
           trap "rm -f $L" EXIT
           $HOME/.config/jxa/waitapp.js "DisplayLink Manager.app"
           date > $LOGF
           sleep 1
-          $HOME/.config/jxa/resize_app.js $XRSZ_TERM >>& $LOGF
+          $HOME/.config/jxa/resize_app.js $XRSZ_TERM >> "$LOGF" 2>&1
           :
-        ) >/dev/null 2>&1 &)
+        ) >/dev/null 2>&1 & )
       fi
 
       secs=90
