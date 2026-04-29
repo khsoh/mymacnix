@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 
 
@@ -78,6 +78,12 @@ $SCRIPTDIR/genusernix.sh
 sudo -H darwin-rebuild switch --verbose $(echo $BUILDARGS)
 BUILDRESULT=$?
 
+# Create a secure temporary file
+TMPFILE=$(mktemp) || exit 1
+
+# Ensure temporary file is cleaned up if script exits early
+trap 'rm -f "$TMPFILE"' EXIT
+
 if [ "$BUILDRESULT" = "0" ]; then
     if grep -q "^$BUILDREV" $WORKFILE ; then
         sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $WORKFILE
@@ -85,7 +91,9 @@ if [ "$BUILDRESULT" = "0" ]; then
         echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $WORKFILE
     fi
     if [ "$(wc -l < $WORKFILE | xargs)" -gt 40 ]; then
-        tail -n 20 $WORKFILE | sponge $WORKFILE
+        if tail -n 20 $WORKFILE > "$TMPFILE"; then
+            mv "$TMPFILE" "$WORKFILE"
+        fi
     fi
     sed -i "/^$BUILDREV/d" $NONWORKFILE
 else
@@ -95,7 +103,9 @@ else
         echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $NONWORKFILE
     fi
     if [ "$(wc -l < $NONWORKFILE | xargs)" -gt 40 ]; then
-        tail -n 20 $NONWORKFILE | sponge $NONWORKFILE
+        if tail -n 20 $NONWORKFILE > "$TMPFILE"; then
+            mv "$TMPFILE" "$NONWORKFILE"
+        fi
     fi
 fi
 
