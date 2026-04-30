@@ -91,24 +91,12 @@ in
             *)
               ;;
           esac
-          "${../jxa/reqCloseApp.js}" "$APP_NAME"
+          "${../jxa/reqCloseApp.js}" "''${APP_NAME%.app}"
 
           # --- Fix macOS Launch Services for Nix Apps ---
           # This forces macOS to recognize the app bundle immediately after rebuild
           echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
           $LSREGISTER -f "$FULLAPPNAME"
-
-          #### Handle special restart cases
-          if [ "$APP_NAME" == "1Password.app" ]; then
-            pkill -f "$APP_NAME"
-            COUNTDOWN=30
-            while pgrep -f "$APP_NAME"; do
-              ((COUNTDOWN--))
-              sleep 1
-            done
-            open "$FULLAPPNAME"
-          fi
-
         fi
       ''
     ) (lib.filter (p: Helpers.getMacAppName p != "") config.environment.systemPackages)}
