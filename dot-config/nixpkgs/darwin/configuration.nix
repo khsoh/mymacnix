@@ -15,6 +15,7 @@ let
   #     audacity = pkgs-pinned.audacity;  # Override audacity
   #   })
   # ];
+  useOverlay = false;
   pkgs-pinned = import (fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/b86751bc4085.tar.gz";
   }) { };
@@ -47,7 +48,7 @@ let
 in
 {
   # Replace with pkgs-pinned packages
-  nixpkgs.overlays = [
+  nixpkgs.overlays = lib.mkIf useOverlay [
     (final: prev: {
       # Override zsh
       zsh = pkgs-pinned.zsh.overrideAttrs (old: {
