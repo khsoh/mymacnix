@@ -90,7 +90,7 @@ in
 
       default = {
         restartApp = app: ''
-          ../../darwin/jxa/reqCloseApp.js \"${app}\"
+          ${../../darwin/jxa/reqCloseApp.js} \"${app}\"
         '';
       };
     };
