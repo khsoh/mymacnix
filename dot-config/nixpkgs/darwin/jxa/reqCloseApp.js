@@ -13,11 +13,11 @@ ObjC.import("stdlib");
 
 function run(argv) {
   if (argv.length < 1) {
-    console.log("Usage: reqCloseApp.js <appBundleId>\n");
+    console.log("Usage: reqCloseApp.js <appName>\n");
     $.exit(1);
   }
 
-  const bundleId = argv[0];
+  const appName = argv[0];
 
   const app = Application.currentApplication();
   app.includeStandardAdditions = true;
@@ -27,35 +27,49 @@ function run(argv) {
   // Force evaluation of the process list immediately
   const appProc = sys
     .processes()
-    .filter((p) => p.bundleIdentifier() == bundleId)[0];
-  if (appProc) {
+    .filter((p) => p.name().startsWith(appName));
+  if (appProc.length > 0) {
     try {
-      const pid = appProc.unixId();
+      const pid = appProc[0].unixId();
       const oldApp = Application(pid);
 
       const runningVersion = oldApp.version();
 
-      const installedPath = app.doShellScript(
-        `mdfind kMDItemCFBundleIdentifier = "${bundleId}"`,
-      );
+      const volumeName = "Macintosh HD";
+
+      var hfsPath = appProc[0].file().path();
+      var pathWithoutVolume = hfsPath.replace(new RegExp(`^${volumeName}`), "");
+      var installedPath = pathWithoutVolume.replace(/:$/, "").replace(/:/g, "/");
 
       const installedVersion = app.doShellScript(
         `/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${installedPath}/Contents/Info.plist"`,
       );
 
       const response = app.displayDialog(
-        `New version ${installedVersion} of ${appProc.name()} was installed.\n\nClose current app version ${runningVersion}?`,
+        `New version ${installedVersion} of ${appName} was installed.\n\nClose current app version ${runningVersion}?`,
         {
           buttons: ["Yes", "No"],
           withIcon: "caution",
         },
       );
       if (response.buttonReturned === "Yes") {
-        oldApp.quit();
-        while (sys.processes.whose({ bundleIdentifier: bundleId }).length > 0) {
-          delay(0.2);
-        }
-        Application(bundleId).activate();
+        // oldApp.quit();
+        // while (sys.processes.whose({ bundleIdentifier: bundleId }).length > 0) {
+        //   delay(0.2);
+        // }
+        // Application(bundleId).activate();
+        var script = `
+        pkill -f "${appName}" > /dev/null
+        COUNTDOWN=30
+        while pgrep -f "${appName}"; do
+          ((COUNTDOWN--))
+          sleep 1
+        done
+        FULLAPP=$(mdfind "kMDItemFSName == '${appName}.app'" | head -n1)
+        [ -n "$FULLAPP" ] || FULLAPP=$(mdfind "kMDItemFSName == '${appName}*.app'" | head -n1)
+        open "$FULLAPP"
+        `;
+        app.doShellScript(script);
       }
     } catch (e) {
       console.log(`Error is: ${e.message}`);

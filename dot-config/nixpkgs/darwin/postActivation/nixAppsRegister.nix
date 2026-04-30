@@ -91,7 +91,7 @@ in
             *)
               ;;
           esac
-          "${../jxa/reqCloseApp.js}" "$APPID"
+          "${../jxa/reqCloseApp.js}" "$APP_NAME"
 
           # --- Fix macOS Launch Services for Nix Apps ---
           # This forces macOS to recognize the app bundle immediately after rebuild

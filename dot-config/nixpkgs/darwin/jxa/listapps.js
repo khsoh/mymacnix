@@ -16,15 +16,21 @@ function run(argv) {
   const allProcs = sys.processes();
   const procArray = [];
 
+  const volumeName = "Macintosh HD";
+
   // Loop to get properties
   allProcs.forEach((p) => {
     try {
       // Call the properties as functions to fetch them
+      const hfsPath = p.file().path();
+      var pathWithoutVolume = hfsPath.replace(new RegExp(`^${volumeName}`), "");
+      var installedPath = pathWithoutVolume.replace(/:$/, "").replace(/:/g, "/");
       procArray.push({
         name: p.name() || "Unknown",
         bundleId: p.bundleIdentifier() || "Unknown",
         dispName: p.displayedName() || "Unknown",
         shortName: p.shortName() || "Unknown",
+        file: installedPath || "Unknown",
       });
     } catch (e) {
       console.log(`Error in allProcs iteration: ${e?.message}`);

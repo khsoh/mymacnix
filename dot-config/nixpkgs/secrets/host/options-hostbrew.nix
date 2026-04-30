@@ -90,8 +90,7 @@ in
 
       default = {
         restartApp = app: ''
-          APPID=$(/usr/bin/osascript -e 'id of app \"${app}\"')
-          ../../darwin/jxa/reqCloseApp.js \"$APPID\"
+          ../../darwin/jxa/reqCloseApp.js \"${app}\"
         '';
       };
     };
