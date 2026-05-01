@@ -8,18 +8,6 @@
 let
   userInfo = import ./userinfo.nix;
 
-  # The following is example of fixing specific packages to an earlier nixpkgs revision
-  # E.g. we can replace pkgs.audacity with pkgs-pinned.audacity as follows
-  # nixpkgs.overlays = [
-  #   (final: prev: {
-  #     audacity = pkgs-pinned.audacity;  # Override audacity
-  #   })
-  # ];
-  useOverlay = false;
-  pkgs-pinned = import (fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/b86751bc4085.tar.gz";
-  }) { };
-
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
@@ -47,20 +35,8 @@ let
   Helpers = config.helpers;
 in
 {
-  # Replace with pkgs-pinned packages
-  nixpkgs.overlays = lib.mkIf useOverlay [
-    (final: prev: {
-      # Override zsh
-      zsh = pkgs-pinned.zsh.overrideAttrs (old: {
-        passthru = (old.passthru or { }) // {
-          ignoredCommits = [
-            "01fbdeef22b7"
-            "6368eda62c97"
-          ];
-        };
-      });
-    })
-  ];
+  # Replace with pkgs-pinned packages (the default)
+  nixpkgs.overlays = import ./overlays.nix;
 
   imports = [
     ./globals.nix
