@@ -56,7 +56,7 @@ function run(argv) {
         var script = `
         pkill -f "${appName}" > /dev/null
         COUNTDOWN=30
-        while [ pgrep -f "${appName}" ] && [ $COUNTDOWN -gt 0 ]; do
+        while pgrep -f "${appName}" && [ $COUNTDOWN -gt 0 ]; do
           ((COUNTDOWN--))
           sleep 1
         done
