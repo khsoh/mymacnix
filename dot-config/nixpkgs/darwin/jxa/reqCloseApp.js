@@ -53,18 +53,15 @@ function run(argv) {
         },
       );
       if (response.buttonReturned === "Yes") {
-        // oldApp.quit();
-        // while (sys.processes.whose({ bundleIdentifier: bundleId }).length > 0) {
-        //   delay(0.2);
-        // }
-        // Application(bundleId).activate();
         var script = `
         pkill -f "${appName}" > /dev/null
         COUNTDOWN=30
-        while pgrep -f "${appName}"; do
+        while [ pgrep -f "${appName}" ] && [ $COUNTDOWN -gt 0 ]; do
           ((COUNTDOWN--))
           sleep 1
         done
+        # Delay required to ensure app can be reopened properly
+        sleep 2
         FULLAPP=$(mdfind "kMDItemFSName == '${appName}.app'" | head -n1)
         [ -n "$FULLAPP" ] || FULLAPP=$(mdfind "kMDItemFSName == '${appName}*.app'" | head -n1)
         open "$FULLAPP"
