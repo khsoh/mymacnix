@@ -81,6 +81,10 @@ in
       name = "bazecor";
       greedy = true;
     }
+    {
+      name = "ibkr";
+      greedy = true;
+    }
   ];
 
   hostbrew.masApps = {
