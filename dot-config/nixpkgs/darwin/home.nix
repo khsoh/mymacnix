@@ -1088,7 +1088,6 @@ in
       setNeovideUTIhandler = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
         COUNT=15
         APPNAME="${Helpers.getMacAppName pkgs.neovide}"
-        printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
 
         for (( i=$COUNT; i>0; i-- )); do
           idneovide=$(${mdls} -name kMDItemCFBundleIdentifier -raw "$(${mdfind} "kMDItemKind == 'Application' && kMDItemFSName == '$APPNAME'" | head -n 1)")
@@ -1096,6 +1095,8 @@ in
             [ $i -ne $COUNT ] && printf "\n"
             printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPNAME" "$idneovide"
             break
+          elif [ $i -eq 15 ]; then
+            printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
           fi
 
           # Update countdown on the same line
