@@ -121,40 +121,10 @@ if [ -n "$BREWOUTDATED" ]; then
     echo "$BREWOUTDATED" >&"$OUTPUT"
 fi
 
-if [ $OUTPUT -eq 2 ]; then
-    # Exit if running in launchdagent.
-    # Because it cannot handle the sudo sqlite3 command
-    exit 0
+if [ "$OUTPUT" -ne 2 ]; then
+    # Execute checktermperms only if not running in launchdagent
+    SCRIPTNAME=$(readlink -f "$0")
+    SCRIPTDIR=$(dirname "$SCRIPTNAME")
+    "$SCRIPTDIR/checktermperms.sh"
 fi
 
-TERMPROGS=("ghostty" "kitty")
-
-declare -A term_perms
-
-for termprg in "${TERMPROGS[@]}"; do
-    idprog=$(/usr/bin/osascript -e "id of application \"$termprg\"" 2>/dev/null)
-    if [ $? -ne 0 ]; then
-        # Terminal program not installed - so skip
-        continue
-    fi
-    term_perms=()
-    while IFS='|' read -r service client auth_value; do
-        term_perms[$service]=$auth_value
-    done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
-        "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
-
-    echo ""
-    echo "==============="
-    echo "$termprg security settings"
-    if [ ${#term_perms[@]} -gt 0 ]; then
-        for svc in "${!term_perms[@]}"; do
-            if [ ${term_perms[$svc]} -ne 2 ]; then
-                echo "$svc permission for $termprg is disabled" >&"$OUTPUT"
-            else
-                echo "$svc permission for $termprg is enabled"
-            fi
-        done
-    else
-        echo "No security permissions for $termprg found" >&"$OUTPUT"
-    fi
-done
