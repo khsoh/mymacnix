@@ -38,7 +38,18 @@ get_conditional_substring() {
     fi
 }
 
+function cleanup() {
+    printf "${ESC}"
+}
+
+
 if [ "$OUTPUT" -eq 1 ]; then
+    readonly ESC="$(tput sgr0)"
+    readonly BOLD="$(tput bold)"
+    readonly GREEN="$(tput setaf 2)"
+    readonly RED="$(tput setaf 1)"
+
+    trap cleanup EXIT INT TERM QUIT
     # Your login-shell-specific logic
     while getopts ":k" opt; do
         case ${opt} in
@@ -54,6 +65,11 @@ if [ "$OUTPUT" -eq 1 ]; then
                 ;;
         esac
     done
+else
+    readonly ESC=""
+    readonly BOLD=""
+    readonly GREEN=""
+    readonly RED=""
 fi
 
 
@@ -84,7 +100,7 @@ else
   fi
   echo "***New version detected on nixpkgs-unstable channel" >&"$OUTPUT"
   echo "  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)" >&"$OUTPUT"
-  echo "  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV" >&"$OUTPUT"
+  printf "${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV${ESC}\n" >&"$OUTPUT"
 fi
 
 unset 'NIXCHANNELS["nixpkgs"]'
@@ -102,7 +118,7 @@ for pkg in "${!NIXCHANNELS[@]}"; do
     if [[ "$lhash" != "$rhash" ]]; then
       echo "***New package detected on $pkg channel:" >&"$OUTPUT"
       echo "  ${pkg}_local_hash:  $(get_conditional_substring $lhash 8)" >&"$OUTPUT"
-      echo "  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)" >&"$OUTPUT"
+      printf "${RED}${BOLD}  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)${ESC}\n" >&"$OUTPUT"
     else
       echo "Local package is up-to-date with $pkg channel"
       echo "  ${pkg}_local_hash:  $lhash"
@@ -117,14 +133,15 @@ brew update > /dev/null 2>&1
 BREWOUTDATED=$(brew outdated)
 if [ -n "$BREWOUTDATED" ]; then
     echo ""
-    echo "Outdated homebrew packages:" >&"$OUTPUT"
-    echo "$BREWOUTDATED" >&"$OUTPUT"
+    printf "${RED}${BOLD}Outdated homebrew packages:${ESC}\n" >&"$OUTPUT"
+    printf "${RED}${BOLD}$BREWOUTDATED${ESC}\n" >&"$OUTPUT"
 fi
 
 if [ "$OUTPUT" -ne 2 ]; then
     # Execute checktermperms only if not running in launchdagent
     SCRIPTNAME=$(readlink -f "$0")
     SCRIPTDIR=$(dirname "$SCRIPTNAME")
+    echo ""
     "$SCRIPTDIR/checktermperms.sh"
 fi
 
