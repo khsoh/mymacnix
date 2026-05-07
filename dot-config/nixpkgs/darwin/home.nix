@@ -144,8 +144,8 @@ in
       source = pkgs.fetchFromGitHub {
         owner = ghcfg.username;
         repo = "kickstart.nvim";
-        rev = "f08dbc0fa71a8dc42ea7b746730faa8b93f880ad";
-        hash = "sha256-HqJuZIhPnVrjTfOwAmAW1VTIyxkIKDi5iQYLVJiL0kE=";
+        rev = "c5c7a1e9f22967ea5abf613d4dadd25e166a2d41";
+        hash = "sha256-HClg/qa4Q+cpHubZe2tD4n8PgmSYWBty4jW1IyCChhs=";
         #hash = lib.fakeSha256;
       };
       recursive = true;
@@ -825,7 +825,7 @@ in
           "-c"
           ''
             date
-            ${pkgs.neovim}/bin/nvim --headless "+Lazy! sync" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa" 
+            ${pkgs.neovim}/bin/nvim --headless "+MasonUpdate" "+MasonToolsUpdateSync" "+qa" 
             echo ""
           ''
         ];
