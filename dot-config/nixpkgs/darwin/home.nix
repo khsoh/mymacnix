@@ -825,7 +825,7 @@ in
           "-c"
           ''
             date
-            ${pkgs.neovim}/bin/nvim --headless "+MasonUpdate" "+MasonToolsUpdateSync" "+qa" 
+            ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
             echo ""
           ''
         ];
