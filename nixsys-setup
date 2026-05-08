@@ -268,15 +268,16 @@ if [ $? -ne 0 ]; then
     eval "$FN_is_sshd_on"
     eval "$FN_deploy_secrets"
 
-    echo "Populating ~/.ssh/known_hosts with public keys of github.com and gitlab.com"
+    echo "Populating ~/.ssh/known_hosts with public keys of github.com and gitlab.com and codeberg.org"
     # Save current umask to set temporary umask
     save_umask=$(umask)
     umask 077
 
-    # Populate known_hosts with public keys of github.com and gitlab.com
+    # Populate known_hosts with public keys of github.com and gitlab.com and codeberg.org
     mkdir -p ~/.ssh
     ssh-keyscan github.com >> ~/.ssh/known_hosts
     ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+    ssh-keyscan codeberg.org >> ~/.ssh/known_hosts
 
     # Restore original umask
     umask "$save_umask"
