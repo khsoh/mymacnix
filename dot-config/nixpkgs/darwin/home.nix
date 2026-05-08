@@ -12,6 +12,7 @@ let
   sshcfg = osConfig.secrets.target.user.sshcfg;
   ghcfg = config.github;
   glcfg = config.gitlab;
+  cbcfg = config.codeberg;
   termcfg = config.terminal;
   hlcfg = config.hardlinks;
 
@@ -372,6 +373,11 @@ in
           "https://gitlab.com" = {
             username = glcfg.username;
           };
+        }
+        // lib.optionalAttrs cbcfg.enable {
+          "https://codeberg.org" = {
+            username = cbcfg.username;
+          };
         };
     };
 
@@ -441,6 +447,40 @@ in
             contents = {
               user = {
                 email = glcfg.noreply_email;
+              };
+            };
+          }
+        ]
+    ++
+      lib.lists.optionals
+        (
+          cbcfg.enable
+          && builtins.stringLength cbcfg.noreply_email > 0
+          && cbcfg.noreply_email != config.programs.git.userEmail
+        )
+        [
+          #### The following specify noreply email for gitlab repos
+          {
+            condition = "hasconfig:remote.*.url:git@codeberg.org:*/**";
+            contents = {
+              user = {
+                email = cbcfg.noreply_email;
+              };
+            };
+          }
+          {
+            condition = "hasconfig:remote.*.url:https://codeberg.org/**";
+            contents = {
+              user = {
+                email = cbcfg.noreply_email;
+              };
+            };
+          }
+          {
+            condition = "hasconfig:remote.*.url:https://*@codeberg.org/**";
+            contents = {
+              user = {
+                email = cbcfg.noreply_email;
               };
             };
           }

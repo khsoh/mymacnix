@@ -32,6 +32,7 @@ in
   imports = [
     ./github.nix
     ./gitlab.nix
+    ./codeberg.nix
     ./terminal.nix
     ./hardlinks.nix
   ]
@@ -45,6 +46,12 @@ in
 
   ##### gitlab configuration
   config.gitlab = {
+    enable = lib.mkDefault true;
+    username = lib.mkDefault "khsoh";
+  };
+
+  ##### codeberg configuration
+  config.codeberg = {
     enable = lib.mkDefault true;
     username = lib.mkDefault "khsoh";
   };

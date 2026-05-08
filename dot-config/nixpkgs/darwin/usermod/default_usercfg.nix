@@ -25,6 +25,12 @@ in
     #   username = lib.mkDefault "khsoh";
     # };
 
+    ##### codeberg configuration
+    # codeberg = {
+    #   enable = lib.mkDefault true;
+    #   username = lib.mkDefault "khsoh";
+    # };
+
     ##### terminal configuration
     # terminal.packages = [
     #   pkgs.ghostty-bin
