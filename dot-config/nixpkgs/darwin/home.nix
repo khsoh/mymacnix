@@ -145,8 +145,8 @@ in
       source = pkgs.fetchFromGitHub {
         owner = ghcfg.username;
         repo = "kickstart.nvim";
-        rev = "7c8c1d23af79eee34f6cb928a50264953d2a1e44";
-        hash = "sha256-WIAghK2kjy8dySqefgVLiJ48ssra/nWjXdYX83z3jtE=";
+        rev = "0f72fd8bb87bc8411798276d2f126c9ed8d0ce09";
+        hash = "sha256-sqmiMUIy2JE4QUPRLte6VauUE6wuNP4ksMhkccwRLRw=";
         #hash = lib.fakeSha256;
       };
       recursive = true;
@@ -968,7 +968,7 @@ in
                     buttons { "Cancel", "OK" } default button "OK"
 
                   -- Check user response
-                  if button returned of result is "OK" then 
+                  if button returned of result is "OK" then
                     -- 1. Stage the mobileconfig file for installation
                     tell application "Finder" to open cfgFile
 
