@@ -10,6 +10,12 @@ readonly BOLD="$(tput bold)"
 readonly GREEN="$(tput setaf 2)"
 readonly RED="$(tput setaf 1)"
 
+function cleanup() {
+    printf "${ESC}"
+}
+
+trap cleanup EXIT INT TERM QUIT
+
 if [ ! -e /etc/nix-channels/system-channels ]; then
     sudo mkdir -p /etc/nix-channels
     sudo chmod a+rx /etc/nix-channels
@@ -21,15 +27,25 @@ SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
-printf "${BOLD}${RED}Starting to update channels:\n$(awk '{ print $2, $1 }' /etc/nix-channels/system-channels)${ESC}\n"
-sudo -H nix-channel --update --verbose
-printf "${BOLD}${GREEN}Completed updating channels:\n$(awk '{ print $2, $1 }' /etc/nix-channels/system-channels)${ESC}\n\n\n"
-sleep 3
+UPDCHAN=$(cat /etc/nix-channels/system-channels)
+if [ -n "$UPDCHAN" ]; then
+    printf "${BOLD}${GREEN}====== Starting to update root channels ======\n$(awk '{ print "--- ", $2, $1 }' /etc/nix-channels/system-channels)${ESC}\n"
+    printf "${BOLD}${RED}"
+    sudo -H nix-channel --update --verbose 2>&1 | tail -n +2
+    printf "${ESC}"
+    printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
+    sleep 3
+fi
 
-printf "${BOLD}${RED}Starting to update channels:\n$(nix-channel --list)${ESC}\n"
-nix-channel --update --verbose
-printf "${BOLD}${GREEN}Completed updating channels:\n$(nix-channel --list)${ESC}\n\n\n"
-sleep 3
+UPDCHAN=$(nix-channel --list)
+if [ -n "$UPDCHAN" ]; then
+    printf "${BOLD}${GREEN}====== Starting to update user channels ======\n$(awk '{ print "--- ", $1, $2 }' <(echo $UPDCHAN))${ESC}\n"
+    printf "${BOLD}${RED}"
+    nix-channel --update --verbose 2>&1 | tail -n +2
+    printf "${ESC}"
+    printf "${BOLD}${GREEN}====== Completed updating user channels ======${ESC}\n\n\n"
+    sleep 3
+fi
 
 WORKFILE=~/.working-nixpkgs
 NONWORKFILE=~/.nonworking-nixpkgs
@@ -70,7 +86,7 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
     esac
 fi
 
-printf "${BOLD}${RED}Starting to rebuild system${ESC}\n"
+printf "${BOLD}${GREEN}====== Starting to rebuild system ========${ESC}\n"
 
 ## Generate the primary user nix file
 $SCRIPTDIR/genusernix.sh
@@ -109,37 +125,8 @@ else
     fi
 fi
 
-TERMPROGS=("ghostty" "kitty")
-
-typeset -A term_perms
-
-for termprg in "${TERMPROGS[@]}"; do
-    idprog=$(/usr/bin/osascript -e "id of application \"$termprg\"" 2>/dev/null)
-    if [ $? -ne 0 ]; then
-        # Terminal program not installed - so skip
-        continue
-    fi
-    term_perms=()
-    while IFS='|' read -r service client auth_value; do
-        term_perms[$service]=$auth_value
-    done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
-        "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
-
-    echo ""
-    echo "==============="
-    echo "$termprg security settings"
-    if [ $#term_perms -gt 0 ]; then
-        for svc val in "${(@kv)term_perms}"; do
-            if [ $val -ne 2 ]; then
-                echo "$svc permission disabled"
-            else
-                echo "$svc permission enabled"
-            fi
-        done
-    else
-        echo "No security permissions found"
-    fi
-done
+printf "\n${BOLD}${GREEN}====== Checking permissions of terminal programs ======${ESC}\n"
+$SCRIPTDIR/dot-config/nixpkgs/launchdagents/checktermperms.sh
 
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 
