@@ -61,7 +61,7 @@ function run(argv) {
           sleep 1
         done
         # Delay required to ensure app can be reopened properly
-        sleep 2
+        sleep 4
         FULLAPP=$(mdfind "kMDItemFSName == '${appName}.app'" | head -n1)
         [ -n "$FULLAPP" ] || FULLAPP=$(mdfind "kMDItemFSName == '${appName}*.app'" | head -n1)
         open "$FULLAPP"
