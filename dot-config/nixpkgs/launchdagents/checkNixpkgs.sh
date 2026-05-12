@@ -48,6 +48,7 @@ if [ "$OUTPUT" -eq 1 ]; then
     readonly BOLD="$(tput bold)"
     readonly GREEN="$(tput setaf 2)"
     readonly RED="$(tput setaf 1)"
+    readonly BLUE="$(tput setaf 4)"
 
     trap cleanup EXIT INT TERM QUIT
     # Your login-shell-specific logic
@@ -70,6 +71,7 @@ else
     readonly BOLD=""
     readonly GREEN=""
     readonly RED=""
+    readonly BLUE=""
 fi
 
 
@@ -88,19 +90,19 @@ LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 WORKFILE=~/.working-nixpkgs
 NONWORKFILE=~/.nonworking-nixpkgs
 if [[ $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION ]]; then
-  echo "Local nixpkgs version is up-to-date with nixpkgs-unstable channel"
-  echo "  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION"
+  printf "${GREEN}${BOLD}=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===${ESC}\n"
+  printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION\n"
 else
   WARNREV=
-  if test -e $NONWORKFILE && 
+  if test -e $NONWORKFILE &&
       grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE &&
-      ! (test -e $WORKFILE && 
+      ! (test -e $WORKFILE &&
       grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE) ; then
     WARNREV="(Failed last darwin-rebuild)"
   fi
-  echo "***New version detected on nixpkgs-unstable channel" >&"$OUTPUT"
-  echo "  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)" >&"$OUTPUT"
-  printf "${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV${ESC}\n" >&"$OUTPUT"
+  printf "${GREEN}${BOLD}*** New version detected on nixpkgs-unstable channel ***${ESC}\n" >&"$OUTPUT"
+  printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)\n" >&"$OUTPUT"
+  printf "${BLUE}${BOLD}==>${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV${ESC}\n" >&"$OUTPUT"
 fi
 
 unset 'NIXCHANNELS["nixpkgs"]'
@@ -116,15 +118,15 @@ for pkg in "${!NIXCHANNELS[@]}"; do
     rhash=$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
 
     if [[ "$lhash" != "$rhash" ]]; then
-      echo "***New package detected on $pkg channel:" >&"$OUTPUT"
-      echo "  ${pkg}_local_hash:  $(get_conditional_substring $lhash 8)" >&"$OUTPUT"
-      printf "${RED}${BOLD}  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)${ESC}\n" >&"$OUTPUT"
+      printf "${GREEN}${BOLD}*** New package detected on $pkg channel ***${ESC}\n" >&"$OUTPUT"
+      printf "${BLUE}${BOLD}==>${ESC}  ${pkg}_local_hash:  $(get_conditional_substring $lhash 8)\n" >&"$OUTPUT"
+      printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)${ESC}\n" >&"$OUTPUT"
     else
-      echo "Local package is up-to-date with $pkg channel"
-      echo "  ${pkg}_local_hash:  $lhash"
+      printf "${GREEN}${BOLD}=== Local package is up-to-date with $pkg channel ===${ESC}\n"
+      printf "${BLUE}${BOLD}==>${ESC}  ${pkg}_local_hash:  $lhash\n"
     fi
   else
-    echo "!!!Cannot find local installed package detected for channel $pkg" >&2
+    printf "${RED}${BOLD}!!!Cannot find local installed package detected for channel $pkg${ESC}\n" >&2
   fi
 done
 
@@ -133,8 +135,10 @@ brew update > /dev/null 2>&1
 BREWOUTDATED=$(brew outdated)
 if [ -n "$BREWOUTDATED" ]; then
     echo ""
-    printf "${RED}${BOLD}Outdated homebrew packages:${ESC}\n" >&"$OUTPUT"
-    printf "${RED}${BOLD}$BREWOUTDATED${ESC}\n" >&"$OUTPUT"
+    printf "${GREEN}${BOLD}*** Outdated homebrew packages ***${ESC}\n" >&"$OUTPUT"
+    while IFS= read =r line; do
+        printf "${BLUE}${BOLD}==>${RED}${BOLD}  $line${ESC}\n" >&"$OUTPUT"
+    done <<< "$BREWOUTDATED"
 fi
 
 if [ "$OUTPUT" -ne 2 ]; then
@@ -142,6 +146,7 @@ if [ "$OUTPUT" -ne 2 ]; then
     SCRIPTNAME=$(readlink -f "$0")
     SCRIPTDIR=$(dirname "$SCRIPTNAME")
     echo ""
+    echo "==============="
     "$SCRIPTDIR/checktermperms.sh"
 fi
 

@@ -9,6 +9,7 @@ readonly ESC="$(tput sgr0)"
 readonly BOLD="$(tput bold)"
 readonly GREEN="$(tput setaf 2)"
 readonly RED="$(tput setaf 1)"
+readonly BLUE="$(tput setaf 4)"
 
 function cleanup() {
     printf "${ESC}"
@@ -33,20 +34,19 @@ for termprg in "${TERMPROGS[@]}"; do
     done < <(sudo sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db \
         "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
 
-    printf "===============\n"
-    printf "$termprg security settings\n"
+    printf "${GREEN}${BOLD}=== $termprg security settings ===${ESC}\n"
     for svc in "${!term_perms[@]}"; do
         if [ ${term_perms[$svc]} -ne 2 ]; then
-            printf "${RED}${BOLD}$svc permission for $termprg is disabled${ESC}\n"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  $svc permission for $termprg is disabled${ESC}\n"
         else
-            printf "$svc permission for $termprg is enabled\n"
+            printf "${BLUE}${BOLD}==>${ESC}  $svc permission for $termprg is enabled\n"
         fi
     done
 
     # Check for missing permissions
     for perm in "${required_perms[@]}"; do
         if [[ ! -v term_perms["$perm"] ]]; then
-            printf "${RED}${BOLD}$perm permission missing for $termprg${ESC}\n"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  $perm permission missing for $termprg${ESC}\n"
         fi
     done
     printf "\n";
