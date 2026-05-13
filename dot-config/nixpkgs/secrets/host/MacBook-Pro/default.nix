@@ -55,6 +55,11 @@ in
       postinstall = restartApp "Mouseless";
     }
     {
+      name = "dropbox";
+      greedy = true;
+      postinstall = restartApp "Dropbox";
+    }
+    {
       name = "displaylink";
       greedy = true;
       postinstall = restartApp "DisplayLink Manager";

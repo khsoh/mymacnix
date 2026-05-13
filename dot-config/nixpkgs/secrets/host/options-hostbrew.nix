@@ -148,11 +148,6 @@ in
       name = "yubico-authenticator";
       greedy = true;
     }
-    {
-      name = "dropbox";
-      greedy = true;
-      postinstall = restartApp "Dropbox";
-    }
   ];
 
   config.hostbrew.masApps = lib.mkBefore {
