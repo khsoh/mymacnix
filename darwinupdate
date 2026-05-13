@@ -29,20 +29,28 @@ SCRIPTDIR=$(dirname "$SCRIPTNAME")
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 UPDCHAN=$(cat /etc/nix-channels/system-channels)
 if [ -n "$UPDCHAN" ]; then
-    printf "${BOLD}${GREEN}====== Starting to update root channels ======\n$(awk '{ print "--- ", $2, $1 }' /etc/nix-channels/system-channels)${ESC}\n"
+    printf "${BOLD}${GREEN}====== Starting to update root channels ======\n"
+    while read -r url name; do
+        # Skip empty lines or lines missing a name
+        [[ -z "$url" || -z "$name" ]] && continue
+        printf "--- $name $url\n"
+    done <<< "$UPDCHAN"
     printf "${BOLD}${RED}"
     sudo -H nix-channel --update --verbose 2>&1 | tail -n +2
-    printf "${ESC}"
     printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
     sleep 3
 fi
 
 UPDCHAN=$(nix-channel --list)
 if [ -n "$UPDCHAN" ]; then
-    printf "${BOLD}${GREEN}====== Starting to update user channels ======\n$(awk '{ print "--- ", $1, $2 }' <(echo $UPDCHAN))${ESC}\n"
+    printf "${BOLD}${GREEN}====== Starting to update user channels ======\n"
+    while read -r name url; do
+        # Skip empty lines or lines missing a name
+        [[ -z "$url" || -z "$name" ]] && continue
+        printf "--- $name $url\n"
+    done <<< "$UPDCHAN"
     printf "${BOLD}${RED}"
     nix-channel --update --verbose 2>&1 | tail -n +2
-    printf "${ESC}"
     printf "${BOLD}${GREEN}====== Completed updating user channels ======${ESC}\n\n\n"
     sleep 3
 fi

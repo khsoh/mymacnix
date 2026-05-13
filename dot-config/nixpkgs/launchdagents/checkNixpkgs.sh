@@ -77,7 +77,13 @@ fi
 
 declare -A NIXCHANNELS
 
-eval "$(awk 'BEGIN { OFS="" } { print "NIXCHANNELS[",$2,"]=",$1 }' /etc/nix-channels/system-channels)"
+while read -r url name; do
+    # Skip empty lines or lines missing a name
+    [[ -z "$url" || -z "$name" ]] && continue
+
+    # Assign the url to the name index
+    NIXCHANNELS["$name"]="$url"
+done < /etc/nix-channels/system-channels
 
 LOCAL_NIXPKGSREVISION=$(darwin-version --json|jq -r ".nixpkgsRevision")
 
