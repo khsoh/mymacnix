@@ -92,13 +92,36 @@ in
               ;;
           esac
 
+          XAPP="''${APP_NAME%.app}"
+          unset FULLAPP
+          if pgrep -f "$XAPP" >/dev/null; then
+            FULLAPP=$(mdfind "kMDItemFSName == \"''${XAPP}.app\"" | head -n1)
+            [ -n "$FULLAPP" ] || FULLAPP=$(mdfind "kMDItemFSName == \"''${XAPP}*.app\"" | head -n1)
+            COUNTDOWN=30
+            # shellcheck disable=SC2059
+            printf "''${RED}==>''${ESC} %s\n" "Closing $APP_NAME to rebuild Launch Services database"
+            pkill -f "$XAPP"
+            while pgrep -f "$XAPP" >/dev/null && [ $COUNTDOWN -gt 0 ]; do
+              ((COUNTDOWN--))
+              sleep 1
+            done
+            sleep 3
+          fi
+
           # --- Fix macOS Launch Services for Nix Apps ---
           # This forces macOS to recognize the app bundle immediately after rebuild
-          echo "Registering $APP_NAME in /Applications/Nix Apps with Launch Services..."
+          # shellcheck disable=SC2059
+          printf "''${RED}==>''${ESC} Registering $APP_NAME in /Applications/Nix Apps with Launch Services...\n"
           $LSREGISTER -f "$FULLAPPNAME"
 
-          # Close and reopen new app if it was running
-          "${../jxa/reqCloseApp.js}" "''${APP_NAME%.app}"
+          # Reopen new app if it was running
+          if [ -n "$FULLAPP" ]; then
+            sleep 3
+            # shellcheck disable=SC2059
+            printf "''${RED}==>''${ESC} Re-opening $APP_NAME...\n"
+            open "$FULLAPP"
+          fi
+          echo ""
         fi
       ''
     ) (lib.filter (p: Helpers.getMacAppName p != "") config.environment.systemPackages)}
