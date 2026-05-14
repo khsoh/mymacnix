@@ -55,7 +55,7 @@ for termprg in "${TERMPROGS[@]}"; do
     # Check for missing permissions
     for perm in "${required_perms[@]}"; do
         if [[ ! -v term_perms["$perm"] ]]; then
-            printf "${BLUE}${BOLD}==>${RED}${BOLD}  $*s permission missing${ESC}\n" "$max_len" "$perm"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  %*s permission missing${ESC}\n" "$max_len" "$perm"
         fi
     done
     printf "\n";
