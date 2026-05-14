@@ -22,6 +22,15 @@ TERMPROGS=("ghostty" "kitty")
 declare -A term_perms
 
 required_perms=("kTCCServiceAccessibility" "kTCCServiceSystemPolicyAllFiles")
+max_len=0
+for perm in "${required_perms[@]}"; do
+    len=${#perm}
+
+    if (( len > max_len )); then
+        max_len=$len
+    fi
+done
+
 for termprg in "${TERMPROGS[@]}"; do
     idprog=$(/usr/bin/osascript -e "id of application \"$termprg\"" 2>/dev/null)
     if [ $? -ne 0 ]; then
@@ -37,16 +46,16 @@ for termprg in "${TERMPROGS[@]}"; do
     printf "${GREEN}${BOLD}=== $termprg security settings ===${ESC}\n"
     for svc in "${!term_perms[@]}"; do
         if [ ${term_perms[$svc]} -ne 2 ]; then
-            printf "${BLUE}${BOLD}==>${RED}${BOLD}  $svc permission for $termprg is disabled${ESC}\n"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  %*s permission for $termprg is disabled${ESC}\n" "$max_len" "$svc"
         else
-            printf "${BLUE}${BOLD}==>${ESC}  $svc permission for $termprg is enabled\n"
+            printf "${BLUE}${BOLD}==>${ESC}  %*s permission for $termprg is enabled\n" "$max_len" "$svc"
         fi
     done
 
     # Check for missing permissions
     for perm in "${required_perms[@]}"; do
         if [[ ! -v term_perms["$perm"] ]]; then
-            printf "${BLUE}${BOLD}==>${RED}${BOLD}  $perm permission missing for $termprg${ESC}\n"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  $*s permission missing for $termprg${ESC}\n" "$max_len" "$perm"
         fi
     done
     printf "\n";
