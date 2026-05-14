@@ -28,7 +28,7 @@ function run(argv) {
   const appProc = sys
     .processes()
     .filter((p) => p.name().startsWith(appName));
-  if (appProc.length > 0) {
+  if (appProc && appProc.length > 0) {
     try {
       const pid = appProc[0].unixId();
       const oldApp = Application(pid);
