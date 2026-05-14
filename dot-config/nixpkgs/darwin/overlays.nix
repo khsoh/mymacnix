@@ -27,7 +27,11 @@ let
     pkgName: srcConfig: prev:
     let
       # Import the pinned version for this specific source
-      pinnedPkgs = import (fetchTarball { url = srcConfig.url; }) { };
+      # Pass prev.config to the imported nixpkgs instance to respect
+      # any package that enable allowUnfreePredicate.
+      pinnedPkgs = import (fetchTarball { url = srcConfig.url; }) {
+        inherit (prev) config;
+      };
       pinnedPkg = pinnedPkgs.${pkgName};
 
       # Get the original package from the current channel (prev)
