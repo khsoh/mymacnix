@@ -96,44 +96,59 @@ LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 WORKFILE=~/.working-nixpkgs
 NONWORKFILE=~/.nonworking-nixpkgs
 if [[ $LOCAL_NIXPKGSREVISION == $REMOTE_NIXPKGSREVISION ]]; then
-  printf "${GREEN}${BOLD}=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===${ESC}\n"
-  printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION:: $LOCAL_NIXPKGSREVISION\n"
+    printf "${GREEN}${BOLD}=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===${ESC}\n"
+    printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $LOCAL_NIXPKGSREVISION\n"
 else
-  WARNREV=
-  if test -e $NONWORKFILE &&
-      grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE &&
-      ! (test -e $WORKFILE &&
-      grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE) ; then
-    WARNREV="(Failed last darwin-rebuild)"
-  fi
-  printf "${GREEN}${BOLD}*** New version detected on nixpkgs-unstable channel ***${ESC}\n" >&"$OUTPUT"
-  printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION:: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)\n" >&"$OUTPUT"
-  printf "${BLUE}${BOLD}==>${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV${ESC}\n" >&"$OUTPUT"
+    WARNREV=
+    if test -e $NONWORKFILE &&
+        grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE &&
+        ! (test -e $WORKFILE &&
+            grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE) ; then
+        WARNREV="(Failed last darwin-rebuild)"
+    fi
+    printf "${GREEN}${BOLD}*** New version detected on nixpkgs-unstable channel ***${ESC}\n" >&"$OUTPUT"
+    printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $(get_conditional_substring $LOCAL_NIXPKGSREVISION 10)\n" >&"$OUTPUT"
+    printf "${BLUE}${BOLD}==>${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring $REMOTE_NIXPKGSREVISION 10) $WARNREV${ESC}\n" >&"$OUTPUT"
 fi
 
 unset 'NIXCHANNELS["nixpkgs"]'
 
+## Compute the maximum length of channel name
+max_namelen=0
+for channame in "${!NIXCHANNELS[@]}"; do
+    pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/$channame)
+    [[ -z ${pkgpath+x} ]] && continue
+
+    len=${#channame}
+
+    if (( len > max_namelen )); then
+        max_namelen=$len
+    fi
+done
+# Add length of _remote_hash
+(( max_namelen = max_namelen + $(echo -n "_remote_hash" | wc -m) ))
+
 echo ""
 echo "==============="
-for pkg in "${!NIXCHANNELS[@]}"; do
-  pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/$pkg)
-  if [[ ! -z ${pkgpath+x} ]]; then
-    pkgurl=${NIXCHANNELS[$pkg]}
+for channame in "${!NIXCHANNELS[@]}"; do
+    pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/$channame)
+    if [[ ! -z ${pkgpath+x} ]]; then
+        pkgurl=${NIXCHANNELS[$channame]}
 
-    lhash=$(nix-hash --base32 --type sha256 $pkgpath/)
-    rhash=$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
+        lhash=$(nix-hash --base32 --type sha256 $pkgpath/)
+        rhash=$(nix-prefetch-url --unpack --type sha256 $pkgurl 2> /dev/null)
 
-    if [[ "$lhash" != "$rhash" ]]; then
-      printf "${GREEN}${BOLD}*** New package detected on $pkg channel ***${ESC}\n" >&"$OUTPUT"
-      printf "${BLUE}${BOLD}==>${ESC}  ${pkg}_local_hash:  $(get_conditional_substring $lhash 8)\n" >&"$OUTPUT"
-      printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${pkg}_remote_hash: $(get_conditional_substring $rhash 8)${ESC}\n" >&"$OUTPUT"
+        if [[ "$lhash" != "$rhash" ]]; then
+            printf "${GREEN}${BOLD}*** New package detected on $channame channel ***${ESC}\n" >&"$OUTPUT"
+            printf "${BLUE}${BOLD}==>${ESC}  %-*s: $(get_conditional_substring $lhash 8)\n" "$max_namelen" "${channame}_local_hash" >&"$OUTPUT"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  %-*s: $(get_conditional_substring $rhash 8)${ESC}\n" "$max_namelen" "${channame}_remote_hash" >&"$OUTPUT"
+        else
+            printf "${GREEN}${BOLD}=== Local package is up-to-date with $channame channel ===${ESC}\n"
+            printf "${BLUE}${BOLD}==>${ESC}  %-*s: $lhash\n" "$max_namelen" "${channame}_local_hash"
+        fi
     else
-      printf "${GREEN}${BOLD}=== Local package is up-to-date with $pkg channel ===${ESC}\n"
-      printf "${BLUE}${BOLD}==>${ESC}  ${pkg}_local_hash:  $lhash\n"
+        printf "${RED}${BOLD}!!!Cannot find local installed package detected for channel $channame${ESC}\n" >&2
     fi
-  else
-    printf "${RED}${BOLD}!!!Cannot find local installed package detected for channel $pkg${ESC}\n" >&2
-  fi
 done
 
 # Perform homebrew check for outdated packages
