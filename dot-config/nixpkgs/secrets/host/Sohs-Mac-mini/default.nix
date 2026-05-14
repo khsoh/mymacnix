@@ -38,10 +38,6 @@ in
     }
   ];
 
-  hostPackages = with pkgs; [
-    brave
-  ];
-
   hostbrew.brews = [
   ];
 

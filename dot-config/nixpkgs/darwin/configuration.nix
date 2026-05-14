@@ -91,11 +91,7 @@ in
       "1password-cli"
       "1password"
       "discord"
-      "google-chrome"
     ];
-  # nixpkgs.config.permittedInsecurePackages = [
-  #   "google-chrome-144.0.7559.97"
-  # ];
 
   # Files to symlink in /etc
   environment.etc = {
@@ -137,7 +133,6 @@ in
 
       squashfsTools
       discord
-      google-chrome
       bat
       tmux
       gnused
@@ -490,6 +485,7 @@ in
       )
       ++ lib.optional (Helpers.pkgInstalled pkgs.brave) (Helpers.getMacBundleAppName pkgs.brave)
       ++ lib.optional (Helpers.brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
+      ++ lib.optional (Helpers.brewAppInstalled "google-chrome") "/Applications/Google Chrome.app"
     );
   };
   system.defaults.trackpad = {

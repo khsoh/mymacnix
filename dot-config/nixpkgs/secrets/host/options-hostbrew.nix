@@ -118,6 +118,16 @@ in
       postinstall = restartApp "Google Drive";
     }
     {
+      name = "google-chrome";
+      greedy = true;
+      postinstall = restartApp "Google Chrome";
+    }
+    {
+      name = "brave-browser";
+      greedy = true;
+      postinstall = restartApp "Brave Browser";
+    }
+    {
       name = "proton-drive";
       greedy = true;
       postinstall = restartApp "Proton Drive";
