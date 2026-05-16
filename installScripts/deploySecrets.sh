@@ -82,7 +82,22 @@ fi
 XHOST=$(run "/usr/sbin/scutil --get LocalHostName")
 XUSER=$(run "/usr/bin/id -un")
 
-PKDATA=$(nix-instantiate --eval --strict --json -E "(import (<darwin-secrets> + \"/deploy.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; })")
+PKDATA=$(nix-instantiate --eval --strict --json -E "
+  let
+    removeFunctions = value:
+      if builtins.isAttrs value then
+        builtins.listToAttrs (
+          builtins.concatMap (name:
+            let val = value.\${name};
+            in if builtins.isFunction val then [ ] else [ { name = name; value = removeFunctions val; } ]
+          ) (builtins.attrNames value)
+        )
+      else if builtins.isList value then
+        builtins.map (e: removeFunctions e) (builtins.filter (e: !builtins.isFunction e) value)
+      else
+        value;
+  in removeFunctions (import (<darwin-secrets> + \"/deploy.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; })
+")
 
 USERCMDS=$(cat <<EOF
 #!/usr/bin/env zsh
