@@ -41,6 +41,10 @@ in
     }
   ];
 
+  hostPackages = with pkgs; [
+    discord
+  ];
+
   hostbrew.brews = [
   ];
 
