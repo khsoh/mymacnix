@@ -33,7 +33,7 @@ in
     }
   ];
 
-  hostbrew.brews = lib.mkForce [ ];
+  hostbrew.brews = lib.mkForce [ "mas" ]; # Must have mas or homebrew does not run properly
   hostbrew.casks = lib.mkForce [ ];
   hostbrew.masApps = lib.mkForce { };
 }
