@@ -3,8 +3,6 @@
 set -u
 set -o pipefail
 
-## Choice of repository host "github" or "gitlab"
-
 readonly ESC="$(tput sgr0)"
 readonly BOLD="$(tput bold)"
 readonly GREEN="$(tput setaf 2)"
