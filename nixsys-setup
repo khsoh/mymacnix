@@ -160,6 +160,11 @@ while test $# -gt 0; do
     shift
 done
 
+case "$REPOHOST" in
+    codeberg) SUFFIX="org" ;;
+    *) SUFFIX="com" ;;
+esac
+
 ## Executed the startup scripts to check what whether nix or nix-darwin installed
 DARWININSTALLED=1
 ZSCRIPTSRUN=0
@@ -253,6 +258,7 @@ if [ $? -ne 0 ]; then
     print_arrow "Cloning branch ${BRANCH} of mymacnix repo"
     export BRANCH
     export REPOHOST
+    export SUFFIX
     export GREEN
     export RED
     export BOLD
@@ -286,7 +292,7 @@ if [ $? -ne 0 ]; then
     deploy_secrets
 
     echo "Cloning branch ${BRANCH} from ${REPOHOST}"
-    git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.com/khsoh/mymacnix.git "$gitfolder"
+    git clone --branch ${BRANCH} --recurse-submodules https://${REPOHOST}.${SUFFIX}/khsoh/mymacnix.git "$gitfolder"
     mkdir -p ~/Library/LaunchAgents
     cd $gitfolder
     ./git-remote-init.sh
