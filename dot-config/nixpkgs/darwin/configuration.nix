@@ -169,8 +169,6 @@ in
       zig
       btop
 
-      mas
-
       # The following packages that could not be installed because these are marked as broken
       # handbrake
 

@@ -79,7 +79,7 @@ in
 
     masApps = lib.mkOption {
       type = options.homebrew.masApps.type;
-      default = [ ];
+      default = { };
       description = ''
         Set of host-specific homebrew masApps packages
       '';
