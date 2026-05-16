@@ -459,7 +459,7 @@ in
           && cbcfg.noreply_email != config.programs.git.userEmail
         )
         [
-          #### The following specify noreply email for gitlab repos
+          #### The following specify noreply email for codeberg repos
           {
             condition = "hasconfig:remote.*.url:git@codeberg.org:*/**";
             contents = {
