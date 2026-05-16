@@ -27,15 +27,17 @@ function makerepo () {
         echo "https://raw.githubusercontent.com/khsoh/mymacnix/$2/$3"
     elif [[ "$1" == "gitlab" ]]; then
         echo "https://gitlab.com/khsoh/mymacnix/-/raw/$2/$3"
+    elif [[ "$1" == "codeberg" ]]; then
+        echo "https://codeberg.org/khsoh/mymacnix/raw/branch/$2/$3"
     else
-        echo "Improper host $1 specified.  Repo host must be github or gitlab"
+        echo "Improper host $1 specified.  Repo host must be github or gitlab or codeberg"
         exit 1
     fi
 }
 
 function usage () {
     print_arrow "Usage: "
-    print_arrow "  sh <(curl -L $(makerepo ${REPOHOST} "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github)]"
+    print_arrow "  sh <(curl -L $(makerepo ${REPOHOST} "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github|codeberg)]"
     print_arrow "    The default feature-branch is 'main' if it is not specified"
     print_arrow "    The default repohost is 'gitlab' if it is not specified"
     exit 1
@@ -100,7 +102,7 @@ if [[ $(nix --version 2>/dev/null) ]]; then
 fi
 
 # Prompt user for git folder early in install process because the Nix installation
-# time takes a while - so we want the automated installation can proceed without 
+# time takes a while - so we want the automated installation can proceed without
 # interruption after all the user inputs are collected first.
 get_gitfolder
 
