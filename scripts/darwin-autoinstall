@@ -55,6 +55,8 @@ fi
 if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
     echo "Installing Homebrew"
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    ## Install mas
+    /opt/homebrew/bin/brew install mas
 fi
 
 print_arrow "Downloading nix-darwin"
