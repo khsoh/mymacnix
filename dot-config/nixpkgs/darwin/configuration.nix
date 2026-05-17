@@ -111,41 +111,64 @@ in
   environment.systemPackages =
     with pkgs;
     [
+      ## Viewers, editors and supporting utilities
       vim
       neovim
       neovide
-      duti
-      rsync
-      nixd # LSP for nix
-      python3
-      age
-      nix-prefetch-github
-      (callPackage <agenix/pkgs/agenix.nix> { })
+      tree
+      mupdf
 
-      ### The following are for kickstart.nvim
-      ripgrep
-      unzip
-      wget
-      fd
-      nixfmt
-
-      openssh # Install this as macOS disables use of HW security keys for SSH
-
-      squashfsTools
-      bat
-      tmux
-      gnused
-      moreutils
+      ## Programming development
       git
       git-credential-manager
       git-lfs
       git-repo
       git-filter-repo
       gh
-      tree
+
+      ## Programming languages and LSPs
+      nixd # LSP for nix
+      python3
+      nix-prefetch-github
+      nixfmt
+      cargo
+      zig
+      # The following packages are to support neovim-related builds
+      go
+      nodejs-slim
+
+      # Security related packages
+      gnupg
+      age
+      (callPackage <agenix/pkgs/agenix.nix> { })
+      openssh # Install this as macOS disables use of HW security keys for SSH
+
+      ## System Utilities
+      duti
+      rsync
+      ripgrep
+      unzip
+      wget
+      fd
+      squashfsTools
+      bat
+      gnused
+      moreutils
       jq
-      # dhall-json  ## Remove this because the nds alias can be used instead
+      exiftool
+      ttyplot
+      fastfetch
+      btop
+
+      ## Desktop and terminal related packages
+      tmux
       rectangle
+      stow
+
+      ## Multimedia related utilities
+      vlc-bin
+      audacity
+
       ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];
@@ -154,24 +177,9 @@ in
       #   echo "This is a postPhase that is executed after installation"
       #   '';
       # })
-      stow
-      cargo
-      mupdf
-      exiftool
-      # The following packages are to support neovim-related builds
-      go
-      nodejs-slim
 
-      vlc-bin
-      audacity
-      ttyplot
-      fastfetch
-      zig
-      btop
-
-      # The following packages that could not be installed because these are marked as broken
+      ## The following packages that could not be installed because these are marked as broken
       # handbrake
-
     ]
     ++ allTerminalPackages
     ++ lib.optionals install_onepassword [
