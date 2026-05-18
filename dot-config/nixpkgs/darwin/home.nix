@@ -690,6 +690,19 @@ in
     };
   };
 
+  programs.gpg = {
+    enable = true;
+
+    settings = {
+      "auto-key-locate" = "local,wkd,keyserver";
+    };
+
+    dirmngrSettings = {
+      standard-resolver = true;
+      keyserver = "hkps://keys.openpgp.org  hkps://keys.mailvelope.com";
+    };
+  };
+
   ### Setup the user-specific launch agents
   launchd.enable = true;
 
