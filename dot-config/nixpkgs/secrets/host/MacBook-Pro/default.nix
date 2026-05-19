@@ -41,10 +41,6 @@ in
     }
   ];
 
-  hostPackages = with pkgs; [
-    discord
-  ];
-
   hostbrew.brews = [
   ];
 
@@ -53,6 +49,11 @@ in
       name = "mouseless";
       greedy = true;
       postinstall = restartApp "Mouseless";
+    }
+    {
+      name = "discord";
+      greedy = true;
+      postinstall = restartApp "Discord";
     }
     {
       name = "dropbox";
