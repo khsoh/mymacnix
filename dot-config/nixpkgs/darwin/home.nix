@@ -294,17 +294,19 @@ in
     (lib.mkIf onepasscfg.enable {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks."*" = {
-        addKeysToAgent = "no";
-        forwardAgent = false;
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+      settings = {
+        "*" = {
+          addKeysToAgent = "no";
+          forwardAgent = false;
+          compression = false;
+          serverAliveInterval = 0;
+          serverAliveCountMax = 3;
+          hashKnownHosts = false;
+          userKnownHostsFile = "~/.ssh/known_hosts";
+          controlMaster = "no";
+          controlPath = "~/.ssh/master-%r@%n:%p";
+          controlPersist = "no";
+        };
       };
       extraConfig = ''
         IdentityAgent "${SSHSOCK}"
@@ -314,17 +316,19 @@ in
     (lib.mkIf (!onepasscfg.enable) {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks."*" = {
-        addKeysToAgent = "yes";
-        forwardAgent = false;
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+      settings = {
+        "*" = {
+          addKeysToAgent = "yes";
+          forwardAgent = false;
+          compression = false;
+          serverAliveInterval = 0;
+          serverAliveCountMax = 3;
+          hashKnownHosts = false;
+          userKnownHostsFile = "~/.ssh/known_hosts";
+          controlMaster = "no";
+          controlPath = "~/.ssh/master-%r@%n:%p";
+          controlPersist = "no";
+        };
       };
       extraConfig = ''
         IdentityFile ${sshcfg.PKFILE}
