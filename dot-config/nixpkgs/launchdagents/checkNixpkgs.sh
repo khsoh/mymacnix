@@ -157,7 +157,7 @@ BREWOUTDATED=$(brew outdated)
 if [ -n "$BREWOUTDATED" ]; then
     echo ""
     printf "${GREEN}${BOLD}*** Outdated homebrew packages ***${ESC}\n" >&"$OUTPUT"
-    while IFS= read =r line; do
+    while IFS= read -r line; do
         printf "${BLUE}${BOLD}==>${RED}${BOLD}  $line${ESC}\n" >&"$OUTPUT"
     done <<< "$BREWOUTDATED"
 fi
