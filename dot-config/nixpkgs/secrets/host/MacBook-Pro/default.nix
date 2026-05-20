@@ -68,12 +68,10 @@ in
     {
       name = "loopback";
       greedy = true;
-      postinstall = restartApp "Loopback";
     }
     {
       name = "audio-hijack";
       greedy = true;
-      postinstall = restartApp "Audio Hijack";
     }
     {
       name = "obs";
