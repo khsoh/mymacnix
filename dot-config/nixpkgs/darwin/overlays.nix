@@ -3,6 +3,15 @@ let
   # You can have different URLs/commits for different packages
   # You can comment out everything within sources if there is nothing to override
   sources = {
+    "bitwarden-desktop" = {
+      url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
+      ignoredCommits = [
+        "f9d8b6595035"
+      ];
+      # Optional: Add a description or version tag for clarity
+      desc = "Pinned bitwarden-desktop";
+    };
+
     # zsh = {
     #   url = "https://github.com/NixOS/nixpkgs/archive/b86751bc4085.tar.gz";
     #   ignoredCommits = [
