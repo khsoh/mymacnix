@@ -376,7 +376,6 @@ in
     };
   };
 
-  environment.enableAllTerminfo = true;
   nix.optimise.automatic = true;
 
   # Setup aliases
