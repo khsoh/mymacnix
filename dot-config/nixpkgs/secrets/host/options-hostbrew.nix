@@ -114,7 +114,6 @@ in
     {
       name = "google-drive";
       greedy = true;
-      postinstall = restartApp "Google Drive";
     }
     {
       name = "google-chrome";
