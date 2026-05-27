@@ -105,7 +105,6 @@ in
     {
       name = "whatsapp";
       greedy = true;
-      postinstall = restartApp "WhatsApp";
     }
     {
       name = "signal";
