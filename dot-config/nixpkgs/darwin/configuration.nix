@@ -135,7 +135,7 @@ in
       zig
       # The following packages are to support neovim-related builds
       go
-      nodejs-slim
+      nodejs
 
       # Security related packages
       gnupg
