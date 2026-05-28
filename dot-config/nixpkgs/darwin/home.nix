@@ -16,6 +16,10 @@ let
   termcfg = config.terminal;
   hlcfg = config.hardlinks;
 
+  minimaxName = "nvim-minimax";
+  minimaxRepo = "https://github.com/${ghcfg.username}/minimax.git";
+  minimaxConfig = "${config.xdg.configHome}/${minimaxName}";
+
   # Shortcut to get helper functions
   Helpers = osConfig.helpers;
 
@@ -145,8 +149,8 @@ in
       source = pkgs.fetchFromGitHub {
         owner = ghcfg.username;
         repo = "kickstart.nvim";
-        rev = "7bbb3a2bd2310582111c25416fdbd17db97dd86a";
-        hash = "sha256-e6MulVvN8GyFrsRm2+9UMRvLYQpy7ycKfK6I0378xH4=";
+        rev = "83510021290f56bb954c713bed3cf13c224ab686";
+        hash = "sha256-2RXYuFZlz7zLILe9lzwpHL7/uWrzbG+En89tDDGKj40=";
         #hash = lib.fakeSha256;
       };
       recursive = true;
@@ -213,6 +217,7 @@ in
     hbb = "brew bundle";
     hbu = "brew update";
     nvim-tmp = "nvim - +'set buftype=nofile'";
+    nvx = "NVIM_APPNAME=${minimaxName} nvim";
 
     # Standard agenix wrapper to include age key file
     anix = "agenix -i ${userPKFILEPath}";
@@ -883,6 +888,7 @@ in
           ''
             date
             ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+            NVIM_APPNAME="${minimaxConfig}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
             echo ""
           ''
         ];
@@ -1037,6 +1043,15 @@ in
         YELLOW="\x1b[33m"
         # shellcheck disable=SC2034
         BLUE="\x1b[34m"
+      '';
+
+      # Clone into ${minimaxConfig}
+      bootstrapMinimax = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
+        if [ ! -d "${minimaxConfig}" ]; then
+          printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration''${ESC}\n"
+          ${pkgs.git}/bin/git clone "${minimaxRepo}" "${minimaxConfig}"
+          ${pkgs.git}/bin/git -C "${minimaxConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
+        fi
       '';
 
       install1PasswordCfg = lib.mkIf onepasscfg.enable (
