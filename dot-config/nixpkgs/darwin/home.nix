@@ -888,7 +888,46 @@ in
           ''
             date
             ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-            NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+            if [ -d "${minimaxConfig}" ]; then
+              pushd "${minimaxConfig}" >/dev/null
+              GIT="${pkgs.git}/bin/git"
+              $GIT fetch -q
+
+              FULL_STATUS=$($GIT status --porcelain -b)
+
+              BRANCH_HEADER=$(echo "$FULL_STATUS" | head -n 1)
+              UNCOMMITTED_FILES=$(echo "$FULL_STATUS" | tail -n +2)
+
+              if [ -n "$UNCOMMITTED_FILES" ]; then
+                HAS_UNCOMMITTED=true
+                echo "!! UNCOMMITTED CHANGES DETECTED:"
+                echo "$UNCOMMITTED_FILES"
+              else
+                HAS_UNCOMMITTED=false
+                echo "No uncommitted files"
+              fi
+
+              if [ "$BRANCH_HEADER" == *"behind"* ]; then
+                SYNC_STATUS="behind"
+                echo "Out of sync: Remote has newer commits."
+              elif [ "$BRANCH_HEADER" == *"ahead"* ]; then
+                SYNC_STATUS="ahead"
+                echo "Out of sync: Local has unique commits."
+              elif [ "$BRANCH_HEADER" == *"diverged"* ]; then
+                SYNC_STATUS="diverged"
+                echo "Out of sync: Both local and remote have unique commits."
+              else
+                SYNC_STATUS="synced"
+                echo "Commits are perfectly in sync."
+              fi
+
+              if [ "$HAS_COMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
+                echo "Safe to pull: Repo is clean and behind remote."
+                $GIT pull
+              fi
+              popd >/dev/null
+              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+            fi
             echo ""
           ''
         ];
