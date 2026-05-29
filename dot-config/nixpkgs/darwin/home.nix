@@ -932,7 +932,7 @@ in
               fi
               popd >/dev/null
               NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/checkUpdates.lua"
+              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua"
             fi
             echo ""
           ''
