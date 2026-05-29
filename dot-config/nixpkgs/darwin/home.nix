@@ -879,7 +879,6 @@ in
         Label = "org.nixos.hm.updateNvimPlugins";
         RunAtLoad = true;
         StartInterval = 60 * 60 * 2;
-        KeepAlive = false;
         StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Out.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Error.log";
         ProgramArguments = [
