@@ -768,6 +768,8 @@ in
           "-c"
           (
             ''
+              date
+              >&2 date
               LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
               UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
               LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
@@ -887,6 +889,7 @@ in
           "-c"
           ''
             date
+            >&2 date
             ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
             if [ -d "${minimaxConfig}" ]; then
               pushd "${minimaxConfig}" >/dev/null
@@ -1050,6 +1053,40 @@ in
                 -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
             fi
             rm -f "$TMPCFG"
+          ''
+        ];
+      };
+    };
+
+    trimLogs = {
+      enable = true;
+      config = {
+        Label = "org.nixos.hm.trimLogs";
+        RunAtLoad = true;
+        KeepAlive = false;
+        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.trimlogs-Out.log";
+        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.trimlogs-Error.log";
+        ProgramArguments = [
+          "${pkgs.bashInteractive}/bin/bash"
+          "-l"
+          "-c"
+          ''
+            date
+            >&2 date
+            # Create a secure temporary file
+            TMPFILE=$(/usr/bin/mktemp) || exit 1
+
+            # Ensure temporary file is cleaned up if script exits early
+            trap 'rm -f "$TMPFILE"' EXIT
+
+            for f in ${homecfg.homeDirectory}/log/*.log; do
+              read -r numlines fname < <(/usr/bin/wc -l "$f")
+              if [ "$numlines" -gt 150 ]; then
+                # Trim large log file
+                tail -n 100 > "$TMPFILE"
+                mv "$TMPFILE" "$f"
+              fi
+            done
           ''
         ];
       };
