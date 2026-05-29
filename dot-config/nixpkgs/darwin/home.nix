@@ -927,9 +927,12 @@ in
               if [ "$HAS_COMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
                 echo "Safe to pull: Repo is clean and behind remote."
                 $GIT pull
+                # Update plugins to new commits in lock file
+                NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile' })" "+qa"
               fi
               popd >/dev/null
-              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/checkUpdates.lua"
             fi
             echo ""
           ''
