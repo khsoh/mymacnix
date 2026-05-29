@@ -878,9 +878,8 @@ in
       config = {
         Label = "org.nixos.hm.updateNvimPlugins";
         RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
+        StartInterval = 60 * 60 * 2;
+        KeepAlive = false;
         StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Out.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Error.log";
         ProgramArguments = [
@@ -932,9 +931,22 @@ in
               fi
               popd >/dev/null
               NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua"
+              PLUGINUPDATES=$(NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua")
+
+              if [ -n "$PLUGINUPDATES"]; then
+                # Setup notification
+                export PLUGINUPDATES
+                osascript -l JavaScript <<EOF
+                  var app = Application.currentApplication();
+                  app.includeStandardAdditions = true;
+                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('PLUGINUPDATES'));
+
+                  updateText = String(updateText);
+
+                  app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
+            EOF
+              fi
             fi
-            echo ""
           ''
         ];
       };
