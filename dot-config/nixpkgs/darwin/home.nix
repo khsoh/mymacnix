@@ -932,7 +932,7 @@ in
               NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
               PLUGINUPDATES=$(NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua")
 
-              if [ -n "$PLUGINUPDATES"]; then
+              if [ -n "$PLUGINUPDATES" ]; then
                 # Setup notification
                 export PLUGINUPDATES
                 osascript -l JavaScript <<EOF
