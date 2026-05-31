@@ -890,7 +890,8 @@ in
             >&2 date
             >&2 echo "==== nvim plugin and tools update start ====="
             ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-            >&2 echo "\n==== nvim plugin and tools update complete ====="
+            >&2 echo ""
+            >&2 echo "==== nvim plugin and tools update complete ====="
             if [ -d "${minimaxConfig}" ]; then
               pushd "${minimaxConfig}" >/dev/null
               GIT="${pkgs.git}/bin/git"
@@ -930,7 +931,8 @@ in
                 # Update plugins to new commits in lock file
                 >&2 echo "==== ${minimaxName} plugin sync start ====="
                 NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile' })" "+qa"
-                >&2 echo "\n==== ${minimaxName} plugin sync completed ====="
+                >&2 echo ""
+                >&2 echo "==== ${minimaxName} plugin sync completed ====="
               fi
               popd >/dev/null
               >&2 echo "==== ${minimaxName} tools update start ====="
