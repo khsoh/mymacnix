@@ -8,6 +8,7 @@ let
       ignoredCommits = [
         "f9d8b6595035"
         "4100e830e085"
+        "e9a7635a5759"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Pinned bitwarden-desktop";
