@@ -137,6 +137,9 @@ in
       go
       nodejs
 
+      # Required for peek.nvim execution
+      deno
+
       # Security related packages
       gnupg
       age
