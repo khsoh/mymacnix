@@ -206,6 +206,10 @@ in
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
   environment.darwinConfig = "${userInfo.home}/.config/nixpkgs/darwin";
 
+  environment.variables = {
+    HOMEBREW_UPDATE_TO_TAG = "1";
+  };
+
   # Append a darwin-secrets path
   nix.nixPath = options.nix.nixPath.default ++ [
     "darwin-secrets=${secretsDir}"
