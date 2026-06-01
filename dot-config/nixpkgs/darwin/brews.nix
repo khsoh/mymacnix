@@ -27,7 +27,6 @@ in
       autoUpdate = true;
       ## The following allows Nix to uninstall stuff absent from cask list
       cleanup = "zap";
-      extraFlags = [ "--force-cleanup" ];
     };
     ### End Setup for updates via Nix
 
