@@ -128,9 +128,11 @@ in
 
       ## Programming languages and LSPs
       nixd # LSP for nix
+      nixfmt
+      tree-sitter
+
       python3
       nix-prefetch-github
-      nixfmt
       cargo
       zig
       # The following packages are to support neovim-related builds

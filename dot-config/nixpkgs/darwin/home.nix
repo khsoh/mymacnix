@@ -930,13 +930,13 @@ in
                 $GIT pull
                 # Update plugins to new commits in lock file
                 >&2 echo "==== ${minimaxName} plugin sync start ====="
-                NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile' })" "+qa"
+                NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile', force = true })" "+qa"
                 >&2 echo ""
                 >&2 echo "==== ${minimaxName} plugin sync completed ====="
               fi
               popd >/dev/null
               >&2 echo "==== ${minimaxName} tools update start ====="
-              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+3sleep" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
               >&2 echo "==== ${minimaxName} tools update completed ====="
               PLUGINUPDATES=$(NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua")
 
