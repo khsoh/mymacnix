@@ -6,9 +6,7 @@ let
     "bitwarden-desktop" = {
       url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
       ignoredCommits = [
-        "f9d8b6595035"
-        "4100e830e085"
-        "e9a7635a5759"
+        "4df1b885d76a"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Pinned bitwarden-desktop";
