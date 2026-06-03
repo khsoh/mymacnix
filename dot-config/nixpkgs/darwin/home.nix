@@ -620,6 +620,9 @@ in
       font-family = "FiraMono Nerd Font Mono";
       font-size = 18;
 
+      # Enable shell integration features for SSH
+      shell-integration-features = "ssh-env,ssh-terminfo";
+
       # Save window state
       window-save-state = "always";
 
