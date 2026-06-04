@@ -914,21 +914,26 @@ in
                 echo "No uncommitted files"
               fi
 
-              if [ "$BRANCH_HEADER" == *"behind"* ]; then
-                SYNC_STATUS="behind"
-                echo "Out of sync: Remote has newer commits."
-              elif [ "$BRANCH_HEADER" == *"ahead"* ]; then
-                SYNC_STATUS="ahead"
-                echo "Out of sync: Local has unique commits."
-              elif [ "$BRANCH_HEADER" == *"diverged"* ]; then
-                SYNC_STATUS="diverged"
-                echo "Out of sync: Both local and remote have unique commits."
-              else
-                SYNC_STATUS="synced"
-                echo "Commits are perfectly in sync."
-              fi
+              case "$BRANCH_HEADER" in
+                *"behind"*)
+                  SYNC_STATUS="behind"
+                  echo "Out of sync: Remote has newer commits."
+                  ;;
+                *"ahead"*)
+                  SYNC_STATUS="ahead"
+                  echo "Out of sync: Local has unique commits."
+                  ;;
+                *"diverged"*)
+                  SYNC_STATUS="diverged"
+                  echo "Out of sync: Both local and remote have unique commits."
+                  ;;
+                *)
+                  SYNC_STATUS="synced"
+                  echo "Commits are perfectly in sync."
+                  ;;
+              esac
 
-              if [ "$HAS_COMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
+              if [ "$HAS_UNCOMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
                 echo "Safe to pull: Repo is clean and behind remote."
                 $GIT pull
                 # Update plugins to new commits in lock file
