@@ -960,6 +960,12 @@ in
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF
+                IMSGID=$(jq '.iMessageID' ${
+                  config.age.secrets."secrets.json".path
+                } 2>/dev/null | sed 's/^"//;s/"$//')
+                if [ -n "$IMSGID" ]; then
+                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates" "$PLUGINUPDATES"
+                fi
               fi
             fi
           ''
