@@ -1115,6 +1115,7 @@ in
                 # Trim large log file
                 tail -n 100 > "$TMPFILE"
                 mv "$TMPFILE" "$f"
+                echo "Trimmed file $f"
               fi
             done
           ''
