@@ -122,7 +122,6 @@ in
     {
       name = "brave-browser";
       greedy = true;
-      postinstall = restartApp "Brave Browser";
     }
     {
       name = "proton-drive";
