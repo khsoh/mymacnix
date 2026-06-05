@@ -1112,15 +1112,17 @@ in
             >&2 date
             # Create a secure temporary file
             TMPFILE=$(/usr/bin/mktemp) || exit 1
+            TRIMTO=100
+            TRIMLIMIT=$((TRIMTO + 400))
 
             # Ensure temporary file is cleaned up if script exits early
             trap 'rm -f "$TMPFILE"' EXIT
 
             for f in ${homecfg.homeDirectory}/log/*.log; do
               read -r numlines fname < <(/usr/bin/wc -l "$f")
-              if [ "$numlines" -gt 150 ]; then
+              if [ "$numlines" -gt $TRIMLIMIT ]; then
                 # Trim large log file
-                tail -n 100 > "$TMPFILE"
+                tail -n $TRIMTO > "$TMPFILE"
                 mv "$TMPFILE" "$f"
                 echo "Trimmed file $f"
               fi
