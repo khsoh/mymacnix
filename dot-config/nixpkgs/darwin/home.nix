@@ -216,8 +216,9 @@ in
     checknix = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../../checkNixpkgs.sh\"')";
     hbb = "brew bundle";
     hbu = "brew update";
-    nvim-tmp = "nvim - +'set buftype=nofile'";
+    nvim-tmp = "nvim - \"+set buftype=nofile\"";
     nvx = "NVIM_APPNAME=${minimaxName} nvim";
+    nvxupdate = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" \"+qa\"";
 
     # Standard agenix wrapper to include age key file
     anix = "agenix -i ${userPKFILEPath}";
