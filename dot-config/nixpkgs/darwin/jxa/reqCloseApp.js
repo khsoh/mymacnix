@@ -53,20 +53,30 @@ function run(argv) {
         },
       );
       if (response.buttonReturned === "Yes") {
-        var script = `
-        pkill -f "${appName}" > /dev/null
+        var scriptKill = `
+        # pkill -f "${appName}" > /dev/null
+        killall -15 "${appName}" > /dev/null
         COUNTDOWN=30
         while pgrep -f "${appName}" && [ $COUNTDOWN -gt 0 ]; do
           ((COUNTDOWN--))
           sleep 1
         done
         # Delay required to ensure app can be reopened properly
-        sleep 4
+        sleep 2
+        `;
+
+        var scriptRun = `
         FULLAPP=$(mdfind "kMDItemFSName == '${appName}.app'" | head -n1)
         [ -n "$FULLAPP" ] || FULLAPP=$(mdfind "kMDItemFSName == '${appName}*.app'" | head -n1)
         open "$FULLAPP"
         `;
-        app.doShellScript(script);
+        // Run script to kill app
+        // app.doShellScript(scriptKill);
+        Application(appName).quit();
+
+        // Run script to restart app
+        // app.doShellScript(scriptRun);
+        Application(appName).activate();
       }
     } catch (e) {
       console.log(`Error is: ${e.message}`);
