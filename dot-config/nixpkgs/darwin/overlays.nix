@@ -7,6 +7,7 @@ let
       url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
       ignoredCommits = [
         "cbb5cf358f50"
+        "8c3cede7ddc2"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Pinned bitwarden-desktop due to EOL of electron_39";
