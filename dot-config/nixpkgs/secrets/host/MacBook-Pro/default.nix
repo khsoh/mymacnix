@@ -9,6 +9,7 @@ let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
   restartApp = config.hostbrew.helpers.restartApp;
+  restartApp2 = config.hostbrew.helpers.restartApp2;
 in
 {
   usermap = {
@@ -48,7 +49,7 @@ in
     {
       name = "mouseless";
       greedy = true;
-      postinstall = restartApp "Mouseless" "mouseless";
+      postinstall = restartApp2 "Mouseless" "mouseless";
     }
     {
       name = "discord";

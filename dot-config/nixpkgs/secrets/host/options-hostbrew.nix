@@ -92,6 +92,9 @@ in
         restartApp = app: ''
           ${../../darwin/jxa/reqCloseApp.js} \"${app}\"
         '';
+        restartApp2 = appName: procName: ''
+          ${../../darwin/jxa/reqCloseApp.js} \"${appName}\" \"${procName}\"
+        '';
       };
     };
   };
