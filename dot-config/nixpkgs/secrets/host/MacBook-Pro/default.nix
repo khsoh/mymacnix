@@ -48,7 +48,7 @@ in
     {
       name = "mouseless";
       greedy = true;
-      postinstall = restartApp "Mouseless";
+      postinstall = restartApp "Mouseless" "mouseless";
     }
     {
       name = "discord";

@@ -13,11 +13,12 @@ ObjC.import("stdlib");
 
 function run(argv) {
   if (argv.length < 1) {
-    console.log("Usage: reqCloseApp.js <appName>\n");
+    console.log("Usage: reqCloseApp.js <appName> [<procName>]\n");
     $.exit(1);
   }
 
   const appName = argv[0];
+  const procName = argv.length < 2 ? appName : argv[1];
 
   const app = Application.currentApplication();
   app.includeStandardAdditions = true;
@@ -25,9 +26,7 @@ function run(argv) {
   const sys = Application("System Events");
 
   // Force evaluation of the process list immediately
-  const appProc = sys
-    .processes()
-    .filter((p) => p.name().startsWith(appName));
+  const appProc = sys.processes().filter((p) => p.name().startsWith(procName));
   if (appProc && appProc.length > 0) {
     try {
       const pid = appProc[0].unixId();
@@ -39,7 +38,9 @@ function run(argv) {
 
       var hfsPath = appProc[0].file().path();
       var pathWithoutVolume = hfsPath.replace(new RegExp(`^${volumeName}`), "");
-      var installedPath = pathWithoutVolume.replace(/:$/, "").replace(/:/g, "/");
+      var installedPath = pathWithoutVolume
+        .replace(/:$/, "")
+        .replace(/:/g, "/");
 
       const installedVersion = app.doShellScript(
         `/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${installedPath}/Contents/Info.plist"`,
