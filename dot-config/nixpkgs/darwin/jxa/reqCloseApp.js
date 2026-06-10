@@ -75,6 +75,8 @@ function run(argv) {
         // app.doShellScript(scriptKill);
         Application(appName).quit();
 
+        delay(2);
+
         // Run script to restart app
         // app.doShellScript(scriptRun);
         Application(appName).activate();
