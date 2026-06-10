@@ -121,6 +121,7 @@ in
     {
       name = "google-chrome";
       greedy = true;
+      postinstall = restartApp "Google Chrome";
     }
     {
       name = "brave-browser";
