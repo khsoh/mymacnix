@@ -133,6 +133,8 @@ in
       typescript-language-server
       biome # Is also formatter and linter for JavaScript, TypeScript, JSON
       marksman # Markdown
+      powershell-editor-services # PowerShell
+      powershell
 
       ## Formatters for Neovim
       nixfmt
