@@ -137,6 +137,10 @@ in
       powershell
       pyright # Python
       clang-tools # clangd
+      gopls # Go
+      rust-analyzer # Rust
+      rustc # Rust
+      zls # Zig
 
       ## Formatters for Neovim
       nixfmt
