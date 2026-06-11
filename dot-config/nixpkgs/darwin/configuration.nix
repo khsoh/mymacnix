@@ -130,6 +130,8 @@ in
       nixd # LSP for nix
       nixfmt
       tree-sitter
+      lua-language-server
+      stylua
 
       python3
       nix-prefetch-github
