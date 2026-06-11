@@ -135,6 +135,7 @@ in
       marksman # Markdown
       powershell-editor-services # PowerShell
       powershell
+      pyright # Python
 
       ## Formatters for Neovim
       nixfmt
