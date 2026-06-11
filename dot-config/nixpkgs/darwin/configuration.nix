@@ -130,6 +130,8 @@ in
       nixd
       lua-language-server
       bash-language-server
+      typescript-language-server
+      biome # # Is also formatter and linter for JavaScript, TypeScript, JSON
 
       ## Formatters for Neovim
       nixfmt
