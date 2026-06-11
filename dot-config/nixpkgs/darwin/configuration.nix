@@ -136,6 +136,7 @@ in
       powershell-editor-services # PowerShell
       powershell
       pyright # Python
+      clang-tools # clangd
 
       ## Formatters for Neovim
       nixfmt
