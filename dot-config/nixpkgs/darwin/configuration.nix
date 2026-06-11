@@ -126,12 +126,20 @@ in
       git-filter-repo
       gh
 
-      ## Programming languages and LSPs
-      nixd # LSP for nix
-      nixfmt
-      tree-sitter
+      ## LSPs for Neovim
+      nixd
       lua-language-server
+      bash-language-server
+
+      ## Formatters for Neovim
+      nixfmt
       stylua
+
+      ## Linters for Neovim
+      shellcheck
+
+      ## Parsing engine for Neovim
+      tree-sitter
 
       python3
       nix-prefetch-github
