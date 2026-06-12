@@ -8,6 +8,7 @@ let
       ignoredCommits = [
         "cbb5cf358f50"
         "8c3cede7ddc2"
+        "8c91a71d1345"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Pinned bitwarden-desktop due to EOL of electron_39";
@@ -36,11 +37,19 @@ let
   mkOverride =
     pkgName: srcConfig: prev:
     let
+      # Filter out 'rewriteURL' if it is null to stop nixpkgs from crashing
+      safeConfig =
+        if prev.config ? rewriteURL && prev.config.rewriteURL == null then
+          builtins.removeAttrs prev.config [ "rewriteURL" ]
+        else
+          prev.config;
+
       # Import the pinned version for this specific source
       # Pass prev.config to the imported nixpkgs instance to respect
       # any package that enable allowUnfreePredicate.
       pinnedPkgs = import (fetchTarball { url = srcConfig.url; }) {
-        inherit (prev) config;
+        # inherit (prev) config;
+        config = safeConfig;
       };
       pinnedPkg = pinnedPkgs.${pkgName};
 
