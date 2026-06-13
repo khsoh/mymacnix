@@ -8,6 +8,7 @@ let
       ignoredCommits = [
         "8c91a71d1345"
         "173d0ad7a974"
+        "49a4bd0573c3"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Pinned bitwarden-desktop due to EOL of electron_39";
