@@ -7,8 +7,6 @@
 let
   ## Store paths of packages installed by environment.systemPackages
   stdPkgsPath = toString pkgs.path;
-  darwinPath = toString <darwin>;
-  agenixPath = toString <agenix>;
 in
 {
   system.activationScripts.postActivation.text =
@@ -17,24 +15,15 @@ in
       currentNixpkgsRev =
         if builtins.pathExists revisionFile then builtins.readFile revisionFile else "unknown";
 
-      # Filter for packages whose source nixpkgs path is non-standard
-      isExternal =
-        pkg:
-        let
-          pkgPath = pkg.meta.position or "";
-        in
-        !(
-          (lib.hasPrefix stdPkgsPath pkgPath)
-          || (lib.hasPrefix darwinPath pkgPath)
-          || (lib.hasPrefix agenixPath pkgPath)
-        );
+      # Filter for packages that have overlays
+      isOverlaidPkg = pkg: pkg ? ignoredCommits;
 
       excludeCurrentRev =
-        pkg:
-        !(pkg ? ignoredCommits)
-        || (builtins.all (pre: !(lib.hasPrefix pre currentNixpkgsRev)) pkg.ignoredCommits);
-      externalPkgs = builtins.filter isExternal config.environment.systemPackages;
-      untestedPkgs = builtins.filter excludeCurrentRev externalPkgs;
+        pkg: builtins.all (pre: !(lib.hasPrefix pre currentNixpkgsRev)) pkg.ignoredCommits;
+
+      overlaidPkgs = builtins.filter isOverlaidPkg config.environment.systemPackages;
+      untestedPkgs = builtins.filter excludeCurrentRev overlaidPkgs;
+
       names = builtins.concatStringsSep "\n\${BLUE}\${BOLD}>>\${ESC} " (
         map (p: p.pname or (lib.getName p)) untestedPkgs
       );

@@ -4,16 +4,29 @@ let
   # You can comment out everything within sources if there is nothing to override
   sources = {
     "bitwarden-desktop" = {
-      url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
+      # url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
+      url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
         "8c91a71d1345"
         "173d0ad7a974"
         "49a4bd0573c3"
       ];
       # Optional: Add a description or version tag for clarity
-      desc = "Pinned bitwarden-desktop due to EOL of electron_39";
+      desc = "Modified bitwarden-desktop to support EOL electron";
+      # Override with EOL electron version
+      permittedInsecurePackages = [ "electron-39.8.10" ];
     };
 
+    # "bitwarden-desktop" = {
+    #   url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
+    #   ignoredCommits = [
+    #     "8c91a71d1345"
+    #     # "173d0ad7a974"
+    #     # "49a4bd0573c3"
+    #   ];
+    #   # Optional: Add a description or version tag for clarity
+    #   desc = "Modified bitwarden-desktop to support EOL electron";
+    # };
     # zsh = {
     #   url = "https://github.com/NixOS/nixpkgs/archive/b86751bc4085.tar.gz";
     #   ignoredCommits = [
@@ -38,18 +51,35 @@ let
     pkgName: srcConfig: prev:
     let
       # Filter out 'rewriteURL' if it is null to stop nixpkgs from crashing
-      safeConfig =
+      baseConfig =
         if prev.config ? rewriteURL && prev.config.rewriteURL == null then
-          builtins.removeAttrs prev.config [ "rewriteURL" ]
+          removeAttrs prev.config [ "rewriteURL" ]
         else
           prev.config;
+
+      # Inject the local package exceptions into the config block if they exist
+      safeConfig =
+        baseConfig
+        // (
+          if srcConfig ? permittedInsecurePackages then
+            {
+              permittedInsecurePackages =
+                (baseConfig.permittedInsecurePackages or [ ]) ++ srcConfig.permittedInsecurePackages;
+            }
+          else
+            { }
+        );
+
+      nixpkgsSource =
+        if builtins.isPath srcConfig.url then srcConfig.url else fetchTarball { url = srcConfig.url; };
 
       # Import the pinned version for this specific source
       # Pass prev.config to the imported nixpkgs instance to respect
       # any package that enable allowUnfreePredicate.
-      pinnedPkgs = import (fetchTarball { url = srcConfig.url; }) {
+      pinnedPkgs = import nixpkgsSource {
         # inherit (prev) config;
         config = safeConfig;
+        system = prev.system;
       };
       pinnedPkg = pinnedPkgs.${pkgName};
 
