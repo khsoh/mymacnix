@@ -1152,43 +1152,6 @@ in
         ];
       };
     };
-
-    trimLogs = {
-      enable = true;
-      config = {
-        Label = "org.nixos.hm.trimLogs";
-        RunAtLoad = true;
-        KeepAlive = false;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.trimlogs-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.trimlogs-Error.log";
-        ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
-          "-l"
-          "-c"
-          ''
-            date
-            >&2 date
-            # Create a secure temporary file
-            TMPFILE=$(/usr/bin/mktemp) || exit 1
-            TRIMTO=100
-            TRIMLIMIT=$((TRIMTO + 400))
-
-            # Ensure temporary file is cleaned up if script exits early
-            trap 'rm -f "$TMPFILE"' EXIT
-
-            for f in ${homecfg.homeDirectory}/log/*.log; do
-              read -r numlines fname < <(/usr/bin/wc -l "$f")
-              if [ "$numlines" -gt $TRIMLIMIT ]; then
-                # Trim large log file
-                tail -n $TRIMTO > "$TMPFILE"
-                mv "$TMPFILE" "$f"
-                echo "Trimmed file $f"
-              fi
-            done
-          ''
-        ];
-      };
-    };
   };
 
   home.activation =

@@ -97,7 +97,11 @@ in
   environment.etc = {
     # Setup user specific logfile rotation for all users
     "newsyslog.d/${userInfo.name}.conf".text = ''
-      ${userInfo.home}/log/*.log      644  5  1024  *  NJ
+      # logfilename                                         [owner[:group]]   mode count  size  when  flags
+      ${userInfo.home}/log/[!.]*.log                        ${userInfo.name}  644  5      1024  *     NJG
+      ${userInfo.home}/.local/state/nvim/[!.]*.log          ${userInfo.name}  644  3      1024  *     NJG
+      ${userInfo.home}/.local/state/nvim-minimax/[!.]*.log  ${userInfo.name}  644  3      1024  *     NJG
+      ${userInfo.home}/.local/state/nvtest/[!.]*.log        ${userInfo.name}  644  3      1024  *     NJG
     '';
 
     # Quad9 Profiles
