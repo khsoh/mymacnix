@@ -19,6 +19,8 @@ let
   minimaxName = "nvim-minimax";
   minimaxRepo = "https://github.com/${ghcfg.username}/minimax.git";
   minimaxConfig = "${config.xdg.configHome}/${minimaxName}";
+  nvtestName = "nvtest";
+  nvtestConfig = "${config.xdg.configHome}/${nvtestName}";
 
   # Shortcut to get helper functions
   Helpers = osConfig.helpers;
@@ -219,6 +221,10 @@ in
     nvim-tmp = "nvim - \"+set buftype=nofile\"";
     nvx = "NVIM_APPNAME=${minimaxName} nvim";
     nvxupdate = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" \"+qa\"";
+    nvxsync = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" \"+qa\"";
+    nvt = "NVIM_APPNAME=${nvtestName} nvim";
+    nvtupdate = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" \"+qa\"";
+    nvtsync = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" \"+qa\"";
 
     # Standard agenix wrapper to include age key file
     anix = "agenix -i ${userPKFILEPath}";
@@ -892,11 +898,12 @@ in
           ''
             date
             >&2 date
-            >&2 echo "==== nvim plugin and tools update start ====="
+            echo "==== nvim plugin and tools update start ====="
             ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-            >&2 echo ""
-            >&2 echo "==== nvim plugin and tools update complete ====="
+            echo ""
+            echo "==== nvim plugin and tools update completed ====="
             if [ -d "${minimaxConfig}" ]; then
+              echo "==== ${minimaxName} update and sync start ====="
               pushd "${minimaxConfig}" >/dev/null
               GIT="${pkgs.git}/bin/git"
               $GIT fetch -q
@@ -908,29 +915,29 @@ in
 
               if [ -n "$UNCOMMITTED_FILES" ]; then
                 HAS_UNCOMMITTED=true
-                echo "!! UNCOMMITTED CHANGES DETECTED:"
+                echo "!! UNCOMMITTED CHANGES DETECTED in ${minimaxConfig}:"
                 echo "$UNCOMMITTED_FILES"
               else
                 HAS_UNCOMMITTED=false
-                echo "No uncommitted files"
+                echo "No uncommitted files in ${minimaxConfig}"
               fi
 
               case "$BRANCH_HEADER" in
                 *"behind"*)
                   SYNC_STATUS="behind"
-                  echo "Out of sync: Remote has newer commits."
+                  echo "${minimaxConfig} out of sync with ${minimaxRepo}: Remote has newer commits."
                   ;;
                 *"ahead"*)
                   SYNC_STATUS="ahead"
-                  echo "Out of sync: Local has unique commits."
+                  echo "${minimaxConfig} out of sync with ${minimaxRepo}: Local has unique commits."
                   ;;
                 *"diverged"*)
                   SYNC_STATUS="diverged"
-                  echo "Out of sync: Both local and remote have unique commits."
+                  echo "${minimaxConfig} out of sync with ${minimaxRepo}: Both local and remote have unique commits."
                   ;;
                 *)
                   SYNC_STATUS="synced"
-                  echo "Commits are perfectly in sync."
+                  echo "${minimaxConfig} commits are perfectly in sync."
                   ;;
               esac
 
@@ -938,15 +945,15 @@ in
                 echo "Safe to pull: Repo is clean and behind remote."
                 $GIT pull
                 # Update plugins to new commits in lock file
-                >&2 echo "==== ${minimaxName} plugin sync start ====="
+                echo "==== ${minimaxName} plugin sync start ====="
                 NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile', force = true })" "+qa"
-                >&2 echo ""
-                >&2 echo "==== ${minimaxName} plugin sync completed ====="
+                echo ""
+                echo "==== ${minimaxName} plugin sync completed ====="
               fi
               popd >/dev/null
-              >&2 echo "==== ${minimaxName} tools update start ====="
+              echo "==== ${minimaxName} tools update start ====="
               NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+3sleep" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-              >&2 echo "==== ${minimaxName} tools update completed ====="
+              echo "==== ${minimaxName} tools update completed ====="
               PLUGINUPDATES=$(NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua")
 
               if [ -n "$PLUGINUPDATES" ]; then
@@ -968,6 +975,84 @@ in
                   "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates" "$PLUGINUPDATES"
                 fi
               fi
+              echo "==== ${minimaxName} update and sync completed ====="
+            fi
+
+
+            if [ -d "${nvtestConfig}" ]; then
+              echo "==== ${nvtestName} update and sync start ====="
+              pushd "${nvtestConfig}" >/dev/null
+              GIT="${pkgs.git}/bin/git"
+              $GIT fetch -q
+
+              FULL_STATUS=$($GIT status --porcelain -b)
+
+              BRANCH_HEADER=$(echo "$FULL_STATUS" | head -n 1)
+              UNCOMMITTED_FILES=$(echo "$FULL_STATUS" | tail -n +2)
+
+              if [ -n "$UNCOMMITTED_FILES" ]; then
+                HAS_UNCOMMITTED=true
+                echo "!! UNCOMMITTED CHANGES DETECTED in ${nvtestConfig}:"
+                echo "$UNCOMMITTED_FILES"
+              else
+                HAS_UNCOMMITTED=false
+                echo "No uncommitted files in ${nvtestConfig}"
+              fi
+
+              case "$BRANCH_HEADER" in
+                *"behind"*)
+                  SYNC_STATUS="behind"
+                  echo "${nvtestConfig} out of sync with ${minimaxRepo}: Remote has newer commits."
+                  ;;
+                *"ahead"*)
+                  SYNC_STATUS="ahead"
+                  echo "${nvtestConfig} out of sync with ${minimaxRepo}: Local has unique commits."
+                  ;;
+                *"diverged"*)
+                  SYNC_STATUS="diverged"
+                  echo "${nvtestConfig} out of sync with ${minimaxRepo}: Both local and remote have unique commits."
+                  ;;
+                *)
+                  SYNC_STATUS="synced"
+                  echo "${nvtestConfig} commits are perfectly in sync."
+                  ;;
+              esac
+
+              if [ "$HAS_UNCOMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
+                echo "Safe to pull: Repo is clean and behind remote."
+                $GIT pull
+                # Update plugins to new commits in lock file
+                echo "==== ${nvtestName} plugin sync start ====="
+                NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile', force = true })" "+qa"
+                echo ""
+                echo "==== ${nvtestName} plugin sync completed ====="
+              fi
+              popd >/dev/null
+              echo "==== ${nvtestName} tools update start ====="
+              NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless . "+3sleep" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
+              echo "==== ${nvtestName} tools update completed ====="
+              PLUGINUPDATES=$(NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless -l "${nvtestConfig}/listUpdates.lua")
+
+              if [ -n "$PLUGINUPDATES" ]; then
+                # Setup notification
+                export PLUGINUPDATES
+                osascript -l JavaScript <<EOF
+                  var app = Application.currentApplication();
+                  app.includeStandardAdditions = true;
+                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('PLUGINUPDATES'));
+
+                  updateText = String(updateText);
+
+                  app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
+            EOF
+                IMSGID=$(jq '.iMessageID' ${
+                  config.age.secrets."secrets.json".path
+                } 2>/dev/null | sed 's/^"//;s/"$//')
+                if [ -n "$IMSGID" ]; then
+                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates" "$PLUGINUPDATES"
+                fi
+              fi
+              echo "==== ${nvtestName} update and sync completed ====="
             fi
           ''
         ];
