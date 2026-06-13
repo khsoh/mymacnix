@@ -1228,9 +1228,14 @@ in
       # Clone into ${minimaxConfig}
       bootstrapMinimax = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
         if [ ! -d "${minimaxConfig}" ]; then
-          printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration''${ESC}\n"
+          printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration to ${minimaxConfig}''${ESC}\n"
           ${pkgs.git}/bin/git clone "${minimaxRepo}" "${minimaxConfig}"
           ${pkgs.git}/bin/git -C "${minimaxConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
+        fi
+        if [ ! -d "${nvtestConfig}" ]; then
+          printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration to ${nvtestConfig}''${ESC}\n"
+          ${pkgs.git}/bin/git clone "${minimaxRepo}" "${nvtestConfig}"
+          ${pkgs.git}/bin/git -C "${nvtestConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
         fi
       '';
 
