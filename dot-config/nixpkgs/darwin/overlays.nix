@@ -79,7 +79,7 @@ let
       pinnedPkgs = import nixpkgsSource {
         # inherit (prev) config;
         config = safeConfig;
-        system = prev.system;
+        system = prev.stdenv.hostPlatform.system;
       };
       pinnedPkg = pinnedPkgs.${pkgName};
 
