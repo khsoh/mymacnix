@@ -141,13 +141,13 @@ in
       rust-analyzer # Rust
       rustc # Rust
       zls # Zig
-      # Visual Studio Code extracted web language engines
-      vscode-langservers-extracted
       lemminx # XML
+      superhtml # HTML
 
       ## Formatters for Neovim
       nixfmt
       stylua
+      prettier
 
       ## Linters for Neovim
       shellcheck
