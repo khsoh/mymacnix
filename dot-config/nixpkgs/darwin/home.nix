@@ -21,6 +21,7 @@ let
   minimaxConfig = "${config.xdg.configHome}/${minimaxName}";
   nvtestName = "nvtest";
   nvtestConfig = "${config.xdg.configHome}/${nvtestName}";
+  nvimDefault = "nvim";
 
   # Shortcut to get helper functions
   Helpers = osConfig.helpers;
@@ -94,10 +95,20 @@ in
       source = ./jxa/waitapp.js;
     };
 
+    neovideLauncher = {
+      target = "neovide/nvim-launcher.zsh";
+      executable = true;
+      text = ''
+        #!${pkgs.zsh}/bin/zsh --login
+        # Automatically inherit NVIM_APPNAME from .zshenv
+        exec ${pkgs.neovim}/bin/nvim "$@"
+      '';
+    };
+
     # setting up neovide to use neovim binary
     "neovide/config.toml".text = ''
       # Ensure Neovide uses the exact Neovim binary from your Nix store
-      neovim-bin = "${pkgs.neovim}/bin/nvim"
+      neovim-bin = "${homecfg.homeDirectory}/${config.xdg.configFile.neovideLauncher.target}""
     '';
 
     tmux = {
@@ -258,6 +269,7 @@ in
       LANG = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+      NVIM_APPNAME = "${nvimDefault}";
       SHELL = "${pkgs.bashInteractive}/bin/bash";
     }
     // lib.optionalAttrs onepasscfg.enable {
@@ -279,6 +291,7 @@ in
       LC_ALL = "en_US.UTF-8";
       TERMINFO_DIRS = "\${TERMINFO_DIRS:-/usr/share/terminfo}:$HOME/.local/share/terminfo";
       EDITOR = "nvim";
+      NVIM_APPNAME = "${nvimDefault}";
       SHELL = "${pkgs.zsh}/bin/zsh";
     }
     // lib.optionalAttrs onepasscfg.enable {
