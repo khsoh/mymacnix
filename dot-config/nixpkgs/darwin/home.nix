@@ -951,9 +951,6 @@ in
                 echo "==== ${minimaxName} plugin sync completed ====="
               fi
               popd >/dev/null
-              echo "==== ${minimaxName} tools update start ====="
-              NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless . "+3sleep" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-              echo "==== ${minimaxName} tools update completed ====="
               PLUGINUPDATES=$(NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua")
 
               if [ -n "$PLUGINUPDATES" ]; then
@@ -1028,9 +1025,6 @@ in
                 echo "==== ${nvtestName} plugin sync completed ====="
               fi
               popd >/dev/null
-              echo "==== ${nvtestName} tools update start ====="
-              NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless . "+3sleep" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-              echo "==== ${nvtestName} tools update completed ====="
               echo "==== ${nvtestName} update and sync completed ====="
             fi
           ''
