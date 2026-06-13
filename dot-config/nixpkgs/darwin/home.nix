@@ -1031,27 +1031,6 @@ in
               echo "==== ${nvtestName} tools update start ====="
               NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless . "+3sleep" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
               echo "==== ${nvtestName} tools update completed ====="
-              PLUGINUPDATES=$(NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless -l "${nvtestConfig}/listUpdates.lua")
-
-              if [ -n "$PLUGINUPDATES" ]; then
-                # Setup notification
-                export PLUGINUPDATES
-                osascript -l JavaScript <<EOF
-                  var app = Application.currentApplication();
-                  app.includeStandardAdditions = true;
-                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('PLUGINUPDATES'));
-
-                  updateText = String(updateText);
-
-                  app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
-            EOF
-                IMSGID=$(jq '.iMessageID' ${
-                  config.age.secrets."secrets.json".path
-                } 2>/dev/null | sed 's/^"//;s/"$//')
-                if [ -n "$IMSGID" ]; then
-                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates" "$PLUGINUPDATES"
-                fi
-              fi
               echo "==== ${nvtestName} update and sync completed ====="
             fi
           ''
