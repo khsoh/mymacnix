@@ -108,7 +108,7 @@ in
     # setting up neovide to use neovim binary
     "neovide/config.toml".text = ''
       # Ensure Neovide uses the exact Neovim binary from your Nix store
-      neovim-bin = "${homecfg.homeDirectory}/${config.xdg.configFile.neovideLauncher.target}""
+      neovim-bin = "${homecfg.homeDirectory}/${config.xdg.configFile.neovideLauncher.target}"
     '';
 
     tmux = {
