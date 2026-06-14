@@ -21,7 +21,7 @@ let
   minimaxConfig = "${config.xdg.configHome}/${minimaxName}";
   nvtestName = "nvtest";
   nvtestConfig = "${config.xdg.configHome}/${nvtestName}";
-  nvimDefault = "nvim";
+  nvimDefault = "${minimaxName}";
 
   # Shortcut to get helper functions
   Helpers = osConfig.helpers;
