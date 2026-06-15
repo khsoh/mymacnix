@@ -152,6 +152,8 @@ in
       nixfmt
       stylua
       prettier
+      shfmt # Formatter for bash - called by bashls
+      ruff # Formatter and linter for python
 
       ## Linters for Neovim
       shellcheck
