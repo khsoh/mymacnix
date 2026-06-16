@@ -802,7 +802,7 @@ in
             LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
             if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
               export UPDATENIXPKGS
-              osascript -l JavaScript <<'javascript'
+              osascript -l JavaScript <<'EOF_javascript'
                 var app = Application.currentApplication();
                 app.includeStandardAdditions = true;
                 var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
@@ -810,7 +810,7 @@ in
                 updateText = updateText ? String(updateText) : "No updates found";
 
                 app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
-            javascript
+            EOF_javascript
             ${lib.optionalString (builtins.pathExists secretsjsonPath)
               # bash
               ''
@@ -971,7 +971,7 @@ in
               if [ -n "$PLUGINUPDATES" ]; then
                 # Setup notification
                 export PLUGINUPDATES
-                osascript -l JavaScript <<'javascript'
+                osascript -l JavaScript <<'EOF_javascript'
                   var app = Application.currentApplication();
                   app.includeStandardAdditions = true;
                   var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('PLUGINUPDATES'));
@@ -979,7 +979,7 @@ in
                   updateText = String(updateText);
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
-            javascript
+            EOF_javascript
                 IMSGID=$(jq '.iMessageID' ${
                   config.age.secrets."secrets.json".path
                 } 2>/dev/null | sed 's/^"//;s/"$//')
@@ -1136,7 +1136,7 @@ in
                   fi
                 fi
               else
-                /usr/bin/osascript <<'applescript'
+                /usr/bin/osascript <<EOF_applescript
                   set tmpCfg to system attribute "TMPCFG"
                   set cfgFile to POSIX file tmpCfg
                   -- Display the alert
@@ -1155,7 +1155,7 @@ in
                       reveal pane id "com.apple.preferences.configurationfiles"
                     end tell
                   end if
-            applescript
+            EOF_applescript
               fi
             else
               >&2 date

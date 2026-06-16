@@ -67,7 +67,7 @@ readonly BLUE="$(tput setaf 4)"
     # Trick to export print_arrow function to zsh sub-shell
     func_print_arrow="$(typeset -f print_arrow)"
     export func_print_arrow ESC BOLD RED GREEN BLUE
-    zsh -l <<zsh
+    zsh -l <<EOF_zsh
 
 eval "\$func_print_arrow"
 
@@ -90,7 +90,7 @@ sudo chmod a+r /etc/nix-channels/system-channels
 print_arrow "Installing nix-darwin"
 
 sudo -H $darwintmpDir/result/bin/darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin -I darwin-secrets=$HOME/.config/nixpkgs/secrets
-zsh
+EOF_zsh
 
     popd
 

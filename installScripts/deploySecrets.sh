@@ -99,7 +99,7 @@ PKDATA=$(nix-instantiate --eval --strict --json -E "
 ")
 
 USERCMDS=$(
-    cat <<zsh
+    cat <<EOF_zsh
 #!/usr/bin/env zsh
 readonly ESC="\$(tput sgr0)"
 readonly BOLD="\$(tput bold)"
@@ -107,10 +107,10 @@ readonly GREEN="\$(tput setaf 2)"
 readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 printf "\${GREEN}\${BOLD}"
-zsh
+EOF_zsh
 )
 HOSTCMDS=$(
-    cat <<zsh
+    cat <<EOF1_zsh
 #!/usr/bin/env zsh
 readonly ESC="\$(tput sgr0)"
 readonly BOLD="\$(tput bold)"
@@ -119,7 +119,7 @@ readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 sudo -E -s <<'EOF'
 printf "\${GREEN}\${BOLD}"
-zsh
+EOF1_zsh
 )
 
 ## Create a clean deployment directory in host
@@ -137,11 +137,11 @@ echo $PKDATA | jq '.user.deployment' | jq -c '.[]' | while read -r item; do
     # Get the secret into the remote host destination
     op read "$opuri" | run "mkdir -p \$(dirname $file) && umask 077 && cat > $file"
     USERCMDS=$(
-        cat <<EOF
+        cat <<EOF_zsh
 $USERCMDS
 $cmds
 echo "Installed $file"
-EOF
+EOF_zsh
     )
 done
 USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
@@ -158,12 +158,12 @@ echo $PKDATA | jq '.host.deployment' | jq -c '.[]' | while read -r item; do
     # Get the secret into the remote host destination
     op read "$opuri" | run "mkdir -p \$(dirname ~/.deploy/root/$file) && umask 077 && cat > ~/.deploy/root/$file"
     HOSTCMDS=$(
-        cat <<EOF
+        cat <<EOF_zsh
 $HOSTCMDS
 mkdir -p \$(dirname $file)
 $cmds
 echo "Installed $file"
-EOF
+EOF_zsh
     )
 done
 HOSTCMDS="$HOSTCMDS\nEOF\npopd\nprintf \"\${ESC}\""
