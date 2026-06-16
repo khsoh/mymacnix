@@ -1137,26 +1137,36 @@ in
                   fi
                 fi
               else
-                /usr/bin/osascript <<EOF_applescript
-                  set tmpCfg to system attribute "TMPCFG"
-                  set cfgFile to POSIX file tmpCfg
-                  -- Display the alert
-                  display alert "Install Wireless@SGx profile" ¬
-                    message "Click OK to install Wireless@SGx mobile profile for non-SIM host" ¬
-                    buttons { "Cancel", "OK" } default button "OK"
+                /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                  // 1. Get the environment variable
+                  const app = Application.currentApplication();
+                  app.includeStandardAdditions = true;
+                  const tmpCfg = app.systemAttribute("TMPCFG");
 
-                  -- Check user response
-                  if button returned of result is "OK" then
-                    -- 1. Stage the mobileconfig file for installation
-                    tell application "Finder" to open cfgFile
+                  // 2. Display the alert
+                  let response;
+                  try {
+                    response = app.displayAlert("Install Wireless@SGx profile", {
+                      message: "Click OK to install Wireless@SGx mobile profile for non-SIM host",
+                      buttons: ["Cancel", "OK"],
+                      defaultButton: "OK"
+                    });
+                  } catch (e) {
+                    // Handles user clicking "Cancel" which throws an error in JXA
+                    response = { buttonReturned: "Cancel" };
+                  }
 
-                    -- 2. Open System Settings to the Profiles/Device Management pane
-                    tell application "System Settings"
-                      activate
-                      reveal pane id "com.apple.preferences.configurationfiles"
-                    end tell
-                  end if
-            EOF_applescript
+                  // 3. Check user response
+                  if (response.buttonReturned === "OK") {
+                    // Stage the mobileconfig file
+                    app.doShellScript(`open "''${tmpCfg}"`);
+
+                    // Open System Settings to the Profiles pane
+                    app.doShellScript(
+                      'open "x-apple.systempreferences:com.apple.Profiles-Settings.extension"',
+                    );
+                  }
+            EOF_javascript
               fi
             else
               >&2 date
