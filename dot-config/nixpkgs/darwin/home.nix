@@ -802,7 +802,7 @@ in
             LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
             if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
               export UPDATENIXPKGS
-              osascript -l JavaScript <<javascript
+              osascript -l JavaScript <<'javascript'
                 var app = Application.currentApplication();
                 app.includeStandardAdditions = true;
                 var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
@@ -971,7 +971,7 @@ in
               if [ -n "$PLUGINUPDATES" ]; then
                 # Setup notification
                 export PLUGINUPDATES
-                osascript -l JavaScript <<EOF
+                osascript -l JavaScript <<'javascript'
                   var app = Application.currentApplication();
                   app.includeStandardAdditions = true;
                   var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('PLUGINUPDATES'));
@@ -979,7 +979,7 @@ in
                   updateText = String(updateText);
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
-            EOF
+            javascript
                 IMSGID=$(jq '.iMessageID' ${
                   config.age.secrets."secrets.json".path
                 } 2>/dev/null | sed 's/^"//;s/"$//')
@@ -1136,8 +1136,9 @@ in
                   fi
                 fi
               else
-                /usr/bin/osascript <<applescript
-                  set cfgFile to POSIX file "$TMPCFG"
+                /usr/bin/osascript <<'applescript'
+                  set tmpCfg to system attribute "TMPCFG"
+                  set cfgFile to POSIX file tmpCfg
                   -- Display the alert
                   display alert "Install Wireless@SGx profile" ¬
                     message "Click OK to install Wireless@SGx mobile profile for non-SIM host" ¬
