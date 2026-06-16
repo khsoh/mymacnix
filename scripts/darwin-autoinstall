@@ -1,6 +1,5 @@
 #!/bin/zsh
 
-
 set -u
 set -o pipefail
 
@@ -14,61 +13,61 @@ readonly BLUE="$(tput setaf 4)"
 #
 
 { # Prevent execution if this script was only partially downloaded
-function print_arrow () {
-    printf "${BOLD}${GREEN}"
-    eval $(echo printf '"=%.0s"' {1..$SHLVL})
-    printf "> $*${ESC}\n"
-}
+    function print_arrow() {
+        printf "${BOLD}${GREEN}"
+        eval $(echo printf '"=%.0s"' {1..$SHLVL})
+        printf "> $*${ESC}\n"
+    }
 
-oops() {
-    echo "$0:" "$@" >&2
-    exit 1
-}
+    oops() {
+        echo "$0:" "$@" >&2
+        exit 1
+    }
 
-umask 0022
+    umask 0022
 
-# Perform automated install
-darwintmpDir="$(mktemp -d -t darwinautoinstalldir.XXXXXXXXX || \
-          oops "Can't create temporary directory for downloading the nix-darwin install script")"
+    # Perform automated install
+    darwintmpDir="$(mktemp -d -t darwinautoinstalldir.XXXXXXXXX ||
+        oops "Can't create temporary directory for downloading the nix-darwin install script")"
 
-cleanup() {
-    rm -rf "$darwintmpDir"
-}
-trap cleanup EXIT INT QUIT TERM
+    cleanup() {
+        rm -rf "$darwintmpDir"
+    }
+    trap cleanup EXIT INT QUIT TERM
 
-## Test to confirm nix has been installed
-if [[ ! $(/sbin/mount | grep -w "/nix") ]]; then
-    printf "${BOLD}${RED}Error: Nix has not yet been installed - darwin-autoinstall script cannot be executed${ESC}\n"
-    exit 1
-fi
+    ## Test to confirm nix has been installed
+    if [[ ! $(/sbin/mount | grep -w "/nix") ]]; then
+        printf "${BOLD}${RED}Error: Nix has not yet been installed - darwin-autoinstall script cannot be executed${ESC}\n"
+        exit 1
+    fi
 
-## Test to confirm nix-darwin has NOT yet been installed
-if [[ $(darwin-version --version 2>/dev/null) ]]; then
-    printf "${BOLD}${RED}nix-darwin already installed${ESC}\n"
-    exit 1
-elif [[ ! $(nix --version 2>/dev/null) ]]; then
-    ## Executed the startup scripts to ensure nix path is present
-    . /etc/zprofile
-    . /etc/zshrc
-fi
+    ## Test to confirm nix-darwin has NOT yet been installed
+    if [[ $(darwin-version --version 2>/dev/null) ]]; then
+        printf "${BOLD}${RED}nix-darwin already installed${ESC}\n"
+        exit 1
+    elif [[ ! $(nix --version 2>/dev/null) ]]; then
+        ## Executed the startup scripts to ensure nix path is present
+        . /etc/zprofile
+        . /etc/zshrc
+    fi
 
-if ! /opt/homebrew/bin/brew --version > /dev/null 2>&1 ; then
-    echo "Installing Homebrew"
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    ## Install mas
-    /opt/homebrew/bin/brew install mas
-fi
+    if ! /opt/homebrew/bin/brew --version >/dev/null 2>&1; then
+        echo "Installing Homebrew"
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ## Install mas
+        /opt/homebrew/bin/brew install mas
+    fi
 
-print_arrow "Downloading nix-darwin"
-pushd $darwintmpDir
-sudo -H nix-build https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz -A darwin-rebuild
+    print_arrow "Downloading nix-darwin"
+    pushd $darwintmpDir
+    sudo -H nix-build https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz -A darwin-rebuild
 
-print_arrow "Starting a new sub-shell to configure nix-darwin"
+    print_arrow "Starting a new sub-shell to configure nix-darwin"
 
-# Trick to export print_arrow function to zsh sub-shell
-func_print_arrow="$(typeset -f print_arrow)"
-export func_print_arrow ESC BOLD RED GREEN BLUE
-zsh -l <<EOF
+    # Trick to export print_arrow function to zsh sub-shell
+    func_print_arrow="$(typeset -f print_arrow)"
+    export func_print_arrow ESC BOLD RED GREEN BLUE
+    zsh -l <<zsh
 
 eval "\$func_print_arrow"
 
@@ -91,10 +90,8 @@ sudo chmod a+r /etc/nix-channels/system-channels
 print_arrow "Installing nix-darwin"
 
 sudo -H $darwintmpDir/result/bin/darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin -I darwin-secrets=$HOME/.config/nixpkgs/secrets
-EOF
+zsh
 
-popd
-
+    popd
 
 } # End of wrapping
-

@@ -1,6 +1,5 @@
 #!/bin/zsh
 
-
 set -u
 set -o pipefail
 
@@ -23,17 +22,16 @@ function cleanup() {
 
 trap cleanup EXIT INT TERM QUIT
 
-
 # Script to clone the mymacnix repo, stow the HOME subfolder in the repo and
 # install and configure nix-darwin
 
-function print_arrow () {
+function print_arrow() {
     printf "${BOLD}${GREEN}"
     eval $(echo printf '"=%.0s"' {1..$SHLVL})
     printf "> $*${ESC}\n"
 }
 
-function usage () {
+function usage() {
     print_arrow "Usage: "
     print_arrow "  zsh -l nixsys-setup [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github|codeberg)]"
     print_arrow "    The default feature-branch is 'main' if it is not specified"
@@ -41,7 +39,7 @@ function usage () {
     exit 1
 }
 
-function get_gitfolder () {
+function get_gitfolder() {
     [[ ! -n "${gitfolder+1}" ]] || return
     local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
     printf "$prompt"
@@ -144,25 +142,29 @@ fi
 
 OPTINSTALL="all"
 BRANCH="main"
-CMDARGS=( "$@" )
+CMDARGS=("$@")
 while test $# -gt 0; do
     case "$1" in
-        --install=nixonly)
-            OPTINSTALL="${1##--install=}";;
-        --branch=*)
-            BRANCH="${1##--branch=}";;
-        --repohost=*)
-            REPOHOST="${1##--repohost=}";;
-        *)
-            echo "Invalid option $1"
-            usage;;
+    --install=nixonly)
+        OPTINSTALL="${1##--install=}"
+        ;;
+    --branch=*)
+        BRANCH="${1##--branch=}"
+        ;;
+    --repohost=*)
+        REPOHOST="${1##--repohost=}"
+        ;;
+    *)
+        echo "Invalid option $1"
+        usage
+        ;;
     esac
     shift
 done
 
 case "$REPOHOST" in
-    codeberg) SUFFIX="org" ;;
-    *) SUFFIX="com" ;;
+codeberg) SUFFIX="org" ;;
+*) SUFFIX="com" ;;
 esac
 
 ## Executed the startup scripts to check what whether nix or nix-darwin installed
@@ -204,7 +206,7 @@ if [ ! -f $SCRIPT_PATH ]; then
     sudo mkdir -p "$NIX_DARWIN_DIR"
 
     # 2. Write the script to the disk
-    sudo -H tee "$SCRIPT_PATH" >/dev/null <<'EOF'
+    sudo -H tee "$SCRIPT_PATH" >/dev/null <<'bash'
 #!/usr/bin/env bash
 IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
 XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
@@ -213,14 +215,14 @@ if [ -z "$BGROUPID" ]; then
   BGROUPID=350
 fi
 MINFO_FILE="$1"
-cat <<EOF2 > "$MINFO_FILE"
+cat <<nix > "$MINFO_FILE"
 {
   is_vm = $IS_VM;
   hostname = "${XHOSTNAME}";
   buildGroupID = $BGROUPID;
 }
-EOF2
-EOF
+nix
+bash
 
     # 3. Make the script executable
     sudo -H chmod +x "$SCRIPT_PATH"
@@ -237,15 +239,15 @@ fi
 
 # Added code to install Xcode command line tools
 print_arrow "Checking whether Xcode command line tools have been installed"
-sudo -H xcode-select -p &> /dev/null
+sudo -H xcode-select -p &>/dev/null
 if [ $? -ne 0 ]; then
-  print_arrow "Command Line Tools for Xcode not found. Installing from softwareupdate…"
-# This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
-  touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
-  PROD=$(softwareupdate -l | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
-  softwareupdate -i "$PROD" --verbose;
+    print_arrow "Command Line Tools for Xcode not found. Installing from softwareupdate…"
+    # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
+    touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+    PROD=$(softwareupdate -l | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
+    softwareupdate -i "$PROD" --verbose
 else
-  print_arrow "Command Line Tools for Xcode have been installed."
+    print_arrow "Command Line Tools for Xcode have been installed."
 fi
 
 git -C "$SCRIPTDIR" rev-parse 2>/dev/null
@@ -331,5 +333,3 @@ if [ -f /etc/bashrc ]; then
 fi
 print_arrow "Installing nix-darwin"
 zsh -l scripts/darwin-autoinstall
-
-

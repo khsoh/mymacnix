@@ -12,12 +12,12 @@ readonly RED="$(tput setaf 1)"
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
-function print_green () {
+function print_green() {
     printf "${BOLD}${GREEN}"
     printf "$*${ESC}\n"
 }
 
-function print_red () {
+function print_red() {
     printf "${BOLD}${RED}"
     printf "$*${ESC}\n"
 }
@@ -45,7 +45,6 @@ function cleanup() {
 # but listing the signals ensures cleanup on Ctrl+C (INT) or kill (TERM)
 trap cleanup EXIT INT TERM QUIT
 
-
 function run() {
     if [ -n "$INSTALL_REMOTE" ]; then
         ssh -S "$SOCKET" "$REMOTE_HOST" "zsh -c '$1'"
@@ -54,7 +53,7 @@ function run() {
     fi
 }
 
-function usage () {
+function usage() {
     print_green "Usage: "
     print_green "  $1 (<user>@<host> | localhost)"
     print_green " <user>@<host> : the ssh host to connect to"
@@ -62,7 +61,7 @@ function usage () {
     exit 1
 }
 
-if [ "$#" -ne 1 ]; then
+if [ "$" -ne 1 ]; then
     usage $0
 fi
 
@@ -99,7 +98,8 @@ PKDATA=$(nix-instantiate --eval --strict --json -E "
   in removeFunctions (import (<darwin-secrets> + \"/deploy.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; })
 ")
 
-USERCMDS=$(cat <<EOF
+USERCMDS=$(
+    cat <<zsh
 #!/usr/bin/env zsh
 readonly ESC="\$(tput sgr0)"
 readonly BOLD="\$(tput bold)"
@@ -107,9 +107,10 @@ readonly GREEN="\$(tput setaf 2)"
 readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 printf "\${GREEN}\${BOLD}"
-EOF
+zsh
 )
-HOSTCMDS=$(cat <<EOFX
+HOSTCMDS=$(
+    cat <<zsh
 #!/usr/bin/env zsh
 readonly ESC="\$(tput sgr0)"
 readonly BOLD="\$(tput bold)"
@@ -118,30 +119,30 @@ readonly RED="\$(tput setaf 1)"
 pushd ~/.deploy
 sudo -E -s <<'EOF'
 printf "\${GREEN}\${BOLD}"
-EOFX
+zsh
 )
 
 ## Create a clean deployment directory in host
 print_green "Creating clean deployment directory in ~/.deploy at $XHOST"
 run "rm -rf ~/.deploy && mkdir -p ~/.deploy/root"
 
-
 ## Copy the user secrets
 XUSER=$(echo $PKDATA | jq '.user.name')
 print_green "Deploying secrets from <darwin-secrets>/user/${XUSER}"
 echo $PKDATA | jq '.user.deployment' | jq -c '.[]' | while read -r item; do
-  opuri=$(echo "$item" | jq -r ".OPURI")
-  file=$(echo "$item" | jq -r ".FILE")
-  cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
+    opuri=$(echo "$item" | jq -r ".OPURI")
+    file=$(echo "$item" | jq -r ".FILE")
+    cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
 
-  # Get the secret into the remote host destination
-  op read "$opuri" | run "mkdir -p \$(dirname $file) && umask 077 && cat > $file"
-  USERCMDS=$(cat <<EOF
+    # Get the secret into the remote host destination
+    op read "$opuri" | run "mkdir -p \$(dirname $file) && umask 077 && cat > $file"
+    USERCMDS=$(
+        cat <<EOF
 $USERCMDS
 $cmds
 echo "Installed $file"
 EOF
-)
+    )
 done
 USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
 echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
@@ -150,19 +151,20 @@ echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/user
 XHOST=$(echo $PKDATA | jq '.host.name')
 print_green "Deploying secrets from <darwin-secrets>/host/${XHOST}"
 echo $PKDATA | jq '.host.deployment' | jq -c '.[]' | while read -r item; do
-  opuri=$(echo "$item" | jq -r ".OPURI")
-  file=$(echo "$item" | jq -r ".FILE")
-  cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
+    opuri=$(echo "$item" | jq -r ".OPURI")
+    file=$(echo "$item" | jq -r ".FILE")
+    cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
 
-  # Get the secret into the remote host destination
-  op read "$opuri" | run "mkdir -p \$(dirname ~/.deploy/root/$file) && umask 077 && cat > ~/.deploy/root/$file"
-  HOSTCMDS=$(cat <<EOF
+    # Get the secret into the remote host destination
+    op read "$opuri" | run "mkdir -p \$(dirname ~/.deploy/root/$file) && umask 077 && cat > ~/.deploy/root/$file"
+    HOSTCMDS=$(
+        cat <<EOF
 $HOSTCMDS
 mkdir -p \$(dirname $file)
 $cmds
 echo "Installed $file"
 EOF
-)
+    )
 done
 HOSTCMDS="$HOSTCMDS\nEOF\npopd\nprintf \"\${ESC}\""
 echo "$HOSTCMDS" | run "cat > ~/.deploy/hostdeploy.sh && chmod +x ~/.deploy/hostdeploy.sh && touch ~/.deploy/completed"
