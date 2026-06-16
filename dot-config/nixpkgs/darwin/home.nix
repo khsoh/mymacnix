@@ -984,7 +984,8 @@ in
                   config.age.secrets."secrets.json".path
                 } 2>/dev/null | sed 's/^"//;s/"$//')
                 if [ -n "$IMSGID" ]; then
-                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates" "$PLUGINUPDATES"
+                  LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
                 fi
               fi
               echo "==== ${minimaxName} update and sync completed ====="
