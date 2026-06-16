@@ -66,12 +66,14 @@ in
 
   #### Create a default usercfg.nix in ~/.config/nix and add a symbolic link to it
   config.home.activation.linkusercfg = lib.mkIf (!(builtins.pathExists usercfgFile)) (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      noteEcho "Copying user configuration settings to ${usercfgFile}"
-      if [ ! -f "${usercfgFile}" ]; then
-        run cp "${default_usercfgFile}" "${usercfgFile}"
-      fi
-    ''
+    lib.hm.dag.entryAfter [ "writeBoundary" ]
+      # bash
+      ''
+        noteEcho "Copying user configuration settings to ${usercfgFile}"
+        if [ ! -f "${usercfgFile}" ]; then
+          run cp "${default_usercfgFile}" "${usercfgFile}"
+        fi
+      ''
   );
 
   ## Setup checks and asserts for the SSH private and public key files based on

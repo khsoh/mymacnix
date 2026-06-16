@@ -277,6 +277,7 @@ in
       ProgramArguments = [
         "${pkgs.bashInteractive}/bin/bash"
         "-c"
+        # bash
         ''
           mkdir -p /etc/nix-channels
           chmod a+rx /etc/nix-channels
@@ -328,6 +329,7 @@ in
       ProgramArguments = [
         "${pkgs.bashInteractive}/bin/bash"
         "-c"
+        # bash
         ''
           sleep 2   # Wait a while for file to be completely updated
 
@@ -365,6 +367,7 @@ in
       ProgramArguments = [
         "${pkgs.bashInteractive}/bin/bash"
         "-c"
+        # bash
         ''
           REPO="Quad9DNS/documentation"
           PATH_IN_REPO="docs/assets/mobileconfig"
@@ -418,48 +421,50 @@ in
   nix.optimise.automatic = true;
 
   # Setup aliases
-  environment.interactiveShellInit = ''
-    alias nex="nix --extra-experimental-features nix-command"
-    alias nds="nix --extra-experimental-features nix-command derivation show"
-    alias enix="nix --extra-experimental-features nix-command"
-    alias nie="nix-instantiate --eval"
-    alias drb="sudo -H darwin-rebuild build"
-    alias drs="sudo -H darwin-rebuild switch"
-    alias drlg="sudo -H darwin-rebuild --list-generations"
-    alias ..="cd .."
-    if [[ $- == *i* ]]; then
-      L="$HOME/resize-$TERM_PROGRAM.lock"
-      if [[ -n "$RESIZE_TERM" ]]; then
-        touch $L
-        XRSZ_TERM=$RESIZE_TERM
-        unset RESIZE_TERM
-        LOGF="$HOME/log/''${XRSZ_TERM}Start.log"
-        ( (
-          trap "rm -f $L" EXIT
-          $HOME/.config/jxa/waitapp.js "DisplayLink Manager.app"
-          date > $LOGF
-          sleep 1
-          $HOME/.config/jxa/resize_app.js $XRSZ_TERM >> "$LOGF" 2>&1
-          :
-        ) >/dev/null 2>&1 & )
-      fi
-
-      secs=90
-      sleep 0.2
-      while [[ -f "$L" && $secs -gt 0 ]]; do
-        if [[ $secs -lt 85 ]]; then
-          # Print countdown only after 5 seconds
-          echo -ne "$secs seconds to starting fastfetch"
-          sleep 1
-          echo -ne "\033[0K\r"
-        else
-          sleep 1
+  environment.interactiveShellInit =
+    # bash
+    ''
+      alias nex="nix --extra-experimental-features nix-command"
+      alias nds="nix --extra-experimental-features nix-command derivation show"
+      alias enix="nix --extra-experimental-features nix-command"
+      alias nie="nix-instantiate --eval"
+      alias drb="sudo -H darwin-rebuild build"
+      alias drs="sudo -H darwin-rebuild switch"
+      alias drlg="sudo -H darwin-rebuild --list-generations"
+      alias ..="cd .."
+      if [[ $- == *i* ]]; then
+        L="$HOME/resize-$TERM_PROGRAM.lock"
+        if [[ -n "$RESIZE_TERM" ]]; then
+          touch $L
+          XRSZ_TERM=$RESIZE_TERM
+          unset RESIZE_TERM
+          LOGF="$HOME/log/''${XRSZ_TERM}Start.log"
+          ( (
+            trap "rm -f $L" EXIT
+            $HOME/.config/jxa/waitapp.js "DisplayLink Manager.app"
+            date > $LOGF
+            sleep 1
+            $HOME/.config/jxa/resize_app.js $XRSZ_TERM >> "$LOGF" 2>&1
+            :
+          ) >/dev/null 2>&1 & )
         fi
-        ((secs--))
-      done
-      ${pkgs.fastfetch}/bin/fastfetch
-    fi
-  '';
+
+        secs=90
+        sleep 0.2
+        while [[ -f "$L" && $secs -gt 0 ]]; do
+          if [[ $secs -lt 85 ]]; then
+            # Print countdown only after 5 seconds
+            echo -ne "$secs seconds to starting fastfetch"
+            sleep 1
+            echo -ne "\033[0K\r"
+          else
+            sleep 1
+          fi
+          ((secs--))
+        done
+        ${pkgs.fastfetch}/bin/fastfetch
+      fi
+    '';
 
   # Auto upgrade nix package
   nix.package = pkgs.nix;

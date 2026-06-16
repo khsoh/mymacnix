@@ -98,11 +98,12 @@ in
     neovideLauncher = {
       target = "neovide/nvim-launcher.zsh";
       executable = true;
-      text = ''
-        #!${pkgs.zsh}/bin/zsh --login
-        # Automatically inherit NVIM_APPNAME from .zshenv
-        exec ${pkgs.neovim}/bin/nvim "$@"
-      '';
+      text = # zsh
+        ''
+          #!${pkgs.zsh}/bin/zsh --login
+          # Automatically inherit NVIM_APPNAME from .zshenv
+          exec ${pkgs.neovim}/bin/nvim "$@"
+        '';
     };
 
     # setting up neovide to use neovim binary
@@ -764,6 +765,7 @@ in
         ProgramArguments = [
           "${pkgs.bashInteractive}/bin/bash"
           "-c"
+          # bash
           ''
             sleep 2   # Wait a while for file to be completely updated
 
@@ -791,39 +793,39 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
-          (
-            ''
-              date
-              >&2 date
-              LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
-              UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
-              LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-              if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
-                export UPDATENIXPKGS
-                osascript -l JavaScript <<EOF
-                  var app = Application.currentApplication();
-                  app.includeStandardAdditions = true;
-                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
+          # bash
+          ''
+            date
+            >&2 date
+            LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
+            UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
+            LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+            if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+              export UPDATENIXPKGS
+              osascript -l JavaScript <<javascript
+                var app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+                var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
 
-                  updateText = updateText ? String(updateText) : "No updates found";
+                updateText = updateText ? String(updateText) : "No updates found";
 
-                  app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
-              EOF
-            ''
-            + (lib.optionalString (builtins.pathExists secretsjsonPath) ''
-              IMSGID=$(jq '.iMessageID' ${
-                config.age.secrets."secrets.json".path
-              } 2>/dev/null | sed 's/^"//;s/"$//')
-              if [ -n "$IMSGID" ]; then
-                "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
-              fi
-            '')
-            + ''
-              fi
-              date
-              echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
-            ''
-          )
+                app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
+            javascript
+            ${lib.optionalString (builtins.pathExists secretsjsonPath)
+              # bash
+              ''
+                IMSGID=$(jq '.iMessageID' ${
+                  config.age.secrets."secrets.json".path
+                } 2>/dev/null | sed 's/^"//;s/"$//')
+                if [ -n "$IMSGID" ]; then
+                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
+                fi
+              ''
+            }
+            fi
+            date
+            echo "$UPDATENIXPKGS" > ~/log/detectNixUpdates.log
+          ''
         ];
       };
     };
@@ -839,8 +841,9 @@ in
           "-l"
           "JavaScript"
           "-e"
+          # javascript
           ''
-            const TERMAPP="${TERMPROG}";
+            const TERMAPP = "${TERMPROG}";
             const terminal = Application(TERMAPP);
             try {
               // Use the path to target the specific Kitty installation
@@ -854,7 +857,6 @@ in
             } catch (err) {
               // err contains the message;
               console.log("Error: " + err?.message);
-
             }
             if (TERMAPP == "Terminal.app" || TERMAPP == "Terminal") {
               terminal.activate();
@@ -887,6 +889,7 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
+          # bash
           ''
             date
             [ -d ${homecfg.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
@@ -910,13 +913,10 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
+          # bash
           ''
             date
             >&2 date
-            echo "==== nvim plugin and tools update start ====="
-            ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { force=true })" "+MasonUpdate" "+MasonToolsUpdateSync" "+qa"
-            echo ""
-            echo "==== nvim plugin and tools update completed ====="
             if [ -d "${minimaxConfig}" ]; then
               echo "==== ${minimaxName} update and sync start ====="
               pushd "${minimaxConfig}" >/dev/null
@@ -1060,6 +1060,7 @@ in
           "${pkgs.bashInteractive}/bin/bash"
           "-l"
           "-c"
+          # bash
           ''
             ICLOUD_DIR="${homecfg.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
 
@@ -1135,7 +1136,7 @@ in
                   fi
                 fi
               else
-                /usr/bin/osascript <<EOT
+                /usr/bin/osascript <<applescript
                   set cfgFile to POSIX file "$TMPCFG"
                   -- Display the alert
                   display alert "Install Wireless@SGx profile" ¬
@@ -1153,7 +1154,7 @@ in
                       reveal pane id "com.apple.preferences.configurationfiles"
                     end tell
                   end if
-            EOT
+            applescript
               fi
             else
               >&2 date
@@ -1182,117 +1183,129 @@ in
       duti = "${pkgs.duti}/bin/duti";
     in
     {
-      initTermCtrlVars = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        # shellcheck disable=SC2034
-        ESC="\x1b[0m"
-        # shellcheck disable=SC2034
-        BOLD="\x1b[1m"
-        # shellcheck disable=SC2034
-        RED="\x1b[31m"
-        # shellcheck disable=SC2034
-        GREEN="\x1b[32m"
-        # shellcheck disable=SC2034
-        YELLOW="\x1b[33m"
-        # shellcheck disable=SC2034
-        BLUE="\x1b[34m"
-      '';
+      initTermCtrlVars =
+        lib.hm.dag.entryAfter [ "writeBoundary" ]
+          # bash
+          ''
+            # shellcheck disable=SC2034
+            ESC="\x1b[0m"
+            # shellcheck disable=SC2034
+            BOLD="\x1b[1m"
+            # shellcheck disable=SC2034
+            RED="\x1b[31m"
+            # shellcheck disable=SC2034
+            GREEN="\x1b[32m"
+            # shellcheck disable=SC2034
+            YELLOW="\x1b[33m"
+            # shellcheck disable=SC2034
+            BLUE="\x1b[34m"
+          '';
 
       # Clone into ${minimaxConfig}
-      bootstrapMinimax = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
-        if [ ! -d "${minimaxConfig}" ]; then
-          printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration to ${minimaxConfig}''${ESC}\n"
-          ${pkgs.git}/bin/git clone "${minimaxRepo}" "${minimaxConfig}"
-          ${pkgs.git}/bin/git -C "${minimaxConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
-        fi
-        if [ ! -d "${nvtestConfig}" ]; then
-          printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration to ${nvtestConfig}''${ESC}\n"
-          ${pkgs.git}/bin/git clone "${minimaxRepo}" "${nvtestConfig}"
-          ${pkgs.git}/bin/git -C "${nvtestConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
-        fi
-      '';
+      bootstrapMinimax =
+        lib.hm.dag.entryAfter [ "initTermCtrlVars" ]
+          # bash
+          ''
+            if [ ! -d "${minimaxConfig}" ]; then
+              printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration to ${minimaxConfig}''${ESC}\n"
+              ${pkgs.git}/bin/git clone "${minimaxRepo}" "${minimaxConfig}"
+              ${pkgs.git}/bin/git -C "${minimaxConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
+            fi
+            if [ ! -d "${nvtestConfig}" ]; then
+              printf "''${RED}''${BOLD}Fresh cloning of neovim minimax configuration to ${nvtestConfig}''${ESC}\n"
+              ${pkgs.git}/bin/git clone "${minimaxRepo}" "${nvtestConfig}"
+              ${pkgs.git}/bin/git -C "${nvtestConfig}" remote set-url --push origin git@github.com:${ghcfg.username}/minimax.git
+            fi
+          '';
 
       install1PasswordCfg = lib.mkIf onepasscfg.enable (
         # Need to put this after linkGeneration
         # to access config.xdg.configFile.onepassword_mobileconfig.target
-        lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ] ''
-          CFGFILE="${homecfg.homeDirectory}/${config.xdg.configFile.onepassword_mobileconfig.target}"
-          PAYLOAD_ID=$(${plistbuddy} -c "Print :PayloadIdentifier" "$CFGFILE")
-          PAYLOAD_UUID=$(${plistbuddy} -c "Print :PayloadUUID" "$CFGFILE")
-          PAYLOAD_VERSION=$(${plistbuddy} -c "Print :PayloadVersion" "$CFGFILE")
+        lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ]
+          # bash
+          ''
+            CFGFILE="${homecfg.homeDirectory}/${config.xdg.configFile.onepassword_mobileconfig.target}"
+            PAYLOAD_ID=$(${plistbuddy} -c "Print :PayloadIdentifier" "$CFGFILE")
+            PAYLOAD_UUID=$(${plistbuddy} -c "Print :PayloadUUID" "$CFGFILE")
+            PAYLOAD_VERSION=$(${plistbuddy} -c "Print :PayloadVersion" "$CFGFILE")
 
-          INSTALLED_JSON=$(${profiles} show -output stdout-xml | \
-            ${plutil} -convert json -o - - | \
-            ${jq} -c --arg id "$PAYLOAD_ID" \
-            '.[env.USER][]? | select (.ProfileIdentifier == $id)')
-          INSTALLED_UUID=$(${jq} -r '.ProfileUUID' <<< $INSTALLED_JSON)
-          INSTALLED_VERSION=$(${jq} -r '.ProfileVersion' <<< $INSTALLED_JSON)
+            INSTALLED_JSON=$(${profiles} show -output stdout-xml | \
+              ${plutil} -convert json -o - - | \
+              ${jq} -c --arg id "$PAYLOAD_ID" \
+              '.[env.USER][]? | select (.ProfileIdentifier == $id)')
+            INSTALLED_UUID=$(${jq} -r '.ProfileUUID' <<< $INSTALLED_JSON)
+            INSTALLED_VERSION=$(${jq} -r '.ProfileVersion' <<< $INSTALLED_JSON)
 
-          if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
-            printf "''${GREEN}''${BOLD}Updating 1Password mobileconfig profile...''${ESC}\n"
-            if [ -n "$INSTALLED_UUID" ]; then
-              printf "''${BLUE}''${BOLD}==>''${ESC} Removing old 1Password profile before installing new profile\n"
-              run ${profiles} remove -identifier "$PAYLOAD_ID"
-              printf "''${BLUE}''${BOLD}==>''${ESC} Removed old 1Password profile UUID $INSTALLED_UUID version $INSTALLED_VERSION\n"
+            if [ "$PAYLOAD_UUID" != "$INSTALLED_UUID" ] ; then
+              printf "''${GREEN}''${BOLD}Updating 1Password mobileconfig profile...''${ESC}\n"
+              if [ -n "$INSTALLED_UUID" ]; then
+                printf "''${BLUE}''${BOLD}==>''${ESC} Removing old 1Password profile before installing new profile\n"
+                run ${profiles} remove -identifier "$PAYLOAD_ID"
+                printf "''${BLUE}''${BOLD}==>''${ESC} Removed old 1Password profile UUID $INSTALLED_UUID version $INSTALLED_VERSION\n"
+              fi
+              printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for 1Password"
+              run ${open} "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
             fi
-            printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for 1Password"
-            run ${open} "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
-          fi
-        ''
+          ''
       );
 
       start1Password = lib.mkIf onepasscfg.enable (
-        lib.hm.dag.entryAfter [ "install1PasswordCfg" ] ''
-          # Create the .1password directory if it does not exist
-          mkdir -p "$(dirname "${SSHSOCK}")"
+        lib.hm.dag.entryAfter [ "install1PasswordCfg" ]
+          # bash
+          ''
+            # Create the .1password directory if it does not exist
+            mkdir -p "$(dirname "${SSHSOCK}")"
 
-          # Symlink the 1Password-managed socket to the standard location
-          # Replace the source path if 1Password changes it, but this is the current macOS default
-          ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
+            # Symlink the 1Password-managed socket to the standard location
+            # Replace the source path if 1Password changes it, but this is the current macOS default
+            ln -sfn "${OPSSHSOCK}" "${SSHSOCK}"
 
-          # Check that 1Password is running
-          if ! ${pgrep} -x "1Password" > /dev/null; then
-            printf "\n''${GREEN}''${BOLD}--- Executing 1Password ---''${ESC}\n"
-            run ${open} -a "1Password" --args --silent
-            sleep 2
+            # Check that 1Password is running
+            if ! ${pgrep} -x "1Password" > /dev/null; then
+              printf "\n''${GREEN}''${BOLD}--- Executing 1Password ---''${ESC}\n"
+              run ${open} -a "1Password" --args --silent
+              sleep 2
 
-            # Ensure at least one account is configured on this machine
-            if ! ${OPCLI} account list > /dev/null 2>&1; then
-              printf "''${BLUE}''${BOLD}==>''${ESC} No 1Password account found. Starting initial setup...\n"
-              ${OPCLI} account add
+              # Ensure at least one account is configured on this machine
+              if ! ${OPCLI} account list > /dev/null 2>&1; then
+                printf "''${BLUE}''${BOLD}==>''${ESC} No 1Password account found. Starting initial setup...\n"
+                ${OPCLI} account add
+              fi
+
             fi
 
-          fi
-
-        ''
+          ''
       );
 
       createHardlinks = lib.mkIf (hlcfg != { }) (
-        lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ] ''
-          PRHEAD=
-          ${lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (name: value: ''
-              if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
-                if [[ ! -n "$PRHEAD" ]]; then
-                  printf "''${GREEN}''${BOLD}--- Creating hardlinks ---''${ESC}\n"
-                  PRHEAD=1
+        lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ]
+          # bash
+          ''
+            PRHEAD=
+            ${lib.concatStringsSep "\n" (
+              lib.mapAttrsToList (name: value: ''
+                if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
+                  if [[ ! -n "$PRHEAD" ]]; then
+                    printf "''${GREEN}''${BOLD}--- Creating hardlinks ---''${ESC}\n"
+                    PRHEAD=1
+                  fi
+
+                  printf "''${BLUE}''${BOLD}==>''${ESC} Linking ${value.source} to $HOME/${value.target}...\n"
+                  # Ensure target directory exists
+                  run mkdir -p "$(dirname "$HOME/${value.target}")"
+
+                  # Remove existing file/link to avoid errors
+                  run rm -f "$HOME/${value.target}"
+
+                  # Create the hardlink
+                  run ln "${value.source}" "$HOME/${value.target}"
+
+                  ${value.postHardlinkCmds}
                 fi
-
-                printf "''${BLUE}''${BOLD}==>''${ESC} Linking ${value.source} to $HOME/${value.target}...\n"
-                # Ensure target directory exists
-                run mkdir -p "$(dirname "$HOME/${value.target}")"
-
-                # Remove existing file/link to avoid errors
-                run rm -f "$HOME/${value.target}"
-
-                # Create the hardlink
-                run ln "${value.source}" "$HOME/${value.target}"
-
-                ${value.postHardlinkCmds}
-              fi
-            '') hlcfg
-          )}
-          unset PRHEAD
-        ''
+              '') hlcfg
+            )}
+            unset PRHEAD
+          ''
       );
 
       ## Useful helpers to find application file names, display names, ID
@@ -1314,52 +1327,55 @@ in
       #
       # 5. Get the application ID given the application filename (usually ends with .app)
       #    mdls -name kMDItemCFBundleIdentifier -raw "$(mdfind "kMDItemKind == 'Application' && kMDItemFSName == '<app name>'" | head -n 1)"
-      setNeovideUTIhandler = lib.hm.dag.entryAfter [ "initTermCtrlVars" ] ''
-        COUNT=15
-        APPNAME="${Helpers.getMacAppName pkgs.neovide}"
+      setNeovideUTIhandler =
+        lib.hm.dag.entryAfter [ "initTermCtrlVars" ]
+          # bash
+          ''
+            COUNT=15
+            APPNAME="${Helpers.getMacAppName pkgs.neovide}"
 
-        for (( i=$COUNT; i>0; i-- )); do
-          idneovide=$(${mdls} -name kMDItemCFBundleIdentifier -raw "$(${mdfind} "kMDItemKind == 'Application' && kMDItemFSName == '$APPNAME'" | head -n 1)")
-          if [ -n "$idneovide" ]; then
-            [ $i -ne $COUNT ] && printf "\n"
-            printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPNAME" "$idneovide"
-            break
-          elif [ $i -eq 15 ]; then
-            printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
-          fi
+            for (( i=$COUNT; i>0; i-- )); do
+              idneovide=$(${mdls} -name kMDItemCFBundleIdentifier -raw "$(${mdfind} "kMDItemKind == 'Application' && kMDItemFSName == '$APPNAME'" | head -n 1)")
+              if [ -n "$idneovide" ]; then
+                [ $i -ne $COUNT ] && printf "\n"
+                printf "''${BLUE}''${BOLD}==>''${ESC}  ID of %s is %s\n" "$APPNAME" "$idneovide"
+                break
+              elif [ $i -eq 15 ]; then
+                printf "''${GREEN}''${BOLD}--- Waiting for up to $COUNT seconds to get ID of $APPNAME ---''${ESC}\n"
+              fi
 
-          # Update countdown on the same line
-          printf "\r''${BLUE}''${BOLD}==>''${ESC}  Checking... %2d seconds remaining" "$i"
+              # Update countdown on the same line
+              printf "\r''${BLUE}''${BOLD}==>''${ESC}  Checking... %2d seconds remaining" "$i"
 
-          sleep 1
-        done
+              sleep 1
+            done
 
-        if [ ! -n "$idneovide" ]; then
-          printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPNAME"
-          exit 0
-        fi
+            if [ ! -n "$idneovide" ]; then
+              printf "\n''${BLUE}''${BOLD}==>''${ESC}   Timeout: ID of %s could not be found\n" "$APPNAME"
+              exit 0
+            fi
 
-        # Use duti to set Neovide for plain-text (.txt) and log (.log) files
-        # The 'all' flag applies it to editor, viewer, and shell roles
-        filetypes=("txt" "log")
+            # Use duti to set Neovide for plain-text (.txt) and log (.log) files
+            # The 'all' flag applies it to editor, viewer, and shell roles
+            filetypes=("txt" "log")
 
-        for ftype in "''${filetypes[@]}"; do
-          # Get the UTI
-          TESTFILE=/tmp/$USER-''${RANDOM}.$ftype
-          touch $TESTFILE
-          UTI=$(${mdls} -name kMDItemContentType -raw $TESTFILE 2>/dev/null)
-          rm $TESTFILE
-          hndlr=$(${duti} -d $UTI 2>/dev/null)
-          if [ "$hndlr" == "$idneovide" ]; then
-            printf "''${BLUE}''${BOLD}==>''${ESC}  UTI $UTI default handler is already assigned to $APPNAME\n"
-          else
-            appHndlr=$(basename "$(${mdfind} "kMDItemCFBundleIdentifier == '$hndlr'")")
-            printf "''${BLUE}''${BOLD}==>''${ESC}  Changing UTI default handler for $UTI (file extension .$ftype) from $appHndlr to $APPNAME\n"
-            run ${duti} -s $idneovide $UTI all
-            run ${duti} -s $idneovide .$ftype all
-          fi
-        done
-      '';
+            for ftype in "''${filetypes[@]}"; do
+              # Get the UTI
+              TESTFILE=/tmp/$USER-''${RANDOM}.$ftype
+              touch $TESTFILE
+              UTI=$(${mdls} -name kMDItemContentType -raw $TESTFILE 2>/dev/null)
+              rm $TESTFILE
+              hndlr=$(${duti} -d $UTI 2>/dev/null)
+              if [ "$hndlr" == "$idneovide" ]; then
+                printf "''${BLUE}''${BOLD}==>''${ESC}  UTI $UTI default handler is already assigned to $APPNAME\n"
+              else
+                appHndlr=$(basename "$(${mdfind} "kMDItemCFBundleIdentifier == '$hndlr'")")
+                printf "''${BLUE}''${BOLD}==>''${ESC}  Changing UTI default handler for $UTI (file extension .$ftype) from $appHndlr to $APPNAME\n"
+                run ${duti} -s $idneovide $UTI all
+                run ${duti} -s $idneovide .$ftype all
+              fi
+            done
+          '';
     };
 
   # The state version is required and should stay at the version you

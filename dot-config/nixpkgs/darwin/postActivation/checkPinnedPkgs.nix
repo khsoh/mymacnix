@@ -29,13 +29,15 @@ in
       );
     in
     lib.mkIf (untestedPkgs != [ ]) (
-      lib.mkAfter ''
-        # shellcheck disable=SC2059
-        printf "''${RED}''${BOLD}======== Packages NOT YET tested with main nixpkgs (${currentNixpkgsRev}) ========''${ESC}\n"
-        # shellcheck disable=SC2059
-        printf "''${RED}''${BOLD}>>''${ESC} ${names}\n"
-        # shellcheck disable=SC2059
-        printf "''${RED}''${BOLD}==>''${ESC} Consider testing these packages with latest nixpkgs revision.\n"
-      ''
+      lib.mkAfter
+        # bash
+        ''
+          # shellcheck disable=SC2059
+          printf "''${RED}''${BOLD}======== Packages NOT YET tested with main nixpkgs (${currentNixpkgsRev}) ========''${ESC}\n"
+          # shellcheck disable=SC2059
+          printf "''${RED}''${BOLD}>>''${ESC} ${names}\n"
+          # shellcheck disable=SC2059
+          printf "''${RED}''${BOLD}==>''${ESC} Consider testing these packages with latest nixpkgs revision.\n"
+        ''
     );
 }
