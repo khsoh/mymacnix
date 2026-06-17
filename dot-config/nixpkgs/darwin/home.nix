@@ -990,59 +990,6 @@ in
               fi
               echo "==== ${minimaxName} update and sync completed ====="
             fi
-
-
-            if [ -d "${nvtestConfig}" ]; then
-              echo "==== ${nvtestName} update and sync start ====="
-              pushd "${nvtestConfig}" >/dev/null
-              GIT="${pkgs.git}/bin/git"
-              $GIT fetch -q
-
-              FULL_STATUS=$($GIT status --porcelain -b)
-
-              BRANCH_HEADER=$(echo "$FULL_STATUS" | head -n 1)
-              UNCOMMITTED_FILES=$(echo "$FULL_STATUS" | tail -n +2)
-
-              if [ -n "$UNCOMMITTED_FILES" ]; then
-                HAS_UNCOMMITTED=true
-                echo "!! UNCOMMITTED CHANGES DETECTED in ${nvtestConfig}:"
-                echo "$UNCOMMITTED_FILES"
-              else
-                HAS_UNCOMMITTED=false
-                echo "No uncommitted files in ${nvtestConfig}"
-              fi
-
-              case "$BRANCH_HEADER" in
-                *"behind"*)
-                  SYNC_STATUS="behind"
-                  echo "${nvtestConfig} out of sync with ${minimaxRepo}: Remote has newer commits."
-                  ;;
-                *"ahead"*)
-                  SYNC_STATUS="ahead"
-                  echo "${nvtestConfig} out of sync with ${minimaxRepo}: Local has unique commits."
-                  ;;
-                *"diverged"*)
-                  SYNC_STATUS="diverged"
-                  echo "${nvtestConfig} out of sync with ${minimaxRepo}: Both local and remote have unique commits."
-                  ;;
-                *)
-                  SYNC_STATUS="synced"
-                  echo "${nvtestConfig} commits are perfectly in sync."
-                  ;;
-              esac
-
-              if [ "$HAS_UNCOMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
-                echo "Safe to pull: Repo is clean and behind remote."
-                $GIT pull
-                # Update plugins to new commits in lock file
-                echo "==== ${nvtestName} plugin sync start ====="
-                NVIM_APPNAME="${nvtestName}" ${pkgs.neovim}/bin/nvim --headless "+lua vim.pack.update(nil, { target = 'lockfile', force = true })" "+qa"
-                echo ""
-                echo "==== ${nvtestName} plugin sync completed ====="
-              fi
-              popd >/dev/null
-              echo "==== ${nvtestName} update and sync completed ====="
-            fi
           ''
         ];
       };
