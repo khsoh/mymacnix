@@ -235,10 +235,12 @@ in
     nvxupdate = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" \"+qa\"";
     nvxsync = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" \"+qa\"";
     nvxlu = "NVIM_APPNAME=${minimaxName} nvim --headless -l \"${minimaxConfig}/listUpdates.lua\"";
+    nvxlist = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua for _, p in ipairs(vim.pack.get(nil, { info = false })) do print(p.spec.name) end\" \"+qa\"";
     nvt = "NVIM_APPNAME=${nvtestName} nvim";
     nvtupdate = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" \"+qa\"";
     nvtsync = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" \"+qa\"";
     nvtlu = "NVIM_APPNAME=${nvtestName} nvim --headless -l \"${nvtestConfig}/listUpdates.lua\"";
+    nvtlist = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua for _, p in ipairs(vim.pack.get(nil, { info = false })) do print(p.spec.name) end\" \"+qa\"";
 
     # Standard agenix wrapper to include age key file
     anix = "agenix -i ${userPKFILEPath}";
