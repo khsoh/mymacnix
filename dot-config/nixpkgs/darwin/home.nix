@@ -45,6 +45,7 @@ let
   pkusercfg = osConfig.secrets.target.user;
   pkhostcfg = osConfig.secrets.target.host;
   secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/secrets.json.age";
+  userHostsSecret = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/hosts.age";
   userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkusercfg.agecfg.PKFILE);
   userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkusercfg.agecfg.PUBFILE);
   hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkhostcfg.agecfg.PKFILE);
@@ -192,6 +193,27 @@ in
 
     # The following are needed to ensure the decrypted secret has the correct permission
     mode = "600";
+
+    # Note that the owner and group attribute are absent from home-manager module
+    #owner = "${username}";
+    #group = "staff";
+  };
+
+  # Additional hosts file
+  age.secrets.custom-hosts = lib.mkIf (builtins.pathExists userHostsSecret) {
+    file = userHostsSecret;
+
+    # path should be a string expression (in quotes), not a path expression
+    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    path = "${config.xdg.configHome}/nix/hosts";
+
+    # The default is true if not specified.  We want to make sure that
+    # the "file" (decrypted secret) is symlinked and not generated directly into
+    # that location
+    symlink = true;
+
+    # The following are needed to ensure the decrypted secret has the correct permission
+    mode = "0400";
 
     # Note that the owner and group attribute are absent from home-manager module
     #owner = "${username}";

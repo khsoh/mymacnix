@@ -6,4 +6,9 @@ in
     publicKeys = [ pubkey ];
     armor = true;
   };
+
+  "hosts.age" = {
+    publicKeys = [ pubkey ];
+    armor = true;
+  };
 }
