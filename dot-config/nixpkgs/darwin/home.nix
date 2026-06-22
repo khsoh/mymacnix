@@ -774,10 +774,28 @@ in
             DERIVED=$(${pkgs.age}/bin/age-keygen -y ${userPKFILEPath} 2>/dev/null)
 
             if [ "$DERIVED" != "${pkuserPUBFILEstring}" ]; then
-              /usr/bin/osascript -e 'display alert "AGE key Security Alert" message "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!"'
+              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+
+                // 1. Display the alert
+                app.displayAlert("AGE key Security Alert", {
+                  message: "User Age Private key file ${userPKFILEPath} does not match with its public key file ${userPUBFILEPath}!"
+                  });
+                void(0);
+            EOF_javascript
             fi
             if [ "${pkuserPUBFILEstring}" != "${pkusercfg.agecfg.pubkey}" ]; then
-              /usr/bin/osascript -e 'display alert "AGE key Security Alert" message "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/default.nix!"'
+              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+
+                // 1. Display the alert
+                app.displayAlert("AGE key Security Alert", {
+                  message: "Contents of User Age Public key file ${userPUBFILEPath} does not match with its pubkey attribute value in ${pkuserDir}/default.nix!"
+                  });
+                void(0);
+            EOF_javascript
             fi
           ''
         ];
@@ -807,9 +825,7 @@ in
               osascript -l JavaScript <<'EOF_javascript'
                 var app = Application.currentApplication();
                 app.includeStandardAdditions = true;
-                var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('UPDATENIXPKGS'));
-
-                updateText = updateText ? String(updateText) : "No updates found";
+                var updateText = app.systemAttribute('UPDATENIXPKGS');
 
                 app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
             EOF_javascript
@@ -976,9 +992,7 @@ in
                 osascript -l JavaScript <<'EOF_javascript'
                   var app = Application.currentApplication();
                   app.includeStandardAdditions = true;
-                  var updateText = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('PLUGINUPDATES'));
-
-                  updateText = String(updateText);
+                  const updateText = app.systemAttribute("PLUGINUPDATES");
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
@@ -1027,8 +1041,29 @@ in
               >&2 date
               >&2 echo "Warning: Wireless@SGx Profile file absent from WSGX folder in iCloud drive"
               >&2 echo "==================="
-              /usr/bin/osascript -e 'display alert "Wireless@SGx not installed" message "Click OK to download Wireless@SGx mobile profile for non-SIM host" buttons { "Cancel", "OK" } default button "OK"' \
-                -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
+              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+
+                let response;
+                try {
+                  // Display the alert
+                  response = app.displayAlert("Wireless@SGx not installed", {
+                    message: "Click OK to download Wireless@SGx mobile profile for non-SIM host",
+                    buttons: ["Cancel", "OK"],
+                    defaultButton: "OK"
+                  });
+                } catch (e) {
+                  // Handles user clicking "Cancel" which throws an error in JXA
+                  response = { buttonReturned: "Cancel" };
+                }
+
+                // Handle user response
+                if (response.buttonReturned === "OK") {
+                  app.openLocation("https://go.gov.sg/wsgx");
+                }
+                void(0);
+            EOF_javascript
               exit 0
             fi
 
@@ -1042,8 +1077,29 @@ in
               >&2 date
               >&2 echo "Warning: Wireless@SGx Profile will expire on $EXPIRE_DATE"
               >&2 echo "==================="
-              /usr/bin/osascript -e 'display alert "Wireless@SGx profile expiring soon" message "Click OK to download Wireless@SGx mobile profile for non-SIM host" buttons { "Cancel", "OK" } default button "OK"' \
-                -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
+              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+
+                let response;
+                try {
+                  // Display the alert
+                  response = app.displayAlert("Wireless@SGx profile expiring soon", {
+                    message: "Click OK to download Wireless@SGx mobile profile for non-SIM host",
+                    buttons: ["Cancel", "OK"],
+                    defaultButton: "OK"
+                  });
+                } catch (e) {
+                  // Handles user clicking "Cancel" which throws an error in JXA
+                  response = { buttonReturned: "Cancel" };
+                }
+
+                // Handle user response
+                if (response.buttonReturned === "OK") {
+                  app.openLocation("https://go.gov.sg/wsgx");
+                }
+                void(0);
+            EOF_javascript
               exit 0
             fi
 
@@ -1086,6 +1142,7 @@ in
                   fi
                 fi
               else
+                export TMPCFG
                 /usr/bin/osascript -l JavaScript <<'EOF_javascript'
                   // 1. Get the environment variable
                   const app = Application.currentApplication();
@@ -1121,8 +1178,29 @@ in
               >&2 date
               >&2 echo "Warning: Wireless@SGx Profile file is CORRUPTED: $WSGX_FILE"
               >&2 echo "==================="
-              /usr/bin/osascript -e 'display alert "Wireless@SGx profile corrupted" message "Click OK to download Wireless@SGx mobile profile for non-SIM host" buttons { "Cancel", "OK" } default button "OK"' \
-                -e 'if button returned of result is "OK" then open location "https://go.gov.sg/wsgx"'
+              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+
+                let response;
+                try {
+                  // Display the alert
+                  response = app.displayAlert("Wireless@SGx profile corrupted", {
+                    message: "Click OK to download Wireless@SGx mobile profile for non-SIM host",
+                    buttons: ["Cancel", "OK"],
+                    defaultButton: "OK"
+                  });
+                } catch (e) {
+                  // Handles user clicking "Cancel" which throws an error in JXA
+                  response = { buttonReturned: "Cancel" };
+                }
+
+                // Handle user response
+                if (response.buttonReturned === "OK") {
+                  app.openLocation("https://go.gov.sg/wsgx");
+                }
+                void(0);
+            EOF_javascript
             fi
             rm -f "$TMPCFG"
           ''

@@ -341,14 +341,26 @@ in
             CURRENT_USER_ID=$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))
 
             # Send notification into that user's session
-            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Host Age Private key file ${pkhostcfg.agecfg.PKFILE} does not match with its public key file ${pkhostcfg.agecfg.PUBFILE}!" with title "Security Alert"'
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+              var app = Application.currentApplication();
+              app.includeStandardAdditions = true;
+
+              app.displayNotification("Host Age Private key file ${pkhostcfg.agecfg.PKFILE} does not match with its public key file ${pkhostcfg.agecfg.PUBFILE}!", { withTitle: "Security Alert" });
+              void(0);
+            EOF_javascript
           fi
 
           if [ "${pkhostPUBFILEstring}" != "${pkhostcfg.agecfg.pubkey}" ]; then
             CURRENT_USER_ID=''${USERID:-$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))}
 
             # Send notification into that user's session
-            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -e 'display notification "Contents of Host Age Public key file ${pkhostcfg.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!" with title "Security Alert"'
+            /bin/launchctl asuser "$CURRENT_USER_ID" /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+              var app = Application.currentApplication();
+              app.includeStandardAdditions = true;
+
+              app.displayNotification("Contents of Host Age Public key file ${pkhostcfg.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!", { withTitle: "Security Alert" });
+              void(0);
+            EOF_javascript
           fi
         ''
       ];
@@ -399,8 +411,37 @@ in
               >&2 echo "Latest file : $LATEST_FILE"
               >&2 echo "Download URL: $DOWNLOAD_URL"
               >&2 echo "SHA         : $FILE_SHA"
-              /usr/bin/osascript -e 'beep' -e "display alert \"QUAD9 Update available\" message \"Latest file : $LATEST_FILE\nDownload URL: $DOWNLOAD_URL\n\nClick OK to download the new update\" buttons {\"Cancel\", \"OK\"} default button \"OK\"" \
-              -e "if button returned of result is \"OK\" then open location \"$DOWNLOAD_URL\""
+
+              MSG="Latest file: $LATEST_FILE\nDownload URL: $DOWNLOAD_URL\n\nClick OK to download the new update"
+              export MSG
+              export DOWNLOAD_URL
+              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+                const msg = app.systemAttribute("MSG");
+
+                // Play an alert sound
+                app.beep();
+
+                let response;
+                try {
+                  // Display the alert
+                  response = app.displayAlert("QUAD9 Update available", {
+                    message: msg,
+                    buttons: ["Cancel", "OK"],
+                    defaultButton: "OK"
+                  });
+                } catch (e) {
+                  // Handles user clicking "Cancel" which throws an error in JXA
+                  response = { buttonReturned: "Cancel" };
+                }
+
+                // Handle user response
+                if (response.buttonReturned === "OK") {
+                  app.openLocation(app.systemAttribute("DOWNLOAD_URL"));
+                }
+                void(0);
+          EOF_javascript
             else
               ## Validate the SHA of the current file
               CURRENT_SHA=$(${pkgs.git}/bin/git hash-object "$ABS_CURRENT_FILE")
@@ -409,7 +450,22 @@ in
                 date
                 echo "Quad9 profile is up to date ($ABS_CURRENT_FILE)."
               else
-                /usr/bin/osascript -e 'beep' -e "display alert \"Current QUAD9 mobileconfig corrupted!!\" message \"Current SHA-1 of Quad9 mobileconfig at $ABS_CURRENT_FILE did not match official SHA-1\nCurrent : $CURRENT_SHA\nOfficial: $FILE_SHA\""
+                MSG="Current SHA-1 of Quad9 mobileconfig at $ABS_CURRENT_FILE did not match official SHA-1\nCurrent : $CURRENT_SHA\nOfficial: $FILE_SHA"
+                export MSG
+                /usr/bin/osascript -l JavaScript <<'EOF_javascript'
+                  const app = Application.currentApplication();
+                  app.includeStandardAdditions = true;
+                  const msg = app.systemAttribute("MSG");
+
+                  // Play an alert sound
+                  app.beep();
+
+                  // Display the alert
+                  app.displayAlert("Current QUAD9 mobileconfig corrupted!!", {
+                    message: msg
+                  });
+                  void(0);
+          EOF_javascript
               fi
             fi
           fi
