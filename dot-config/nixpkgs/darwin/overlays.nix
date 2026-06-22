@@ -20,33 +20,6 @@ let
       # Override with EOL electron version
       permittedInsecurePackages = [ "electron-39.8.10" ];
     };
-
-    # "bitwarden-desktop" = {
-    #   url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
-    #   ignoredCommits = [
-    #     "8c91a71d1345"
-    #     # "173d0ad7a974"
-    #     # "49a4bd0573c3"
-    #   ];
-    #   # Optional: Add a description or version tag for clarity
-    #   desc = "Modified bitwarden-desktop to support EOL electron";
-    # };
-    # zsh = {
-    #   url = "https://github.com/NixOS/nixpkgs/archive/b86751bc4085.tar.gz";
-    #   ignoredCommits = [
-    #     "01fbdeef22b7"
-    #     "6368eda62c97"
-    #   ];
-    #   # Optional: Add a description or version tag for clarity
-    #   desc = "Pinned ZSH (commit b86751bc)";
-    # };
-
-    # Example of a second package with a DIFFERENT pin
-    # firefox = {
-    #   url = "https://github.com/NixOS/nixpkgs/archive/some-other-commit.tar.gz";
-    #   ignoredCommits = [ "01fbdeef22b7" "6368eda62c97" ];
-    #   desc = "Pinned Firefox";
-    # };
   };
 
   # 2. Helper function to create the override logic for a single package
