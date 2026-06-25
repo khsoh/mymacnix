@@ -206,7 +206,7 @@ if [ ! -f $SCRIPT_PATH ]; then
     sudo mkdir -p "$NIX_DARWIN_DIR"
 
     # 2. Write the script to the disk
-    sudo -H tee "$SCRIPT_PATH" >/dev/null <<'bash'
+    sudo -H tee "$SCRIPT_PATH" >/dev/null << 'EOF_bash'
 #!/usr/bin/env bash
 IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
 XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
@@ -214,15 +214,20 @@ BGROUPID=$(dscl . -read /Groups/nixbld PrimaryGroupID 2>/dev/null | awk '{ print
 if [ -z "$BGROUPID" ]; then
   BGROUPID=350
 fi
-MINFO_FILE="$1"
-cat <<nix > "$MINFO_FILE"
+NEW_MINFO=$(cat << EOF_nix
 {
   is_vm = $IS_VM;
   hostname = "${XHOSTNAME}";
   buildGroupID = $BGROUPID;
 }
-nix
-bash
+EOF_nix
+)
+
+MINFO_FILE="$1"
+if [ ! -f "$MINFO_FILE" ] || ! diff -q "$MINFO_FILE" <(echo "$NEW_MINFO") >/dev/null 2>&1; then
+    echo "$NEW_MINFO" > "$MINFO_FILE"
+fi
+EOF_bash
 
     # 3. Make the script executable
     sudo -H chmod +x "$SCRIPT_PATH"
