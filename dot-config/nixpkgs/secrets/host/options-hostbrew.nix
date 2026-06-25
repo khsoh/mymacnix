@@ -145,7 +145,6 @@ in
     {
       name = "zoom";
       greedy = true;
-      postinstall = restartApp "zoom.us";
     }
     {
       name = "affinity";
