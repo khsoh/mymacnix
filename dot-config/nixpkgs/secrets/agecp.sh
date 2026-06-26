@@ -23,7 +23,7 @@ fi
 JSON_OUTPUT=$(nix-instantiate --eval --strict --json --expr "
   let
     config = (import <darwin> {}).config;
-    myusercfg = config.secrets.helpers.getMyUserConfig;
+    myusercfg = config.secrets.target.user;
     secretFile = config.home-manager.users.\"$USER_NAME\".age.secrets.\"$SECRET_NAME\".file;
   in {
     FILE = toString secretFile;
@@ -36,7 +36,7 @@ if [ "$?" -ne 0 ]; then
     exit 1
 fi
 
-IFS=$'\n' read -r -d '' SECRET_SOURCE KEY <<< "$(echo "$JSON_OUTPUT" | jq -r '.FILE, .KEY')"
+IFS=$'\n' read -r -d '' SECRET_SOURCE KEY <<<"$(echo "$JSON_OUTPUT" | jq -r '.FILE, .KEY')"
 KEY="${KEY/#\~/$HOME}"
 
 LOCAL_PATH=$(echo "$SECRET_SOURCE" | tr -d '"')
@@ -46,5 +46,3 @@ SECRET_PATH=$(dirname "$LOCAL_PATH")
 pushd $SECRET_PATH >/dev/null
 cat "$SOURCE_NAME" | EDITOR='cp /dev/stdin' agenix -i "$KEY" -e "$(basename $LOCAL_PATH)"
 popd >/dev/null
-
-

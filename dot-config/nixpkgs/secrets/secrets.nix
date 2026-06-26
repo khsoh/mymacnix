@@ -7,8 +7,8 @@ let
   allUsers = builtins.attrValues cfgsec.users;
 
   # Relative paths for host and user
-  hostDir = "host/${(config.secrets.helpers.getMyHostConfig).name}";
-  userDir = "user/${(config.secrets.helpers.getMyUserConfig).name}";
+  hostDir = "host/${cfgsec.target.host.name}";
+  userDir = "user/${cfgsec.target.user.name}";
 
   # Define current host and current user secrets.nix
   hostSecrets = ./. + "/${hostDir}/secrets.nix";
