@@ -306,8 +306,30 @@ in
 
       # Set 'exec' to the absolute path of the generated script in the Nix store
       ProgramArguments = [
-        "/etc/nix-darwin/generate_machine_info.sh"
-        "/etc/nix-darwin/machine-info.nix"
+        "${pkgs.bashInteractive}/bin/bash"
+        "-c"
+        # bash
+        ''
+          NIX_DARWIN_DIR="/etc/nix-darwin"
+          MINFO_FILE="$NIX_DARWIN_DIR/machine-info.nix"
+          mkdir -p "$NIX_DARWIN_DIR"
+          IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
+          XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+          BGROUPID=$(dscl . -read /Groups/nixbld PrimaryGroupID 2>/dev/null | awk '{ print $2 }')
+          if [ -z "$BGROUPID" ]; then
+            BGROUPID=350
+          fi
+          # nix
+          NEW_MINFO="{
+            is_vm = $IS_VM;
+            hostname = \"$XHOSTNAME\";
+            buildGroupID = $BGROUPID;
+          }"
+
+          if [ ! -f "$MINFO_FILE" ] || ! diff -q "$MINFO_FILE" <(echo "$NEW_MINFO") >/dev/null 2>&1; then
+              echo "$NEW_MINFO" > "$MINFO_FILE"
+          fi
+        ''
       ];
     };
   };

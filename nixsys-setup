@@ -201,40 +201,33 @@ NIX_DARWIN_DIR="/etc/nix-darwin"
 SCRIPT_PATH="$NIX_DARWIN_DIR/generate_machine_info.sh"
 MINFO_FILE="$NIX_DARWIN_DIR/machine-info.nix"
 
-if [ ! -f $SCRIPT_PATH ]; then
-    # 1. Ensure the directory exists
-    sudo mkdir -p "$NIX_DARWIN_DIR"
+sudo -H bash -s "$MINFO_FILE" << 'EOF_bash'
+MINFO_FILE="$1"
+MINFO_DIR=$(dirname "$MINFO_FILE")
+# 1. Ensure the directory exists
+mkdir -p "$MINFO_DIR"
 
-    # 2. Write the script to the disk
-    sudo -H tee "$SCRIPT_PATH" >/dev/null << 'EOF_bash'
-#!/usr/bin/env bash
 IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
 XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
 BGROUPID=$(dscl . -read /Groups/nixbld PrimaryGroupID 2>/dev/null | awk '{ print $2 }')
 if [ -z "$BGROUPID" ]; then
   BGROUPID=350
 fi
+
 NEW_MINFO=$(cat << EOF_nix
 {
   is_vm = $IS_VM;
-  hostname = "${XHOSTNAME}";
+  hostname = "$XHOSTNAME";
   buildGroupID = $BGROUPID;
 }
 EOF_nix
 )
 
-MINFO_FILE="$1"
 if [ ! -f "$MINFO_FILE" ] || ! diff -q "$MINFO_FILE" <(echo "$NEW_MINFO") >/dev/null 2>&1; then
     echo "$NEW_MINFO" > "$MINFO_FILE"
 fi
 EOF_bash
 
-    # 3. Make the script executable
-    sudo -H chmod +x "$SCRIPT_PATH"
-
-    # 4. Run the script *now* to create the initial machine-info.nix file
-    sudo -H "$SCRIPT_PATH" "$MINFO_FILE"
-fi
 
 if [[ $DARWININSTALLED -eq 1 ]]; then
     printf "${BOLD}${RED}nix-darwin already installed - re-running darwin-rebuild switch${ESC}\n"
