@@ -854,11 +854,13 @@ in
             ${lib.optionalString (builtins.pathExists secretsjsonPath)
               # bash
               ''
-                IMSGID=$(jq '.iMessageID' ${
-                  config.age.secrets."secrets.json".path
-                } 2>/dev/null | sed 's/^"//;s/"$//')
-                if [ -n "$IMSGID" ]; then
-                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
+                if [ -f "${config.age.secrets."secrets.json".path}" ]; then
+                  IMSGID=$(jq '.iMessageID' ${
+                    config.age.secrets."secrets.json".path
+                  } 2>/dev/null | sed 's/^"//;s/"$//')
+                  if [ -n "$IMSGID" ]; then
+                    "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
+                  fi
                 fi
               ''
             }
@@ -1018,12 +1020,14 @@ in
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
-                IMSGID=$(jq '.iMessageID' ${
-                  config.age.secrets."secrets.json".path
-                } 2>/dev/null | sed 's/^"//;s/"$//')
-                if [ -n "$IMSGID" ]; then
-                  LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
+                if [ -f "${config.age.secrets."secrets.json".path}" ]; then
+                  IMSGID=$(jq '.iMessageID' ${
+                    config.age.secrets."secrets.json".path
+                  } 2>/dev/null | sed 's/^"//;s/"$//')
+                  if [ -n "$IMSGID" ]; then
+                    LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+                    "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
+                  fi
                 fi
               fi
               echo "==== ${minimaxName} update and sync completed ====="
