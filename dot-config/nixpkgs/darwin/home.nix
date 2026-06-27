@@ -854,13 +854,11 @@ in
             ${lib.optionalString (builtins.pathExists secretsjsonPath)
               # bash
               ''
-                if [ -f "${config.age.secrets."secrets.json".path}" ]; then
-                  IMSGID=$(jq '.iMessageID' ${
-                    config.age.secrets."secrets.json".path
-                  } 2>/dev/null | sed 's/^"//;s/"$//')
-                  if [ -n "$IMSGID" ]; then
-                    "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
-                  fi
+                IMSGID=$(jq '.iMessageID' ${
+                  config.age.secrets."secrets.json".path
+                } 2>/dev/null | sed 's/^"//;s/"$//')
+                if [ -n "$IMSGID" ]; then
+                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
                 fi
               ''
             }
@@ -1020,15 +1018,18 @@ in
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
-                if [ -f "${config.age.secrets."secrets.json".path}" ]; then
-                  IMSGID=$(jq '.iMessageID' ${
-                    config.age.secrets."secrets.json".path
-                  } 2>/dev/null | sed 's/^"//;s/"$//')
-                  if [ -n "$IMSGID" ]; then
-                    LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                    "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
-                  fi
+            ${lib.optionalString (builtins.pathExists secretsjsonPath)
+              # bash
+              ''
+                IMSGID=$(jq '.iMessageID' ${
+                  config.age.secrets."secrets.json".path
+                } 2>/dev/null | sed 's/^"//;s/"$//')
+                if [ -n "$IMSGID" ]; then
+                  LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
                 fi
+              ''
+            }
               fi
               echo "==== ${minimaxName} update and sync completed ====="
             fi
@@ -1152,16 +1153,19 @@ in
                 GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
                 if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                   EXIT_STATUS=0
-                  if [ -f "${config.age.secrets."secrets.json".path}" ]; then
-                    IMSGID=$(jq '.iMessageID' ${
-                      config.age.secrets."secrets.json".path
-                    } 2>/dev/null | sed 's/^"//;s/"$//')
-                    if [ -n "$IMSGID" ]; then
-                      LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                      "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
-                      EXIT_STATUS=$?
-                    fi
-                  fi
+                  ${lib.optionalString (builtins.pathExists secretsjsonPath)
+                    # bash
+                    ''
+                      IMSGID=$(jq '.iMessageID' ${
+                        config.age.secrets."secrets.json".path
+                      } 2>/dev/null | sed 's/^"//;s/"$//')
+                      if [ -n "$IMSGID" ]; then
+                        LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+                        "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
+                        EXIT_STATUS=$?
+                      fi
+                    ''
+                  }
                   if [ $EXIT_STATUS -eq 0 ]; then
                     echo "$ANNOUNCEMENT"
                     echo "Wireless@SGx profile is still valid - will expire on $EXPIRE_DATE"
