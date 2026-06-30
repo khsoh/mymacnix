@@ -115,6 +115,10 @@ in
       postinstall = restartApp "Signal";
     }
     {
+      name = "keet";
+      greedy = true;
+    }
+    {
       name = "google-drive";
       greedy = true;
     }
