@@ -94,6 +94,7 @@ in
 
   hostbrew.masApps = {
     "Telegram" = 747648890;
+    "Xcode" = 497799835;
   };
 }
 # vim: set ts=2 sw=2 et ft=nix:

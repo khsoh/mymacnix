@@ -161,6 +161,10 @@ in
       ## Parsing engine for Neovim
       tree-sitter
 
+      ## P2P support
+      iroh-ssh
+      rustup
+
       python3
       nix-prefetch-github
       cargo
@@ -496,6 +500,20 @@ in
     };
   };
 
+  launchd.user.agents.iroh-ssh-server = {
+    serviceConfig = {
+      ProgramArguments = [
+        "${pkgs.iroh-ssh}/bin/iroh-ssh"
+        "server"
+        "--persist"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${userInfo.home}/log/org.nixos.user.iroh-ssh-server-Out.log";
+      StandardErrorPath = "${userInfo.home}/log/org.nixos.user.iroh-ssh-server-Error.log";
+    };
+  };
+
   nix.optimise.automatic = true;
 
   # Setup aliases
@@ -636,7 +654,16 @@ in
   #   echo "I am in PostActivation"
   # '';
 
-  services.openssh.hostKeys = [ ]; # Ensure host keys are not generated
+  services.openssh = {
+    enable = true;
+    extraConfig = ''
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+    '';
+    hostKeys = [ ]; # Ensure host keys are not generated
+  };
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
