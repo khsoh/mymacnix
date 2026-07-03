@@ -164,6 +164,7 @@ in
       ## P2P support
       iroh-ssh
       rustup
+      tailscale
 
       python3
       nix-prefetch-github
@@ -663,6 +664,11 @@ in
       PermitRootLogin no
     '';
     hostKeys = [ ]; # Ensure host keys are not generated
+  };
+
+  services.tailscale = {
+    enable = true;
+    overrideLocalDns = true;
   };
 
   # Used for backwards compatibility, please read the changelog before changing.
