@@ -5,7 +5,8 @@
   ...
 }:
 {
-  system.activationScripts.postActivation.text =
+  ## Setup the Quad9 DNS only if tailscale is not enabled
+  system.activationScripts.postActivation.text = lib.mkIf (!config.services.tailscale.enable) (
     lib.mkBefore
       # bash
       ''
@@ -96,5 +97,6 @@
           printf "''${RED}''${BOLD}...!!!CORRUPTED mobileconfig file: $CFGFILE''${ESC}\n"
         fi
         rm -f "$TMPCFG"
-      '';
+      ''
+  );
 }

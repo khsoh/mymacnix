@@ -161,11 +161,6 @@ in
       ## Parsing engine for Neovim
       tree-sitter
 
-      ## P2P support
-      iroh-ssh
-      rustup
-      tailscale
-
       python3
       nix-prefetch-github
       cargo
@@ -237,6 +232,11 @@ in
       bitwarden-desktop
 
       utm
+
+      ## P2P support
+      iroh-ssh
+      rustup
+      tailscale
     ];
 
   # Use a custom configuration.nix location.
@@ -666,9 +666,9 @@ in
     hostKeys = [ ]; # Ensure host keys are not generated
   };
 
+  # Enable tailscale only if not in VM
   services.tailscale = {
-    enable = true;
-    overrideLocalDns = true;
+    enable = !isVM;
   };
 
   # Used for backwards compatibility, please read the changelog before changing.
