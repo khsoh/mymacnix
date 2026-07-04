@@ -1,13 +1,8 @@
 {
   config,
-  pkgs,
-  lib,
   ...
 }:
 let
-  # Shortcut to get helper functions
-  Helpers = config.helpers;
-
   idNameMap = builtins.attrValues (
     builtins.mapAttrs (name: id: "${toString id}|${name}") config.homebrew.masApps
   );
