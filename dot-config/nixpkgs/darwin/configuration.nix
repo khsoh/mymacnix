@@ -235,8 +235,6 @@ in
 
       ## P2P support
       iroh-ssh
-      rustup
-      tailscale
     ];
 
   # Use a custom configuration.nix location.
