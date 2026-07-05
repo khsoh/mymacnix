@@ -24,6 +24,7 @@ let
         "f76e4c7b1840"
         "e8273b29fe13"
         "9e92285f211d"
+        "d33369954a67"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
