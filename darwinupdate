@@ -82,7 +82,7 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
                 exit 0
             fi
             sudo -H nix-channel --add $(sudo -H nix-channel --list | awk '/^nixpkgs-good / { print $2 }') nixpkgs
-            sudo -H nix-channel --update
+            sudo -H nix-channel --update nixpkgs 2>/dev/null
             BUILDREV="$LAST_GOOD_REV"
             ;;
         *)
@@ -120,7 +120,7 @@ if [ "$BUILDRESULT" = "0" ]; then
 
     ## Update the nixpkgs-good channel
     sudo -H nix-channel --add https://github.com/NixOS/nixpkgs/archive/${BUILDREV}.tar.gz nixpkgs-good
-    sudo -H nix-channel --update 2>/dev/null
+    sudo -H nix-channel --update nixpkgs-good 2>/dev/null
 else
     if grep -q "^$BUILDREV" $NONWORKFILE ; then
         sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $NONWORKFILE

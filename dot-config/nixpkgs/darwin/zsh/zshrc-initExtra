@@ -17,11 +17,15 @@ delagent () {
 }
 
 drsgood () {
-  sudo -H darwin-rebuild switch -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(awk 'END {print $1}' ~/.working-nixpkgs || echo master).tar.gz
+  sudo -H nix-channel --add $(sudo -H nix-channel --list | awk '/^nixpkgs-good / { print $2 }') nixpkgs
+  sudo -H nix-channel --update nixpkgs 2>/dev/null
+  sudo -H darwin-rebuild switch
 }
 
 drbgood () {
-  sudo -H darwin-rebuild build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/$(awk 'END {print $1}' ~/.working-nixpkgs || echo master).tar.gz
+  sudo -H nix-channel --add $(sudo -H nix-channel --list | awk '/^nixpkgs-good / { print $2 }') nixpkgs
+  sudo -H nix-channel --update nixpkgs 2>/dev/null
+  sudo -H darwin-rebuild build
 }
 
 # Change cursor shape for different vi modes.
