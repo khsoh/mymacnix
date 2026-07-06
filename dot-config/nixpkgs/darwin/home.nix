@@ -1351,7 +1351,7 @@ in
           # bash
           ''
             PRHEAD=
-            ${lib.concatStringsSep "\n" (
+            ${builtins.concatStringsSep "\n" (
               lib.mapAttrsToList (name: value: ''
                 if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
                   if [[ ! -n "$PRHEAD" ]]; then
