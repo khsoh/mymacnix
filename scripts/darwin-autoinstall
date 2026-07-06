@@ -72,8 +72,11 @@ readonly BLUE="$(tput setaf 4)"
 eval "\$func_print_arrow"
 
 
+NIXCHURL=$(sudo -H nix-channel --list | awk '/^nixpkgs / { print $2 }')
 sudo -H nix-channel --add https://github.com/nix-darwin/nix-darwin/archive/master.tar.gz darwin
 sudo -H nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+sudo -H nix-channel --add $NIXCHURL nixpkgs-good
+sudo -H nix-channel --add $NIXCHURL nixpkgs-latest
 ## Install agenix channel
 sudo -H nix-channel --add https://github.com/ryantm/agenix/archive/main.tar.gz agenix
 sudo -H nix-channel --update

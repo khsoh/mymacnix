@@ -555,6 +555,7 @@ in
   # configure sudoers to allow %admin to execute the following sudo commands without password
   security.sudo.extraConfig = ''
     %admin  ALL = (ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild, \
+                                  /run/current-system/sw/bin/nix-channel --add, \
                                   /run/current-system/sw/bin/nix-channel --list, \
                                   /run/current-system/sw/bin/nix-channel --update, \
                                   /run/current-system/sw/bin/nix-channel --update --verbose, \
