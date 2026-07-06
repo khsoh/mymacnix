@@ -25,12 +25,22 @@ let
         "e8273b29fe13"
         "9e92285f211d"
         "d33369954a67"
+        "19a8a1e6d8b7"
+        "6edbf1a6a03e"
+        "c4013e501c04"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
       # Override with EOL electron version
       permittedInsecurePackages = [ "electron-39.8.10" ];
     };
+
+    # "darwin-manual-html" = {
+    #   url = "https://github.com/NixOS/nixpkgs/archive/d33369954a67.tar.gz";
+    #   ignoredCommits = [
+    #     "c4013e501c04"
+    #   ];
+    # };
   };
 
   # 2. Helper function to create the override logic for a single package
