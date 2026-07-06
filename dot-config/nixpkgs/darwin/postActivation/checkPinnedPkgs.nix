@@ -11,33 +11,42 @@ in
 {
   system.activationScripts.postActivation.text =
     let
-      revisionFile = stdPkgsPath + "/.git-revision";
-      currentNixpkgsRev =
-        if builtins.pathExists revisionFile then builtins.readFile revisionFile else "unknown";
-
       # Filter for packages that have overlays
       isOverlaidPkg = pkg: pkg ? ignoredCommits;
 
-      excludeCurrentRev =
-        pkg: builtins.all (pre: !(lib.hasPrefix pre currentNixpkgsRev)) pkg.ignoredCommits;
-
       overlaidPkgs = builtins.filter isOverlaidPkg config.environment.systemPackages;
-      untestedPkgs = builtins.filter excludeCurrentRev overlaidPkgs;
-
-      names = builtins.concatStringsSep "\n\${BLUE}\${BOLD}>>\${ESC} " (
-        map (p: p.pname or (lib.getName p)) untestedPkgs
-      );
     in
-    lib.mkIf (untestedPkgs != [ ]) (
-      lib.mkAfter
+    lib.mkIf (overlaidPkgs != [ ]) (
+      lib.mkAfter (
         # bash
         ''
-          # shellcheck disable=SC2059
-          printf "''${RED}''${BOLD}======== Packages NOT YET tested with main nixpkgs (${currentNixpkgsRev}) ========''${ESC}\n"
-          # shellcheck disable=SC2059
-          printf "''${RED}''${BOLD}>>''${ESC} ${names}\n"
-          # shellcheck disable=SC2059
-          printf "''${RED}''${BOLD}==>''${ESC} Consider testing these packages with latest nixpkgs revision.\n"
+          LATESTREV=$(curl -Ls -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs-latest / { print $2 }')" | sed -e 's/.*[\.\/]//')
+          LATESTREV="''${LATESTREV:0:12}"
         ''
+        + builtins.concatStringsSep "\n" (
+          map (
+            p:
+            # bash
+            ''
+              # shellcheck disable=SC2034
+              IGNOREDCOMMITS=(${builtins.concatStringsSep " " (map (x: "\"${x}\"") p.ignoredCommits)})
+
+              FOUND=false
+              for commit in "''${IGNOREDCOMMITS[@]}"; do
+                if [ "$commit" = "$LATESTREV" ]; then
+                  FOUND=true
+                  break
+                fi
+              done
+
+              if [ "$FOUND" = false ]; then
+                # shellcheck disable=SC2059
+                printf "''${RED}''${BOLD}======== ${p.pname or (lib.getName p)} NOT YET tested with latest nixpkgs ($LATESTREV) ========''${ESC}\n"
+                # shellcheck disable=SC2059
+                printf "''${RED}''${BOLD}==>''${ESC} Consider testing package with latest nixpkgs revision.\n"
+              fi
+            '') overlaidPkgs
+        )
+      )
     );
 }
