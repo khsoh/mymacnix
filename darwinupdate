@@ -120,7 +120,7 @@ if [ "$BUILDRESULT" = "0" ]; then
 
     ## Update the nixpkgs-good channel
     sudo -H nix-channel --add https://github.com/NixOS/nixpkgs/archive/${BUILDREV}.tar.gz nixpkgs-good
-    sudo -H nix-channel --update
+    sudo -H nix-channel --update 2>/dev/null
 else
     if grep -q "^$BUILDREV" $NONWORKFILE ; then
         sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $NONWORKFILE
