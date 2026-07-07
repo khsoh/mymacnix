@@ -122,7 +122,7 @@ if [ "$BUILDRESULT" = "0" ]; then
     sudo -H nix-channel --add https://github.com/NixOS/nixpkgs/archive/${BUILDREV}.tar.gz nixpkgs-good
     sudo -H nix-channel --update nixpkgs-good 2>/dev/null
 
-    ## Update the etags
+    ## Update the etags only on successful build
     typeset -A NIXCHANNELS
 
     while read -r name url; do
@@ -131,11 +131,7 @@ if [ "$BUILDRESULT" = "0" ]; then
 
         # Assign the url to the name index
         NIXCHANNELS[$name]="$url"
-    done < <(sudo -H nix-channel --list)
-
-    unset 'NIXCHANNELS[nixpkgs]'
-    unset 'NIXCHANNELS[nixpkgs-good]'
-    unset 'NIXCHANNELS[nixpkgs-latest]'
+    done < <(sudo -H nix-channel --list | grep -v '^nixpkgs')
 
     ETAGDIR=~/.cache/nixchannels_etags
     mkdir -p $ETAGDIR
