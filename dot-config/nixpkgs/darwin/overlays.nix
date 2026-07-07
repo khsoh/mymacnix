@@ -35,13 +35,6 @@ let
       # Override with EOL electron version
       permittedInsecurePackages = [ "electron-39.8.10" ];
     };
-
-    # "darwin-manual-html" = {
-    #   url = "https://github.com/NixOS/nixpkgs/archive/d33369954a67.tar.gz";
-    #   ignoredCommits = [
-    #     "c4013e501c04"
-    #   ];
-    # };
   };
 
   # 2. Helper function to create the override logic for a single package
