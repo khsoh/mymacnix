@@ -19,8 +19,6 @@ trap cleanup EXIT INT TERM QUIT
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
-sudo -H nix-channel --add $(sudo -H nix-channel --list | awk '/^nixpkgs-latest / { print $2 }') nixpkgs
-
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 UPDCHAN=$(sudo -H nix-channel --list)
 if [ -n "$UPDCHAN" ]; then
@@ -55,7 +53,7 @@ NONWORKFILE=~/.nonworking-nixpkgs
 [ -f $WORKFILE ] || touch $WORKFILE
 [ -f $NONWORKFILE ] || touch $NONWORKFILE
 LAST_GOOD_REV=$(awk 'END {print $1}' $WORKFILE || echo 0)
-LATEST_NIXPKGS_URL=$(sudo -H nix-channel --list | awk '/^nixpkgs-latest / {print $2}')
+LATEST_NIXPKGS_URL=$(sudo -H nix-channel --list | awk '/^nixpkgs / {print $2}')
 LATEST_NIXPKGS_REV=$(curl -LIs -o /dev/null -w %{url_effective} $LATEST_NIXPKGS_URL | sed -e 's/.*\.//')
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
@@ -81,8 +79,7 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
             if [ "$LAST_GOOD_REV" = "0" ]; then
                 exit 0
             fi
-            sudo -H nix-channel --add $(sudo -H nix-channel --list | awk '/^nixpkgs-good / { print $2 }') nixpkgs
-            sudo -H nix-channel --update nixpkgs 2>/dev/null
+            BUILDARGS="-I nixpkgs=https://github.com/NixOS/nixpkgs/archive/${LAST_GOOD_REV}.tar.gz"
             BUILDREV="$LAST_GOOD_REV"
             ;;
         *)
@@ -117,10 +114,6 @@ if [ "$BUILDRESULT" = "0" ]; then
         fi
     fi
     sed -i "/^$BUILDREV/d" $NONWORKFILE
-
-    ## Update the nixpkgs-good channel
-    sudo -H nix-channel --add https://github.com/NixOS/nixpkgs/archive/${BUILDREV}.tar.gz nixpkgs-good
-    sudo -H nix-channel --update nixpkgs-good 2>/dev/null
 
     ## Update the etags only on successful build
     typeset -A NIXCHANNELS

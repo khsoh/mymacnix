@@ -107,7 +107,7 @@ done < <(sudo -H nix-channel --list)
 LOCAL_NIXPKGSREVISION=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
 
 # Get the git revision from the effective URL of the nixpkgs channel
-REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs-latest']}")
+REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs']}")
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
 WORKFILE=~/.working-nixpkgs
@@ -129,8 +129,6 @@ else
 fi
 
 unset 'NIXCHANNELS["nixpkgs"]'
-unset 'NIXCHANNELS["nixpkgs-good"]'
-unset 'NIXCHANNELS["nixpkgs-latest"]'
 
 ## Compute the maximum length of channel name
 max_namelen=0
