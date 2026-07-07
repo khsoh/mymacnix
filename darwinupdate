@@ -56,7 +56,7 @@ NONWORKFILE=~/.nonworking-nixpkgs
 [ -f $NONWORKFILE ] || touch $NONWORKFILE
 LAST_GOOD_REV=$(awk 'END {print $1}' $WORKFILE || echo 0)
 LATEST_NIXPKGS_URL=$(sudo -H nix-channel --list | awk '/^nixpkgs-latest / {print $2}')
-LATEST_NIXPKGS_REV=$(curl -Ls -o /dev/null -w %{url_effective} $LATEST_NIXPKGS_URL | sed -e 's/.*\.//')
+LATEST_NIXPKGS_REV=$(curl -LIs -o /dev/null -w %{url_effective} $LATEST_NIXPKGS_URL | sed -e 's/.*\.//')
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
 if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then

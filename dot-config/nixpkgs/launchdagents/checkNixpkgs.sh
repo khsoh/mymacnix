@@ -88,10 +88,10 @@ while read -r name url; do
     NIXCHANNELS["$name"]="$url"
 done < <(sudo -H nix-channel --list)
 
-LOCAL_NIXPKGSREVISION=$(curl -Ls -o /dev/null -w '%{url_effective}' "${NIXCHANNELS['nixpkgs-good']}" | sed -e 's/.*[\./]//')
+LOCAL_NIXPKGSREVISION=$(curl -LIs -o /dev/null -w '%{url_effective}' "${NIXCHANNELS['nixpkgs-good']}" | sed -e 's/.*[\./]//')
 
 # Get the git revision from the effective URL of the nixpkgs channel
-REMOTE_NIXPKGSREVISION=$(curl -Ls -o /dev/null -w '%{url_effective}' "${NIXCHANNELS['nixpkgs-latest']}" | sed -e 's/.*[\./]//')
+REMOTE_NIXPKGSREVISION=$(curl -LIs -o /dev/null -w '%{url_effective}' "${NIXCHANNELS['nixpkgs-latest']}" | sed -e 's/.*[\./]//')
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
 WORKFILE=~/.working-nixpkgs

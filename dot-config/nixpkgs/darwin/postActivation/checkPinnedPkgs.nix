@@ -20,7 +20,7 @@ in
       lib.mkAfter (
         # bash
         ''
-          LATESTREV=$(curl -Ls -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs-latest / { print $2 }')" | sed -e 's/.*[\.\/]//')
+          LATESTREV=$(curl -LIs -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs-latest / { print $2 }')" | sed -e 's/.*[\./]//')
           LATESTREV="''${LATESTREV:0:12}"
         ''
         + builtins.concatStringsSep "\n" (
