@@ -554,13 +554,12 @@ in
 
   # configure sudoers to allow %admin to execute the following sudo commands without password
   security.sudo.extraConfig = ''
-    %admin  ALL = (ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild, \
-                                  /run/current-system/sw/bin/nix-channel --add, \
-                                  /run/current-system/sw/bin/nix-channel --list, \
-                                  /run/current-system/sw/bin/nix-channel --update, \
-                                  /run/current-system/sw/bin/nix-channel --update --verbose, \
-                                  /run/current-system/sw/bin/nix-collect-garbage ^--delete-older-than [0-9]+d$, \
-                                  /run/current-system/sw/bin/nix-store --gc, \
+    %admin  ALL = (ALL) NOPASSWD: /nix/store/*/bin/darwin-rebuild, \
+                                  /nix/store/*/bin/nix-channel --add *, \
+                                  /nix/store/*/bin/nix-channel --list, \
+                                  /nix/store/*/bin/nix-channel --update*, \
+                                  /nix/store/*/bin/nix-collect-garbage ^--delete-older-than [0-9]+d$, \
+                                  /nix/store/*/bin/nix-store --gc, \
                                   /usr/bin/sqlite3 --readonly /Library/Application\ Support/com.apple.TCC/TCC.db SELECT\ *\ FROM\ access*
   '';
 
