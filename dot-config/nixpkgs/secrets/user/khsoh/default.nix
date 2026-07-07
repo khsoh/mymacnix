@@ -48,7 +48,7 @@ in
   hardlinks = {
     mouseless = lib.mkIf (Helpers.brewAppInstalled "mouseless") {
       source = toString ./homeFile/mouseless.config.yaml;
-      target = "Library/Containers/net.sonuscape.mouseless/Data/.mouseless/configs/config.yaml";
+      target = "Library/Application Support/Mouseless/configs/config.yaml";
     };
 
     rectangle = lib.mkIf (Helpers.pkgInstalled pkgs.rectangle) {
