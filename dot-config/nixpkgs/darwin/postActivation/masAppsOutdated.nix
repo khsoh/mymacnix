@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   ...
 }:
 let
@@ -10,23 +11,24 @@ let
 in
 {
   system.activationScripts.preActivation.text =
-    # bash
-    ''
-      MAS=/opt/homebrew/bin/mas
-      TARGET_FILE="/tmp/masapps_upgrades"
-      : > "$TARGET_FILE"
-      chown ${config.system.primaryUser} "$TARGET_FILE"
+    lib.mkIf config.homebrew.enable
+      # bash
+      ''
+        MAS=${config.homebrew.prefix}/bin/mas
+        TARGET_FILE="/tmp/masapps_upgrades"
+        : > "$TARGET_FILE"
+        chown ${config.system.primaryUser} "$TARGET_FILE"
 
-      OUTDATED_IDS=$(sudo -u ${config.system.primaryUser} $MAS outdated | awk '{print $1}')
+        OUTDATED_IDS=$(sudo -i -u ${config.system.primaryUser} $MAS outdated | awk '{print $1}')
 
-      echo "${idNameMapStr}" | while IFS="|" read -r MAP_ID MAP_NAME; do
-        for ID in $OUTDATED_IDS; do
-          if [ "$ID" == "$MAP_ID" ]; then
-            ENTRY="\"$MAP_NAME\"=$MAP_ID"
-            echo "$ENTRY" >> "$TARGET_FILE"
-            echo "Homebrew mas app update: $ENTRY"
-          fi
+        echo "${idNameMapStr}" | while IFS="|" read -r MAP_ID MAP_NAME; do
+          for ID in $OUTDATED_IDS; do
+            if [ "$ID" == "$MAP_ID" ]; then
+              ENTRY="\"$MAP_NAME\"=$MAP_ID"
+              echo "$ENTRY" >> "$TARGET_FILE"
+              echo "Homebrew mas app update: $ENTRY"
+            fi
+          done
         done
-      done
-    '';
+      '';
 }
