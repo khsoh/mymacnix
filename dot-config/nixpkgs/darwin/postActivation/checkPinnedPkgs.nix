@@ -20,7 +20,7 @@
             --retry 3 \
             --retry-delay 10 \
             --retry-connrefused \
-            -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs-latest / { print $2 }')" | sed -e 's/.*[\./]//')
+            -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs / { print $2 }')" | sed -e 's/.*[\./]//')
           LATESTREV="''${LATESTREV:0:12}"
         ''
         + builtins.concatStringsSep "\n" (
