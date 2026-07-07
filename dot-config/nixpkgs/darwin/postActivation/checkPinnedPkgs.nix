@@ -4,10 +4,6 @@
   lib,
   ...
 }:
-let
-  ## Store paths of packages installed by environment.systemPackages
-  stdPkgsPath = toString pkgs.path;
-in
 {
   system.activationScripts.postActivation.text =
     let
@@ -20,7 +16,11 @@ in
       lib.mkAfter (
         # bash
         ''
-          LATESTREV=$(curl -LIs -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs-latest / { print $2 }')" | sed -e 's/.*[\./]//')
+          LATESTREV=$(curl -sIL --connect-timeout 20 \
+            --retry 3 \
+            --retry-delay 10 \
+            --retry-connrefused \
+            -o /dev/null -w '%{url_effective}' "$(nix-channel --list | awk '/^nixpkgs-latest / { print $2 }')" | sed -e 's/.*[\./]//')
           LATESTREV="''${LATESTREV:0:12}"
         ''
         + builtins.concatStringsSep "\n" (

@@ -140,6 +140,8 @@ if [ "$BUILDRESULT" = "0" ]; then
     ETAGDIR=~/.cache/nixchannels_etags
     mkdir -p $ETAGDIR
     for channame in "${(k)NIXCHANNELS[@]}"; do
+        url=${NIXCHANNELS[$channame]}
+
         # 1. Read the existing ETag if it exists
         tagfile=$ETAGDIR/${channame}_etag
         LOCAL_ETAG=""
@@ -148,16 +150,16 @@ if [ "$BUILDRESULT" = "0" ]; then
         fi
 
         # 2. Get the remote etag of the channel url
-        REMOTE_ETAG=$(curl -sIL "${NIXCHANNELS[$channame]}" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"')
+        REMOTE_ETAG=$(curl -sIL "$url" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"')
 
         # 3. Save the etag if present
         if [ -n "$REMOTE_ETAG" ]; then
             if [ "$LOCAL_ETAG" != "$REMOTE_ETAG" ]; then
                 echo "$REMOTE_ETAG" | tee "$tagfile" > /dev/null
-                printf "${BOLD}${RED}Updated ETag for $channame from ${NIXCHANNELS[$channame]}${ESC}\n"
+                printf "${BOLD}${RED}Updated ETag for $channame from $url${ESC}\n"
             fi
         else
-            printf "${BOLD}${RED}Could not get ETag for $channame from ${NIXCHANNELS[$channame]}${ESC}\n"
+            printf "${BOLD}${RED}Could not get ETag for $channame from $url${ESC}\n"
         fi
     done
 else

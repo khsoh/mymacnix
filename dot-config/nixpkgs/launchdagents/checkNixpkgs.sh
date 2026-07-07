@@ -23,6 +23,22 @@ is_running_under_login() {
     return 2 # '/usr/bin/login' not found in the hierarchy
 }
 
+get_etag() {
+    curl -sIL --connect-timeout 20 \
+        --retry 3 \
+        --retry-delay 2 \
+        --retry-connrefused \
+        "$1" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"'
+}
+
+get_gitrevision() {
+    curl -sIL --connect-timeout 20 \
+        --retry 3 \
+        --retry-delay 10 \
+        --retry-connrefused \
+        -o /dev/null -w '%{url_effective}' "$1" | sed -e 's/.*[\./]//'
+}
+
 is_running_under_login
 OUTPUT=$?
 
@@ -88,10 +104,10 @@ while read -r name url; do
     NIXCHANNELS["$name"]="$url"
 done < <(sudo -H nix-channel --list)
 
-LOCAL_NIXPKGSREVISION=$(curl -LIs -o /dev/null -w '%{url_effective}' "${NIXCHANNELS['nixpkgs-good']}" | sed -e 's/.*[\./]//')
+LOCAL_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs-good']}")
 
 # Get the git revision from the effective URL of the nixpkgs channel
-REMOTE_NIXPKGSREVISION=$(curl -LIs -o /dev/null -w '%{url_effective}' "${NIXCHANNELS['nixpkgs-latest']}" | sed -e 's/.*[\./]//')
+REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs-latest']}")
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
 WORKFILE=~/.working-nixpkgs
@@ -136,6 +152,8 @@ mkdir -p $ETAGDIR
 echo ""
 echo "==============="
 for channame in "${!NIXCHANNELS[@]}"; do
+    url=${NIXCHANNELS[$channame]}
+
     # 1. Read the existing ETag if it exists
     tagfile=$ETAGDIR/${channame}_etag
     LOCAL_ETAG=""
@@ -144,16 +162,18 @@ for channame in "${!NIXCHANNELS[@]}"; do
     fi
 
     # 2. Get the remote etag of the channel url
-    REMOTE_ETAG=$(curl -sIL "${NIXCHANNELS["$channame"]}" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"')
+    REMOTE_ETAG=$(get_etag "$url")
 
     # 3. Compare the tags
-    if [[ "$LOCAL_ETAG" = "$REMOTE_ETAG" ]]; then
+    if [[ "$LOCAL_ETAG" == "$REMOTE_ETAG" ]]; then
         printf "%s=== Local package is up-to-date with %s channel ===%s\n" "${GREEN}${BOLD}" "$channame" "$ESC"
         printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_etag" "$LOCAL_ETAG"
-    else
+    elif [ -n "$REMOTE_ETAG" ]; then
         printf "%s*** New package detected on %s channel ***%s\n" "$GREEN$BOLD" "$channame" "$ESC" >&"$OUTPUT"
         printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_etag" "$LOCAL_ETAG" >&"$OUTPUT"
         printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$RED$BOLD" "$max_namelen" "${channame}_remote_etag" "$REMOTE_ETAG$ESC" >&"$OUTPUT"
+    else
+        printf "%sCould not get ETag for %s from %s%s\n" "${BOLD}${RED}" "$channame" "$url" "${ESC}"
     fi
 done
 
