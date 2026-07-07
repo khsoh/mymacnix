@@ -33,6 +33,17 @@ let
 
   # Shortcut to get helper functions
   Helpers = config.helpers;
+
+  # 1. Isolate the highest priority "nixpkgs" path from NIX_PATH
+  allNixpkgsEntries = builtins.filter (x: x.prefix == "nixpkgs") builtins.nixPath;
+  highestPriorityEntry =
+    if builtins.length allNixpkgsEntries > 0 then builtins.elemAt allNixpkgsEntries 0 else null;
+  activeNixpkgsPathStr =
+    if highestPriorityEntry != null then toString highestPriorityEntry.path else "";
+
+  # 2. Extract the exact hash from the -I archive URL string
+  urlMatch = builtins.match ".*archive/([0-9a-fA-F]{7,40})\\.tar\\.gz" activeNixpkgsPathStr;
+  currentRevision = if urlMatch != null then builtins.head urlMatch else null;
 in
 {
   # Replace with pkgs-pinned packages (the default)
@@ -632,6 +643,10 @@ in
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
+
+  # Inject the revision directly into system.nixpkgsRevision if
+  # the build was called with -I nixpkgs=...
+  system.nixpkgsRevision = lib.mkIf (currentRevision != null) currentRevision;
 
   ids.gids.nixbld = config.machineInfo.buildGroupID;
 }

@@ -104,7 +104,7 @@ while read -r name url; do
     NIXCHANNELS["$name"]="$url"
 done < <(sudo -H nix-channel --list)
 
-LOCAL_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs-good']}")
+LOCAL_NIXPKGSREVISION=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
 
 # Get the git revision from the effective URL of the nixpkgs channel
 REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs-latest']}")
