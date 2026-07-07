@@ -131,26 +131,29 @@ done
 # Add length of _remote_hash
 ((max_namelen = max_namelen + $(echo -n "_remote_hash" | wc -m)))
 
+ETAGDIR=~/.cache/nixchannels_etags
+mkdir -p $ETAGDIR
 echo ""
 echo "==============="
 for channame in "${!NIXCHANNELS[@]}"; do
-    pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/"$channame")
-    if [[ ! -z ${pkgpath+x} ]]; then
-        pkgurl=${NIXCHANNELS[$channame]}
+    # 1. Read the existing ETag if it exists
+    tagfile=$ETAGDIR/${channame}_etag
+    LOCAL_ETAG=""
+    if [ -f "$tagfile" ]; then
+        LOCAL_ETAG=$(cat "$tagfile")
+    fi
 
-        lhash=$(nix-hash --base32 --type sha256 "$pkgpath"/)
-        rhash=$(nix-prefetch-url --unpack --type sha256 "$pkgurl" 2>/dev/null)
+    # 2. Get the remote etag of the channel url
+    REMOTE_ETAG=$(curl -sIL "${NIXCHANNELS["$channame"]}" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"')
 
-        if [[ "$lhash" != "$rhash" ]]; then
-            printf "%s*** New package detected on %s channel ***%s\n" "$GREEN$BOLD" "$channame" "$ESC" >&"$OUTPUT"
-            printf "%s==>%s  %-*s: $(get_conditional_substring "$lhash" 8)\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_hash" >&"$OUTPUT"
-            printf "%s==>%s  %-*s: $(get_conditional_substring "$rhash" 8)\n" "$BLUE$BOLD" "$RED$BOLD" "$max_namelen" "${channame}_remote_hash" "$ESC" >&"$OUTPUT"
-        else
-            printf "%s=== Local package is up-to-date with %s channel ===%s\n" "${GREEN}${BOLD}" "$channame" "$ESC"
-            printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_hash" "$lhash"
-        fi
+    # 3. Compare the tags
+    if [[ "$LOCAL_ETAG" = "$REMOTE_ETAG" ]]; then
+        printf "%s=== Local package is up-to-date with %s channel ===%s\n" "${GREEN}${BOLD}" "$channame" "$ESC"
+        printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_etag" "$LOCAL_ETAG"
     else
-        printf "%s!!!Cannot find local installed package detected for channel %s\n" "$RED$BOLD" "$channame${ESC}" >&2
+        printf "%s*** New package detected on %s channel ***%s\n" "$GREEN$BOLD" "$channame" "$ESC" >&"$OUTPUT"
+        printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_etag" "$LOCAL_ETAG" >&"$OUTPUT"
+        printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$RED$BOLD" "$max_namelen" "${channame}_remote_etag" "$REMOTE_ETAG$ESC" >&"$OUTPUT"
     fi
 done
 

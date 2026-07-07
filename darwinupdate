@@ -121,6 +121,45 @@ if [ "$BUILDRESULT" = "0" ]; then
     ## Update the nixpkgs-good channel
     sudo -H nix-channel --add https://github.com/NixOS/nixpkgs/archive/${BUILDREV}.tar.gz nixpkgs-good
     sudo -H nix-channel --update nixpkgs-good 2>/dev/null
+
+    ## Update the etags
+    typeset -A NIXCHANNELS
+
+    while read -r name url; do
+        # Skip empty lines or lines missing a name
+        [[ -z "$url" || -z "$name" ]] && continue
+
+        # Assign the url to the name index
+        NIXCHANNELS[$name]="$url"
+    done < <(sudo -H nix-channel --list)
+
+    unset 'NIXCHANNELS[nixpkgs]'
+    unset 'NIXCHANNELS[nixpkgs-good]'
+    unset 'NIXCHANNELS[nixpkgs-latest]'
+
+    ETAGDIR=~/.cache/nixchannels_etags
+    mkdir -p $ETAGDIR
+    for channame in "${(k)NIXCHANNELS[@]}"; do
+        # 1. Read the existing ETag if it exists
+        tagfile=$ETAGDIR/${channame}_etag
+        LOCAL_ETAG=""
+        if [ -f "$tagfile" ]; then
+            LOCAL_ETAG=$(cat "$tagfile")
+        fi
+
+        # 2. Get the remote etag of the channel url
+        REMOTE_ETAG=$(curl -sIL "${NIXCHANNELS[$channame]}" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"')
+
+        # 3. Save the etag if present
+        if [ -n "$REMOTE_ETAG" ]; then
+            if [ "$LOCAL_ETAG" != "$REMOTE_ETAG" ]; then
+                echo "$REMOTE_ETAG" | tee "$tagfile" > /dev/null
+                printf "${BOLD}${RED}Updated ETag for $channame from ${NIXCHANNELS[$channame]}${ESC}\n"
+            fi
+        else
+            printf "${BOLD}${RED}Could not get ETag for $channame from ${NIXCHANNELS[$channame]}${ESC}\n"
+        fi
+    done
 else
     if grep -q "^$BUILDREV" $NONWORKFILE ; then
         sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $NONWORKFILE
