@@ -16,6 +16,14 @@ function cleanup() {
 
 trap cleanup EXIT INT TERM QUIT
 
+get_atominfo() {
+    curl -sL --connect-timeout 20 \
+        --retry 3 \
+        --retry-delay 10 \
+        --retry-connrefused \
+        "$1" | awk '/<entry>/{flag=1} flag && /<id>/{print; exit}' | sed -E 's/.*Commit\///' | sed -e 's/<[^>]*>//g' | xargs
+}
+
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
@@ -115,42 +123,63 @@ if [ "$BUILDRESULT" = "0" ]; then
     fi
     sed -i "/^$BUILDREV/d" $NONWORKFILE
 
-    ## Update the etags only on successful build
-    typeset -A NIXCHANNELS
+    ## Update the commmit hashes only on successful build
+    typeset -A FEEDS
 
     while read -r name url; do
         # Skip empty lines or lines missing a name
         [[ -z "$url" || -z "$name" ]] && continue
 
-        # Assign the url to the name index
-        NIXCHANNELS[$name]="$url"
+        # Compute the feed
+        if [[ "$url" =~ "github\.com" ]]; then
+            # Clean URL and strip tracking prefixes/extensions
+            CLEAN_PATH=$(echo "$url" | sed -E 's|https://github.com/||' | sed 's|/archive/|/|')
+
+            OWNER=$(echo "$CLEAN_PATH" | cut -d'/' -f1)
+            REPO=$(echo "$CLEAN_PATH" | cut -d'/' -f2)
+
+            # Strip trailing package extensions (.tar.gz or .zip) from the branch segment
+            BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
+
+            FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
+            FEEDS[$name]="$FEED_URL"
+        elif [[ "$url" =~ "nixos\.org" ]]; then
+            # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
+            CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
+
+            FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
+            FEEDS[$name]="$FEED_URL"
+        else
+            printf "${BOLD}${RED}Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
+        fi
     done < <(sudo -H nix-channel --list | grep -v '^nixpkgs')
 
-    ETAGDIR=~/.cache/nixchannels_etags
-    mkdir -p $ETAGDIR
-    for channame in "${(k)NIXCHANNELS[@]}"; do
-        url=${NIXCHANNELS[$channame]}
+    HASHDIR=~/.cache/nixchannels_hash
+    mkdir -p $HASHDIR
+    for channame in "${(k)FEEDS[@]}"; do
+        url=${FEEDS[$channame]}
 
-        # 1. Read the existing ETag if it exists
-        tagfile=$ETAGDIR/${channame}_etag
-        LOCAL_ETAG=""
-        if [ -f "$tagfile" ]; then
-            LOCAL_ETAG=$(cat "$tagfile")
+        # 1. Read the existing commit hash if it exists
+        hashfile=$HASHDIR/${channame}_hash
+        LOCAL_HASH=""
+        if [ -f "$hashfile" ]; then
+            LOCAL_HASH=$(cat "$hashfile")
         fi
 
-        # 2. Get the remote etag of the channel url
-        REMOTE_ETAG=$(curl -sIL "$url" | grep -i '^etag:' | tail -n1 | awk '{print $2}' | tr -d '\r\n"')
+        # 2. Get the remote hash from the channel feed
+        REMOTE_HASH=$(get_atominfo "$url")
 
-        # 3. Save the etag if present
-        if [ -n "$REMOTE_ETAG" ]; then
-            if [ "$LOCAL_ETAG" != "$REMOTE_ETAG" ]; then
-                echo "$REMOTE_ETAG" | tee "$tagfile" > /dev/null
-                printf "${BOLD}${RED}Updated ETag for $channame from $url${ESC}\n"
+        # 3. Save the hash if present
+        if [ -n "$REMOTE_HASH" ]; then
+            if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+                echo "$REMOTE_HASH" | tee "$hashfile" > /dev/null
+                printf "${BOLD}${RED}Updated commit hash for $channame from $url${ESC}\n"
             fi
         else
-            printf "${BOLD}${RED}Could not get ETag for $channame from $url${ESC}\n"
+            printf "${BOLD}${RED}Could not get commit hash for $channame from $url${ESC}\n"
         fi
     done
+
 else
     if grep -q "^$BUILDREV" $NONWORKFILE ; then
         sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $NONWORKFILE
