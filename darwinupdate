@@ -194,7 +194,7 @@ else
 fi
 
 printf "\n${BOLD}${GREEN}====== Checking permissions of terminal programs ======${ESC}\n"
-$SCRIPTDIR/dot-config/nixpkgs/launchdagents/checktermperms.sh
+$SCRIPTDIR/nixpkgs/launchdagents/checktermperms.sh
 
 printf "${BOLD}${GREEN}Completed rebuilding system${ESC}\n"
 

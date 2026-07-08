@@ -274,8 +274,8 @@ in
   ## User-specific aliases
   home.shellAliases = {
     cdnix = "cd $(readlink -f ${toString ./.})";
-    dru = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../../darwinupdate\"')";
-    checknix = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../../checkNixpkgs.sh\"')";
+    dru = "$(nix-instantiate --eval -E '<darwin-config> + \"/../../darwinupdate\"')";
+    checknix = "$(nix-instantiate --eval -E '<darwin-config> + \"/../launchdagents/checkNixpkgs.sh\"')";
     hbb = "brew bundle";
     hbu = "brew update";
     nvim-tmp = "nvim - \"+set buftype=nofile\"";
