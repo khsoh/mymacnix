@@ -1426,7 +1426,7 @@ in
 
             # Use duti to set Neovide for plain-text (.txt) and log (.log) files
             # The 'all' flag applies it to editor, viewer, and shell roles
-            filetypes=("txt" "log")
+            filetypes=("txt" "log" "toml")
 
             for ftype in "''${filetypes[@]}"; do
               # Get the UTI
