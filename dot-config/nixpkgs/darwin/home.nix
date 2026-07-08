@@ -170,6 +170,32 @@ in
       };
       recursive = true;
     };
+
+    op_agent_toml = lib.mkIf (onepasscfg.enable && sshcfg != null && sshcfg.OPURI != null) {
+      target = "1Password/ssh/agent.toml";
+      text =
+        let
+          parseOpUri =
+            uri:
+            # Match "op://" followed by non-slashes (vault), a slash, and the rest (item)
+            let
+              matches = builtins.match "op://([^/]+)/(.+)" uri;
+            in
+            if matches == null then
+              throw "Invalid 1Password URI: ${uri}"
+            else
+              {
+                vault = builtins.elemAt matches 0;
+                item = builtins.elemAt matches 1;
+              };
+          result = parseOpUri sshcfg.OPURI;
+        in
+        ''
+          [[ssh-keys]]
+          vault = "${result.vault}"
+          item = "${result.item}"
+        '';
+    };
   };
 
   ##### agenix configuration
