@@ -211,10 +211,6 @@ in
       rectangle
       stow
 
-      ## Multimedia related utilities
-      vlc-bin
-      audacity
-
       ### Sample demo to use overrideAttrs to embed a postPhase in the installation
       # (_1password-gui.overrideAttrs {
       #   postPhases = [ "mypostrun" ];
@@ -243,6 +239,10 @@ in
       bitwarden-desktop
 
       utm
+
+      ## Multimedia related utilities
+      vlc-bin
+      audacity
 
       ## P2P support
       iroh-ssh
