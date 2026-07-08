@@ -1,1 +1,1 @@
-dot-config/nixpkgs/launchdagents/checkNixpkgs.sh
+nixpkgs/launchdagents/checkNixpkgs.sh

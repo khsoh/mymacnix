@@ -469,7 +469,7 @@ in
     };
   };
 
-  launchd.user.agents.iroh-ssh-server = {
+  launchd.user.agents.iroh-ssh-server = lib.mkIf (!isVM) {
     serviceConfig = {
       ProgramArguments = [
         "${pkgs.iroh-ssh}/bin/iroh-ssh"
