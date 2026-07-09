@@ -27,6 +27,9 @@ get_atominfo() {
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
+## Store the remote hash of each channel
+typeset -A RHASH
+
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 UPDCHAN=$(sudo -H nix-channel --list)
 if [ -n "$UPDCHAN" ]; then
@@ -35,7 +38,39 @@ if [ -n "$UPDCHAN" ]; then
         # Skip empty lines or lines missing a name
         [[ -z "$url" || -z "$name" ]] && continue
         printf "--- $name $url\n"
+
+        if [[ "$name" == nixpkgs* ]]; then
+            # Skip computing remote hash for nixpkgs channel
+            continue;
+        fi
+
+        # Compute the remote feed
+        if [[ "$url" =~ "github\.com" ]]; then
+            # Clean URL and strip tracking prefixes/extensions
+            CLEAN_PATH=$(echo "$url" | sed -E 's|https://github.com/||' | sed 's|/archive/|/|')
+
+            OWNER=$(echo "$CLEAN_PATH" | cut -d'/' -f1)
+            REPO=$(echo "$CLEAN_PATH" | cut -d'/' -f2)
+
+            # Strip trailing package extensions (.tar.gz or .zip) from the branch segment
+            BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
+
+            FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
+        elif [[ "$url" =~ "nixos\.org" ]]; then
+            # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
+            CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
+
+            FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
+        else
+            printf "${BOLD}${RED}Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
+            RHASH[$name]=""
+            continue
+        fi
+
+        # Get the remote hash of the channel
+        RHASH[$name]=$(get_atominfo "$FEED_URL")
     done <<< "$UPDCHAN"
+
     printf "${BOLD}${RED}"
     sudo -H nix-channel --update --verbose 2>&1 | tail -n +2
     printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
@@ -123,42 +158,9 @@ if [ "$BUILDRESULT" = "0" ]; then
     fi
     sed -i "/^$BUILDREV/d" $NONWORKFILE
 
-    ## Update the commmit hashes only on successful build
-    typeset -A FEEDS
-
-    while read -r name url; do
-        # Skip empty lines or lines missing a name
-        [[ -z "$url" || -z "$name" ]] && continue
-
-        # Compute the feed
-        if [[ "$url" =~ "github\.com" ]]; then
-            # Clean URL and strip tracking prefixes/extensions
-            CLEAN_PATH=$(echo "$url" | sed -E 's|https://github.com/||' | sed 's|/archive/|/|')
-
-            OWNER=$(echo "$CLEAN_PATH" | cut -d'/' -f1)
-            REPO=$(echo "$CLEAN_PATH" | cut -d'/' -f2)
-
-            # Strip trailing package extensions (.tar.gz or .zip) from the branch segment
-            BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
-
-            FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
-            FEEDS[$name]="$FEED_URL"
-        elif [[ "$url" =~ "nixos\.org" ]]; then
-            # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
-            CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
-
-            FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
-            FEEDS[$name]="$FEED_URL"
-        else
-            printf "${BOLD}${RED}Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
-        fi
-    done < <(sudo -H nix-channel --list | grep -v '^nixpkgs')
-
     HASHDIR=~/.cache/nixchannels_hash
     mkdir -p $HASHDIR
-    for channame in "${(k)FEEDS[@]}"; do
-        url=${FEEDS[$channame]}
-
+    for channame in "${(k)RHASH[@]}"; do
         # 1. Read the existing commit hash if it exists
         hashfile=$HASHDIR/${channame}_hash
         LOCAL_HASH=""
@@ -167,7 +169,7 @@ if [ "$BUILDRESULT" = "0" ]; then
         fi
 
         # 2. Get the remote hash from the channel feed
-        REMOTE_HASH=$(get_atominfo "$url")
+        REMOTE_HASH=${RHASH[$channame]}
 
         # 3. Save the hash if present
         if [ -n "$REMOTE_HASH" ]; then
