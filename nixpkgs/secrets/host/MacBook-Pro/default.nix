@@ -96,5 +96,12 @@ in
     "Telegram" = 747648890;
     "Xcode" = 497799835;
   };
+
+  ## Host-specific info for networking
+  networking = {
+    hostName = "MacBook-Pro";
+    localHostName = "MacBook-Pro";
+    computerName = "MacBook-Pro";
+  };
 }
 # vim: set ts=2 sw=2 et ft=nix:

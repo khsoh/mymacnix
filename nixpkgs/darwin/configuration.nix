@@ -555,6 +555,8 @@ in
   # # For /etc/hosts - do not publicize contents for security reasons
   # networking.hostFiles = [ "/etc/hosts.private" ];
 
+  networking = if builtins.hasAttr "networking" pkhostcfg then pkhostcfg.networking else { };
+
   # Add sudo_local security services
   security.pam.services.sudo_local = {
     enable = true;
