@@ -238,7 +238,10 @@ in
       protonmail-desktop
       bitwarden-desktop
 
+      ## VM related stuff
       utm
+      podman
+      rustup
 
       ## Multimedia related utilities
       vlc-bin
