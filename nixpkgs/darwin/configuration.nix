@@ -205,6 +205,7 @@ in
       ttyplot
       fastfetch
       btop
+      hyperfine
 
       ## Desktop and terminal related packages
       tmux
