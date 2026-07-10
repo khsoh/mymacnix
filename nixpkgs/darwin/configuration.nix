@@ -282,19 +282,26 @@ in
 
       # Set 'exec' to the absolute path of the generated script in the Nix store
       ProgramArguments = [
-        "${pkgs.bashInteractive}/bin/bash"
+        "${pkgs.zsh}/bin/zsh"
         "-c"
-        # bash
+        # zsh
         ''
+          # Ensure system and core binaries are accessible within the launchd sandbox
+          export PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+
           NIX_DARWIN_DIR="/etc/nix-darwin"
           MINFO_FILE="$NIX_DARWIN_DIR/machine-info.nix"
+
           mkdir -p "$NIX_DARWIN_DIR"
-          IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
+
+          IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present 2>/dev/null || echo "0")
           XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
+
           BGROUPID=$(dscl . -read /Groups/nixbld PrimaryGroupID 2>/dev/null | awk '{ print $2 }')
           if [ -z "$BGROUPID" ]; then
             BGROUPID=350
           fi
+
           # nix
           NEW_MINFO="{
             is_vm = $IS_VM;
@@ -302,7 +309,7 @@ in
             buildGroupID = $BGROUPID;
           }"
 
-          if [ ! -f "$MINFO_FILE" ] || ! diff -q "$MINFO_FILE" <(echo "$NEW_MINFO") >/dev/null 2>&1; then
+          if [ ! -f "$MINFO_FILE" ] || ! diff -q "$MINFO_FILE" - <<< "$NEW_MINFO" >/dev/null 2>&1; then
               echo "$NEW_MINFO" > "$MINFO_FILE"
           fi
         ''
@@ -325,16 +332,16 @@ in
       StandardOutPath = "/var/log/org.nixos.host-age-check-Out.log";
       StandardErrorPath = "/var/log/org.nixos.host-age-check-Error.log";
       ProgramArguments = [
-        "${pkgs.bashInteractive}/bin/bash"
+        "${pkgs.zsh}/bin/zsh"
         "-c"
-        # bash
+        # zsh
         ''
           sleep 2   # Wait a while for file to be completely updated
 
           # Runs as root - can read 600 files
-          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkhostcfg.agecfg.PKFILE} 2>/dev/null)
+          DERIVED=$(${pkgs.age}/bin/age-keygen -y ${pkhostcfg.agecfg.PKFILE} 2>/dev/null | /usr/bin/tr -d '\n')
 
-          if [ "$DERIVED" != "${pkhostPUBFILEstring}" ]; then
+          if [[ "$DERIVED" != "${pkhostPUBFILEstring}" ]]; then
             # Find the ID of the currently logged-in user
             CURRENT_USER_ID=$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))
 
@@ -345,10 +352,10 @@ in
 
               app.displayNotification("Host Age Private key file ${pkhostcfg.agecfg.PKFILE} does not match with its public key file ${pkhostcfg.agecfg.PUBFILE}!", { withTitle: "Security Alert" });
               void(0);
-            EOF_javascript
+          EOF_javascript
           fi
 
-          if [ "${pkhostPUBFILEstring}" != "${pkhostcfg.agecfg.pubkey}" ]; then
+          if [[ "${pkhostPUBFILEstring}" != "${pkhostcfg.agecfg.pubkey}" ]]; then
             CURRENT_USER_ID=''${USERID:-$(/usr/bin/id -u $(/usr/bin/stat -f%Su /dev/console))}
 
             # Send notification into that user's session
@@ -358,7 +365,7 @@ in
 
               app.displayNotification("Contents of Host Age Public key file ${pkhostcfg.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!", { withTitle: "Security Alert" });
               void(0);
-            EOF_javascript
+          EOF_javascript
           fi
         ''
       ];
@@ -375,9 +382,9 @@ in
       StandardOutPath = "${userInfo.home}/log/org.nixos.user.monitorQuad9-Out.log";
       StandardErrorPath = "${userInfo.home}/log/org.nixos.user.monitorQuad9-Error.log";
       ProgramArguments = [
-        "${pkgs.bashInteractive}/bin/bash"
+        "${pkgs.zsh}/bin/zsh"
         "-c"
-        # bash
+        # zsh
         ''
           REPO="Quad9DNS/documentation"
           PATH_IN_REPO="docs/assets/mobileconfig"
@@ -391,16 +398,16 @@ in
           JQ_PATTERN="Quad9_Secured_DNS_over_HTTPS_ECS_[0-9]{8}\\\\.mobileconfig"
           Q9JSON=$(/usr/bin/curl -s $API_URL | ${pkgs.jq}/bin/jq -c "[.[] | select(.name | test(\"$JQ_PATTERN\"))] | sort_by(.name) | last")
 
-          if [ "$Q9JSON" == "null" ]; then
+          if [[ "$Q9JSON" == "null" ]]; then
             >&2 echo "========================"
             >&2 date
             >&2 echo "Error: Could not find any mobileconfig files in the repository."
           else
             LATEST_FILE=$(echo "$Q9JSON" | ${pkgs.jq}/bin/jq -r '.name')
             DOWNLOAD_URL=$(echo "$Q9JSON" | ${pkgs.jq}/bin/jq -r '.download_url')
-            FILE_SHA=$(echo "$Q9JSON" | jq -r '.sha')
+            FILE_SHA=$(echo "$Q9JSON" | ${pkgs.jq}/bin/jq -r '.sha')
 
-            if [ "$LATEST_FILE" != "$CURRENT_FILE" ]; then
+            if [[ "$LATEST_FILE" != "$CURRENT_FILE" ]]; then
               >&2 echo "========================"
               >&2 date
               >&2 echo "NEW QUAD9 UPDATE AVAILABLE!"
@@ -443,7 +450,7 @@ in
             else
               ## Validate the SHA of the current file
               CURRENT_SHA=$(${pkgs.git}/bin/git hash-object "$ABS_CURRENT_FILE")
-              if [ "$FILE_SHA" == "$CURRENT_SHA" ]; then
+              if [[ "$FILE_SHA" == "$CURRENT_SHA" ]]; then
                 echo "========================"
                 date
                 echo "Quad9 profile is up to date ($ABS_CURRENT_FILE)."

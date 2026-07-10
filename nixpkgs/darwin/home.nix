@@ -813,15 +813,15 @@ in
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.age-key-check-Error.log";
 
         ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
+          "${pkgs.zsh}/bin/zsh"
           "-c"
-          # bash
+          # zsh
           ''
             sleep 2   # Wait a while for file to be completely updated
 
-            DERIVED=$(${pkgs.age}/bin/age-keygen -y ${userPKFILEPath} 2>/dev/null)
+            DERIVED=$(${pkgs.age}/bin/age-keygen -y ${userPKFILEPath} 2>/dev/null | /usr/bin/tr -d '\n')
 
-            if [ "$DERIVED" != "${pkuserPUBFILEstring}" ]; then
+            if [[ "$DERIVED" != "${pkuserPUBFILEstring}" ]]; then
               /usr/bin/osascript -l JavaScript <<'EOF_javascript'
                 const app = Application.currentApplication();
                 app.includeStandardAdditions = true;
@@ -833,7 +833,7 @@ in
                 void(0);
             EOF_javascript
             fi
-            if [ "${pkuserPUBFILEstring}" != "${pkusercfg.agecfg.pubkey}" ]; then
+            if [[ "${pkuserPUBFILEstring}" != "${pkusercfg.agecfg.pubkey}" ]]; then
               /usr/bin/osascript -l JavaScript <<'EOF_javascript'
                 const app = Application.currentApplication();
                 app.includeStandardAdditions = true;
@@ -858,17 +858,17 @@ in
         StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.detectNixUpdates-Out.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.detectNixUpdates-Error.log";
         ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
+          "${pkgs.zsh}/bin/zsh"
           "-l"
           "-c"
-          # bash
+          # zsh
           ''
             date
             >&2 date
             LASTUPDATENIXPKGS=$(cat ~/log/detectNixUpdates.log 2>/dev/null)
             UPDATENIXPKGS=$(~/.config/nixpkgs/launchdagents/checkNixpkgs.sh 2>&1 1>/dev/null)
             LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-            if [ -n "$UPDATENIXPKGS" ] && [ "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]; then
+            if [[ -n "$UPDATENIXPKGS" && "$UPDATENIXPKGS" != "$LASTUPDATENIXPKGS" ]]; then
               export UPDATENIXPKGS
               osascript -l JavaScript <<'EOF_javascript'
                 var app = Application.currentApplication();
@@ -878,12 +878,10 @@ in
                 app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
             EOF_javascript
             ${lib.optionalString (builtins.pathExists secretsjsonPath)
-              # bash
+              # zsh
               ''
-                IMSGID=$(jq '.iMessageID' ${
-                  config.age.secrets."secrets.json".path
-                } 2>/dev/null | sed 's/^"//;s/"$//')
-                if [ -n "$IMSGID" ]; then
+                IMSGID=$(${pkgs.jq}/bin/jq  -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                if [[ -n "$IMSGID" ]]; then
                   "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
                 fi
               ''
@@ -952,17 +950,17 @@ in
         StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateTmuxPlugins-Out.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateTmuxPlugins-Error.log";
         ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
+          "${pkgs.zsh}/bin/zsh"
           "-l"
           "-c"
-          # bash
+          # zsh
           ''
             date
-            [ -d ${homecfg.homeDirectory}/.tmux/plugins/tpm ] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
-             ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins"
-             ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all"
-             ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins"
-             echo "Completed TPM plugin updates"
+            [[ -d "${homecfg.homeDirectory}/.tmux/plugins/tpm" ]] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
+            ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins"
+            ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all"
+            ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins"
+            echo "Completed TPM plugin updates"
           ''
         ];
       };
@@ -976,14 +974,14 @@ in
         StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Out.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Error.log";
         ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
+          "${pkgs.zsh}/bin/zsh"
           "-l"
           "-c"
-          # bash
+          # zsh
           ''
             date
             >&2 date
-            if [ -d "${minimaxConfig}" ]; then
+            if [[ -d "${minimaxConfig}" ]]; then
               echo "==== ${minimaxName} update and sync start ====="
               pushd "${minimaxConfig}" >/dev/null
               GIT="${pkgs.git}/bin/git"
@@ -994,7 +992,7 @@ in
               BRANCH_HEADER=$(echo "$FULL_STATUS" | head -n 1)
               UNCOMMITTED_FILES=$(echo "$FULL_STATUS" | tail -n +2)
 
-              if [ -n "$UNCOMMITTED_FILES" ]; then
+              if [[ -n "$UNCOMMITTED_FILES" ]]; then
                 HAS_UNCOMMITTED=true
                 echo "!! UNCOMMITTED CHANGES DETECTED in ${minimaxConfig}:"
                 echo "$UNCOMMITTED_FILES"
@@ -1022,7 +1020,7 @@ in
                   ;;
               esac
 
-              if [ "$HAS_UNCOMMITTED" = false ] && [ "$SYNC_STATUS" = "behind" ]; then
+              if [[ "$HAS_UNCOMMITTED" == "false" && "$SYNC_STATUS" == "behind" ]]; then
                 echo "Safe to pull: Repo is clean and behind remote."
                 $GIT pull
                 # Update plugins to new commits in lock file
@@ -1034,7 +1032,7 @@ in
               popd >/dev/null
               PLUGINUPDATES=$(NVIM_APPNAME="${minimaxName}" ${pkgs.neovim}/bin/nvim --headless -l "${minimaxConfig}/listUpdates.lua")
 
-              if [ -n "$PLUGINUPDATES" ]; then
+              if [[ -n "$PLUGINUPDATES" ]]; then
                 # Setup notification
                 export PLUGINUPDATES
                 osascript -l JavaScript <<'EOF_javascript'
@@ -1045,12 +1043,10 @@ in
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
             ${lib.optionalString (builtins.pathExists secretsjsonPath)
-              # bash
+              # zsh
               ''
-                IMSGID=$(jq '.iMessageID' ${
-                  config.age.secrets."secrets.json".path
-                } 2>/dev/null | sed 's/^"//;s/"$//')
-                if [ -n "$IMSGID" ]; then
+                IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                if [[ -n "$IMSGID" ]]; then
                   LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
                   "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
                 fi
@@ -1074,15 +1070,15 @@ in
         StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.monitor-wsgx-Out.log";
         StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.monitor-wsgx-Error.log";
         ProgramArguments = [
-          "${pkgs.bashInteractive}/bin/bash"
+          "${pkgs.zsh}/bin/zsh"
           "-l"
           "-c"
-          # bash
+          # zsh
           ''
             ICLOUD_DIR="${homecfg.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
 
             # Check if iCloud drive exists
-            if [ ! -d "$ICLOUD_DIR" ]; then
+            if [[ ! -d "$ICLOUD_DIR" ]]; then
               >&2 date
               >&2 echo "iCloud Drive not yet mounted"
               >&2 echo "==================="
@@ -1090,7 +1086,7 @@ in
             fi
 
             WSGX_FILE="$ICLOUD_DIR/WSGX/non-sim.mobileconfig";
-            if [ ! -f "$WSGX_FILE" ]; then
+            if [[ ! -f "$WSGX_FILE" ]]; then
               >&2 date
               >&2 echo "Warning: Wireless@SGx Profile file absent from WSGX folder in iCloud drive"
               >&2 echo "==================="
@@ -1121,12 +1117,12 @@ in
             fi
 
             # Get the signing time
-            SIGNTIME=$(/usr/bin/openssl cms -inform DER -in "$WSGX_FILE" -cmsout -print|grep -A 2 "signingTime"|grep "UTCTIME" | ${pkgs.gnused}/bin/sed 's/.*UTCTIME://')
+            SIGNTIME=$(/usr/bin/openssl cms -inform DER -in "$WSGX_FILE" -cmsout -print|grep -A 2 "signingTime"|grep "UTCTIME" | ${pkgs.gnused}/bin/sed 's/.*UTCTIME://' | tr -d '\n')
             EXPIRE_DATE="$(date -j -v+6m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%b %d %Y")"
             WARN_EPOCH="$(date -j -v+5m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%s")"
 
             # Check if need to update the profile
-            if [ "$(date "+%s")" -gt "$WARN_EPOCH" ]; then
+            if [[ "$(date "+%s")" -gt "$WARN_EPOCH" ]]; then
               >&2 date
               >&2 echo "Warning: Wireless@SGx Profile will expire on $EXPIRE_DATE"
               >&2 echo "==================="
@@ -1174,25 +1170,23 @@ in
               INSTALLED_UUID=$(${pkgs.jq}/bin/jq -r '.ProfileUUID' <<< "$INSTALLED_JSON")
               INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< "$INSTALLED_JSON")
 
-              if [ "$PAYLOAD_UUID" == "$INSTALLED_UUID" ] ; then
+              if [[ "$PAYLOAD_UUID" == "$INSTALLED_UUID" ]]; then
                 ANNOUNCEMENT="ANNOUNCE: $(date -j '+Week %V %d %b %Y')"
                 GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
                 if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                   EXIT_STATUS=0
                   ${lib.optionalString (builtins.pathExists secretsjsonPath)
-                    # bash
+                    # zsh
                     ''
-                      IMSGID=$(jq '.iMessageID' ${
-                        config.age.secrets."secrets.json".path
-                      } 2>/dev/null | sed 's/^"//;s/"$//')
-                      if [ -n "$IMSGID" ]; then
+                      IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                      if [[ -n "$IMSGID" ]]; then
                         LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
                         "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
                         EXIT_STATUS=$?
                       fi
                     ''
                   }
-                  if [ $EXIT_STATUS -eq 0 ]; then
+                  if [[ $EXIT_STATUS -eq 0 ]]; then
                     echo "$ANNOUNCEMENT"
                     echo "Wireless@SGx profile is still valid - will expire on $EXPIRE_DATE"
                   fi
