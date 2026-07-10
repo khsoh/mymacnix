@@ -1,7 +1,5 @@
 #!/usr/bin/env zsh
 
-
-
 set -u
 set -o pipefail
 
@@ -32,53 +30,64 @@ typeset -A RHASH
 
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 UPDCHAN=$(sudo -H nix-channel --list)
-if [ -n "$UPDCHAN" ]; then
-    printf "${BOLD}${GREEN}====== Starting to update root channels ======\n"
-    while read -r name url; do
-        # Skip empty lines or lines missing a name
-        [[ -z "$url" || -z "$name" ]] && continue
-        printf "--- $name $url\n"
-
-        if [[ "$name" == nixpkgs* ]]; then
-            # Skip computing remote hash for nixpkgs channel
-            continue;
-        fi
-
-        # Compute the remote feed
-        if [[ "$url" =~ "github\.com" ]]; then
-            # Clean URL and strip tracking prefixes/extensions
-            CLEAN_PATH=$(echo "$url" | sed -E 's|https://github.com/||' | sed 's|/archive/|/|')
-
-            OWNER=$(echo "$CLEAN_PATH" | cut -d'/' -f1)
-            REPO=$(echo "$CLEAN_PATH" | cut -d'/' -f2)
-
-            # Strip trailing package extensions (.tar.gz or .zip) from the branch segment
-            BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
-
-            FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
-        elif [[ "$url" =~ "nixos\.org" ]]; then
-            # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
-            CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
-
-            FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
-        else
-            printf "${BOLD}${RED}Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
-            RHASH[$name]=""
-            continue
-        fi
-
-        # Get the remote hash of the channel
-        RHASH[$name]=$(get_atominfo "$FEED_URL")
-    done <<< "$UPDCHAN"
-
-    printf "${BOLD}${RED}"
-    sudo -H nix-channel --update --verbose 2>&1 | tail -n +2
-    printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
-    sleep 3
+if [[ ! -n "$UPDCHAN" ]]; then
+    printf "${BOLD}${RED}!!!!!!Unable to get any root nix channels${ESC}\n"
+    exit 1
 fi
 
+printf "${BOLD}${GREEN}====== Starting to update root channels ======\n"
+while read -r name url; do
+    # Skip empty lines or lines missing a name
+    [[ -z "$url" || -z "$name" ]] && continue
+    printf "--- $name $url\n"
+
+    # Compute the remote feed
+    if [[ "$url" =~ "github\.com" ]]; then
+        # Clean URL and strip tracking prefixes/extensions
+        CLEAN_PATH=$(echo "$url" | sed -E 's|https://github.com/||' | sed 's|/archive/|/|')
+
+        OWNER=$(echo "$CLEAN_PATH" | cut -d'/' -f1)
+        REPO=$(echo "$CLEAN_PATH" | cut -d'/' -f2)
+
+        # Strip trailing package extensions (.tar.gz or .zip) from the branch segment
+        BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
+
+        FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
+    elif [[ "$url" =~ "nixos\.org" ]]; then
+        # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
+        CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
+
+        FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
+    else
+        printf "${BOLD}${RED}Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
+        RHASH[$name]=""
+        continue
+    fi
+
+    # Get the remote hash of the channel
+    RHASH[$name]=$(get_atominfo "$FEED_URL")
+
+    if [[ "$name" == "nixpkgs" ]]; then
+        # Alternate method to get latest commit hash of nixpkgs channel
+        RHASH[$name]=$(curl -LIs -o /dev/null -w %{url_effective} $url | sed -e 's/.*\.//')
+    fi
+
+done <<< "$UPDCHAN"
+
+# Check that nixpkgs hash is present
+if [[ ! -v "RHASH[nixpkgs]" ]]; then
+    printf "${BOLD}${RED}!!!!!!Unable to get remote commit hash of nixpkgs channel${ESC}\n"
+    exit 1
+fi
+
+
+printf "${BOLD}${RED}"
+sudo -H nix-channel --update --verbose 2>&1 | tail -n +2
+printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
+sleep 3
+
 UPDCHAN=$(nix-channel --list)
-if [ -n "$UPDCHAN" ]; then
+if [[ -n "$UPDCHAN" ]]; then
     printf "${BOLD}${GREEN}====== Starting to update user channels ======\n"
     while read -r name url; do
         # Skip empty lines or lines missing a name
@@ -93,15 +102,14 @@ fi
 
 WORKFILE=~/.working-nixpkgs
 NONWORKFILE=~/.nonworking-nixpkgs
-[ -f $WORKFILE ] || touch $WORKFILE
-[ -f $NONWORKFILE ] || touch $NONWORKFILE
+[[ -f $WORKFILE ]] || touch $WORKFILE
+[[ -f $NONWORKFILE ]] || touch $NONWORKFILE
 LAST_GOOD_REV=$(awk 'END {print $1}' $WORKFILE || echo 0)
-LATEST_NIXPKGS_URL=$(sudo -H nix-channel --list | awk '/^nixpkgs / {print $2}')
-LATEST_NIXPKGS_REV=$(curl -LIs -o /dev/null -w %{url_effective} $LATEST_NIXPKGS_URL | sed -e 's/.*\.//')
+LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
 if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
-    if [ "$LAST_GOOD_REV" = "0" ]; then
+    if [[ "$LAST_GOOD_REV" == "0" ]]; then
         OPTIONS="[l/x]"
     else
         OPTIONS="[l/g/x]"
@@ -109,7 +117,7 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
     echo "nixpkgs rev $LATEST_NIXPKGS_REV failed to build previously"
     echo "What would you like to build? $OPTIONS"
     echo " l/L - Latest nixpkgs rev"
-    if [ "$LAST_GOOD_REV" != "0" ]; then
+    if [[ "$LAST_GOOD_REV" != "0" ]]; then
         echo " g/G - Last good rev"
     fi
     echo " x/X - Exit"
@@ -119,7 +127,7 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
         l|L)
             ;;
         g|G)
-            if [ "$LAST_GOOD_REV" = "0" ]; then
+            if [[ "$LAST_GOOD_REV" == "0" ]]; then
                 exit 0
             fi
             BUILDARGS="-I nixpkgs=https://github.com/NixOS/nixpkgs/archive/${LAST_GOOD_REV}.tar.gz"
@@ -145,13 +153,13 @@ TMPFILE=$(mktemp) || exit 1
 # Ensure temporary file is cleaned up if script exits early
 trap 'rm -f "$TMPFILE"' EXIT
 
-if [ "$BUILDRESULT" = "0" ]; then
+if [[ "$BUILDRESULT" == "0" ]]; then
     if grep -q "^$BUILDREV" $WORKFILE ; then
         sed -i "/^$BUILDREV.*$/c$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $WORKFILE
     else
         echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $WORKFILE
     fi
-    if [ "$(wc -l < $WORKFILE | xargs)" -gt 40 ]; then
+    if [[ "$(wc -l < $WORKFILE | xargs)" -gt 40 ]]; then
         if tail -n 20 $WORKFILE > "$TMPFILE"; then
             mv "$TMPFILE" "$WORKFILE"
         fi
@@ -161,10 +169,15 @@ if [ "$BUILDRESULT" = "0" ]; then
     HASHDIR=~/.cache/nixchannels_hash
     mkdir -p $HASHDIR
     for channame in "${(k)RHASH[@]}"; do
+        # 0. Do not store nixpkgs commit hash
+        if [[ "$channame" == "nixpkgs" ]]; then
+            continue
+        fi
+
         # 1. Read the existing commit hash if it exists
         hashfile=$HASHDIR/${channame}_hash
         LOCAL_HASH=""
-        if [ -f "$hashfile" ]; then
+        if [[ -f "$hashfile" ]]; then
             LOCAL_HASH=$(cat "$hashfile")
         fi
 
@@ -172,8 +185,8 @@ if [ "$BUILDRESULT" = "0" ]; then
         REMOTE_HASH=${RHASH[$channame]}
 
         # 3. Save the hash if present
-        if [ -n "$REMOTE_HASH" ]; then
-            if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+        if [[ -n "$REMOTE_HASH" ]]; then
+            if [[ "$LOCAL_HASH" != "$REMOTE_HASH" ]]; then
                 echo "$REMOTE_HASH" | tee "$hashfile" > /dev/null
                 printf "${BOLD}${RED}Updated commit hash for $channame${ESC}\n"
             fi
@@ -188,7 +201,7 @@ else
     else
         echo "$BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $NONWORKFILE
     fi
-    if [ "$(wc -l < $NONWORKFILE | xargs)" -gt 40 ]; then
+    if [[ "$(wc -l < $NONWORKFILE | xargs)" -gt 40 ]]; then
         if tail -n 20 $NONWORKFILE > "$TMPFILE"; then
             mv "$TMPFILE" "$NONWORKFILE"
         fi

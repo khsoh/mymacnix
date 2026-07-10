@@ -44,7 +44,7 @@ function get_gitfolder() {
     local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
     printf "$prompt"
     while read -r folder </dev/tty; do
-        if [ "$folder" != "" ]; then
+        if [[ "$folder" != "" ]]; then
             if [[ ! -e "$HOME/$folder" ]]; then
                 break
             fi
@@ -96,17 +96,17 @@ function deploy_secrets() {
     printf "${GREEN}Waiting for deployment to complete in ~/.deploy folder...${ESC}\n"
     printf "${RED}At the remote host, execute the following script with the argument:${ESC}\n"
     printf "${RED}${BOLD}   installScripts/deploySecrets.sh ${USER_NAME}@${IP_ADDR}${ESC}\n"
-    while [ ! -f ~/.deploy/completed ]; do
+    while [[ ! -f ~/.deploy/completed ]]; do
         printf "${GREEN}.${ESC}"
         while IFS= read -r line; do
-            if [ $SSH_STATE -eq 0 ]; then
+            if [[ $SSH_STATE -eq 0 ]]; then
                 if [[ "$line" =~ ^"sshd-auth: $USER" ]]; then
                     # Received an SSH connection - waiting for password
                     SSH_STATE=1
                     printf "\n${GREEN}${BOLD}Received SSH connection - waiting to authenticate${ESC}\n"
                     break
                 fi
-            elif [ $SSH_STATE -eq 1 ]; then
+            elif [[ $SSH_STATE -eq 1 ]]; then
                 if [[ "$line" =~ ^"sshd-session: "$USER(@notty)?[[:space:]]*$ ]]; then
                     # Received an SSH authentication
                     SSH_STATE=2
@@ -210,7 +210,7 @@ mkdir -p "$MINFO_DIR"
 IS_VM=$(/usr/sbin/sysctl -n kern.hv_vmm_present)
 XHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
 BGROUPID=$(dscl . -read /Groups/nixbld PrimaryGroupID 2>/dev/null | awk '{ print $2 }')
-if [ -z "$BGROUPID" ]; then
+if [[ -z "$BGROUPID" ]]; then
   BGROUPID=350
 fi
 
@@ -223,7 +223,7 @@ NEW_MINFO=$(cat << EOF_nix
 EOF_nix
 )
 
-if [ ! -f "$MINFO_FILE" ] || ! diff -q "$MINFO_FILE" <(echo "$NEW_MINFO") >/dev/null 2>&1; then
+if [[ ! -f "$MINFO_FILE" ]] || ! diff -q "$MINFO_FILE" <(echo "$NEW_MINFO") >/dev/null 2>&1; then
     echo "$NEW_MINFO" > "$MINFO_FILE"
 fi
 EOF_bash
@@ -238,7 +238,7 @@ fi
 # Added code to install Xcode command line tools
 print_arrow "Checking whether Xcode command line tools have been installed"
 sudo -H xcode-select -p &>/dev/null
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     print_arrow "Command Line Tools for Xcode not found. Installing from softwareupdate…"
     # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
     touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
@@ -249,7 +249,7 @@ else
 fi
 
 git -C "$SCRIPTDIR" rev-parse 2>/dev/null
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     ## Script folder is not a git folder
     get_gitfolder
 
@@ -266,9 +266,9 @@ if [ $? -ne 0 ]; then
     export FN_print_arrow=$(whence -f print_arrow)
     export FN_is_sshd_on=$(whence -f is_sshd_on)
     export FN_deploy_secrets=$(whence -f deploy_secrets)
-    [ -f /etc/zshenv ] && . /etc/zshenv
-    [ -f /etc/zprofile ] && . /etc/zprofile
-    [ -f /etc/zshrc ] && . /etc/zshrc
+    [[ -f /etc/zshenv ]] && . /etc/zshenv
+    [[ -f /etc/zprofile ]] && . /etc/zprofile
+    [[ -f /etc/zshrc ]] && . /etc/zshrc
     nix-shell -p git openssh age rsync --command '
     eval "$FN_print_arrow"
     eval "$FN_is_sshd_on"
@@ -323,10 +323,10 @@ cd "$gitfolder"
 sudo -H nix-channel --update
 
 ## Move /etc/zshrc and /etc/bashrc files
-if [ -f /etc/zshrc ]; then
+if [[ -f /etc/zshrc ]]; then
     sudo -H mv /etc/zshrc /etc/zshrc.before-nix-darwin
 fi
-if [ -f /etc/bashrc ]; then
+if [[ -f /etc/bashrc ]]; then
     sudo -H mv /etc/bashrc /etc/bashrc.before-nix-darwin
 fi
 print_arrow "Installing nix-darwin"

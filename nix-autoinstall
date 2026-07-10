@@ -1,120 +1,125 @@
-#!/bin/sh
-
+#!/bin/bash
 
 set -u
 set -o pipefail
 
 REPOHOST=gitlab
 
-readonly ESC="$(tput sgr0)"
-readonly BOLD="$(tput bold)"
-readonly GREEN="$(tput setaf 2)"
-readonly RED="$(tput setaf 1)"
+ESC="$(tput sgr0)"
+BOLD="$(tput bold)"
+GREEN="$(tput setaf 2)"
+RED="$(tput setaf 1)"
+readonly ESC
+readonly BOLD
+readonly GREEN
+readonly RED
 
 # Script to perform automated installation of Nix on MacOS and clone mymacnix to install nix-Darwin
 #
 
 { # Prevent execution if this script was only partially downloaded
 
-function print_arrow () {
-    printf "${BOLD}${GREEN}"
-    eval $(echo printf '"=%.0s"' {1..$SHLVL})
-    printf "> $*${ESC}\n"
-}
+    function print_arrow() {
+        printf "%s" "${BOLD}${GREEN}"
+        printf "%${SHLVL}s" | tr ' ' '='
+        printf "> %s\n" "$*${ESC}"
+    }
 
-function makerepo () {
-    if [[ "$1" == "github" ]]; then
-        echo "https://raw.githubusercontent.com/khsoh/mymacnix/$2/$3"
-    elif [[ "$1" == "gitlab" ]]; then
-        echo "https://gitlab.com/khsoh/mymacnix/-/raw/$2/$3"
-    elif [[ "$1" == "codeberg" ]]; then
-        echo "https://codeberg.org/khsoh/mymacnix/raw/branch/$2/$3"
-    else
-        echo "Improper host $1 specified.  Repo host must be github or gitlab or codeberg"
-        exit 1
-    fi
-}
-
-function usage () {
-    print_arrow "Usage: "
-    print_arrow "  sh <(curl -L $(makerepo ${REPOHOST} "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github|codeberg)]"
-    print_arrow "    The default feature-branch is 'main' if it is not specified"
-    print_arrow "    The default repohost is 'gitlab' if it is not specified"
-    exit 1
-}
-
-oops() {
-    echo "$0:" "$@" >&2
-    exit 1
-}
-
-umask 0022
-
-# Perform automated install
-nixtmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX || \
-          oops "Can't create temporary directory for downloading the nix install scripts")"
-
-cleanup() {
-    rm -rf "$nixtmpDir"
-    printf "${ESC}"
-}
-trap cleanup EXIT INT QUIT TERM
-
-function get_gitfolder () {
-    [[ ! -n "${gitfolder+1}" ]] || return
-    local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
-    printf "$prompt"
-    while read -r folder </dev/tty; do
-        if [ "$folder" != "" ]; then
-            if [[ ! -e "$HOME/$folder" ]]; then
-                break
-            fi
-            printf "${RED}$HOME/$folder already exists - please choose another directory${ESC}\n"
+    function makerepo() {
+        if [[ "$1" == "github" ]]; then
+            echo "https://raw.githubusercontent.com/khsoh/mymacnix/$2/$3"
+        elif [[ "$1" == "gitlab" ]]; then
+            echo "https://gitlab.com/khsoh/mymacnix/-/raw/$2/$3"
+        elif [[ "$1" == "codeberg" ]]; then
+            echo "https://codeberg.org/khsoh/mymacnix/raw/branch/$2/$3"
+        else
+            echo "Improper host $1 specified.  Repo host must be github or gitlab or codeberg"
+            exit 1
         fi
-        printf "$prompt"
-    done
-    eval "export gitfolder=$HOME/$folder"
-}
+    }
 
-OPTINSTALL="all"
-BRANCH="main"
-CMDARGS=( "$@" )
-while test $# -gt 0; do
-    case "$1" in
+    function usage() {
+        print_arrow "Usage: "
+        print_arrow "  sh <(curl -L $(makerepo "${REPOHOST}" "main" "nix-autoinstall")) [--install=nixonly] [--branch=<feature-branch>] [--repohost=(gitlab|github|codeberg)]"
+        print_arrow "    The default feature-branch is 'main' if it is not specified"
+        print_arrow "    The default repohost is 'gitlab' if it is not specified"
+        exit 1
+    }
+
+    oops() {
+        echo "$0:" "$@" >&2
+        exit 1
+    }
+
+    umask 0022
+
+    # Perform automated install
+    nixtmpDir="$(mktemp -d -t nixautoinstalldir.XXXXXXXXX ||
+        oops "Can't create temporary directory for downloading the nix install scripts")"
+
+    cleanup() {
+        rm -rf "$nixtmpDir"
+        printf "%s" "${ESC}"
+    }
+    trap cleanup EXIT INT QUIT TERM
+
+    function get_gitfolder() {
+        [[ ! -n "${gitfolder+1}" ]] || return
+        local prompt="${BOLD}${GREEN}Enter name of subfolder within $HOME to clone mymacnix: ${ESC}"
+        printf "%s" "$prompt"
+        while read -r folder </dev/tty; do
+            if [[ "$folder" != "" ]]; then
+                if [[ ! -e "$HOME/$folder" ]]; then
+                    break
+                fi
+                printf "%s already exists - please choose another directory%s\n" "${RED}$HOME/$folder" "${ESC}"
+            fi
+            printf "%s" "$prompt"
+        done
+        eval "export gitfolder=$HOME/$folder"
+    }
+
+    OPTINSTALL="all"
+    BRANCH="main"
+    CMDARGS=("$@")
+    while test $# -gt 0; do
+        case "$1" in
         --install=nixonly)
-            OPTINSTALL="${1##--install=}";;
+            OPTINSTALL="${1##--install=}"
+            ;;
         --branch=*)
-            BRANCH="${1##--branch=}";;
+            BRANCH="${1##--branch=}"
+            ;;
         --repohost=*)
-            REPOHOST="${1##--repohost=}";;
+            REPOHOST="${1##--repohost=}"
+            ;;
         *)
             echo "Invalid option $1"
-            usage;;
-    esac
-    shift
-done
+            usage
+            ;;
+        esac
+        shift
+    done
 
+    # Test if Nix is already installed
+    if [[ $(nix --version 2>/dev/null) ]]; then
+        printf "%sNix already installed - nix-autoinstall will not be executed%s\n" "${BOLD}${RED}" "${ESC}"
+        exit 1
+    fi
 
-# Test if Nix is already installed
-if [[ $(nix --version 2>/dev/null) ]]; then
-    printf "${BOLD}${RED}Nix already installed - nix-autoinstall will not be executed${ESC}\n"
-    exit 1
-fi
+    # Prompt user for git folder early in install process because the Nix installation
+    # time takes a while - so we want the automated installation can proceed without
+    # interruption after all the user inputs are collected first.
+    get_gitfolder
 
-# Prompt user for git folder early in install process because the Nix installation
-# time takes a while - so we want the automated installation can proceed without
-# interruption after all the user inputs are collected first.
-get_gitfolder
+    print_arrow "Starting to auto-install nix from https://nixos.org/nix/install"
 
-print_arrow "Starting to auto-install nix from https://nixos.org/nix/install"
-
-yes | sh <<EOF
+    yes | sh <<EOF
 $(curl -L https://nixos.org/nix/install)
 EOF
 
-print_arrow "Downloading and executing nixsys-setup from ${BRANCH} branch of mymacnix repo"
-curl -L $(makerepo ${REPOHOST} "${BRANCH}" "nixsys-setup") -o ${nixtmpDir}/nixsys-setup
-zsh -l ${nixtmpDir}/nixsys-setup ${CMDARGS[@]:-}
+    print_arrow "Downloading and executing nixsys-setup from ${BRANCH} branch of mymacnix repo"
+    curl -L "$(makerepo "${REPOHOST}" "${BRANCH}" "nixsys-setup")" -o "${nixtmpDir}/nixsys-setup"
+    zsh -l "${nixtmpDir}/nixsys-setup" "${CMDARGS[@]:-}"
 
 } # End of wrapping
-

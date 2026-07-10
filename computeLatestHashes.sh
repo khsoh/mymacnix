@@ -5,7 +5,7 @@
 ## The outputs can then be used to replace the corresponding entries in the home.nix file
 
 function cleanup() {
-    if [ -n "$ULIMIT" ]; then
+    if [[ -n "$ULIMIT" ]]; then
         ulimit -n $ULIMIT
     fi
 }

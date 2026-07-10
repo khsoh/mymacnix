@@ -46,7 +46,7 @@ get_conditional_substring() {
     local value=$1
     local len=${2:-8}
 
-    if [ "$OUTPUT" -eq 1 ]; then
+    if [[ "$OUTPUT" -eq 1 ]]; then
         # Running in login - just use the whole length
         echo "$value"
     else
@@ -186,7 +186,7 @@ for channame in "${!FEEDS[@]}"; do
     # 1. Read the existing hash if it exists
     hashfile=$HASHDIR/${channame}_hash
     LOCAL_HASH=""
-    if [ -f "$hashfile" ]; then
+    if [[ -f "$hashfile" ]]; then
         LOCAL_HASH=$(cat "$hashfile")
     fi
 
@@ -197,7 +197,7 @@ for channame in "${!FEEDS[@]}"; do
     if [[ "$LOCAL_HASH" == "$REMOTE_HASH" ]]; then
         printf "%s=== Local package is up-to-date with %s channel ===%s\n" "${GREEN}${BOLD}" "$channame" "$ESC"
         printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_hash" "$LOCAL_HASH"
-    elif [ -n "$REMOTE_HASH" ]; then
+    elif [[ -n "$REMOTE_HASH" ]]; then
         printf "%s*** New package detected on %s channel ***%s\n" "$GREEN$BOLD" "$channame" "$ESC" >&"$OUTPUT"
         printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_hash" "$LOCAL_HASH" >&"$OUTPUT"
         printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$RED$BOLD" "$max_namelen" "${channame}_remote_hash" "$REMOTE_HASH$ESC" >&"$OUTPUT"
@@ -209,7 +209,7 @@ done
 # Perform homebrew check for outdated packages
 brew update >/dev/null 2>&1
 BREWOUTDATED=$(brew outdated)
-if [ -n "$BREWOUTDATED" ]; then
+if [[ -n "$BREWOUTDATED" ]]; then
     echo ""
     printf "%s*** Outdated homebrew packages ***%s\n" "$GREEN$BOLD" "$ESC" >&"$OUTPUT"
     while IFS= read -r line; do
@@ -217,7 +217,7 @@ if [ -n "$BREWOUTDATED" ]; then
     done <<<"$BREWOUTDATED"
 fi
 
-if [ "$OUTPUT" -ne 2 ]; then
+if [[ "$OUTPUT" -ne 2 ]]; then
     # Execute checktermperms only if not running in launchdagent
     SCRIPTNAME=$(readlink -f "$0")
     SCRIPTDIR=$(dirname "$SCRIPTNAME")
