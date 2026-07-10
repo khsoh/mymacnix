@@ -46,5 +46,12 @@ in
 
   hostbrew.masApps = {
   };
+
+  ## Host-specific info for networking
+  networking = {
+    hostName = "Sohs-Mac-mini";
+    localHostName = "Sohs-Mac-mini";
+    computerName = "Soh's Mac mini";
+  };
 }
 # vim: set ts=2 sw=2 et ft=nix:
