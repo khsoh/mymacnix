@@ -203,7 +203,7 @@ if [[ "$BUILDRESULT" == "0" ]]; then
         if [[ -n "$REMOTE_HASH" ]]; then
             if [[ "$LOCAL_HASH" != "$REMOTE_HASH" ]]; then
                 echo "$REMOTE_HASH" | tee "$hashfile" > /dev/null
-                printf "${BOLD}${RED}Updated commit hash for $channame${ESC}\n"
+                printf "${BOLD}${RED}Updated commit hash for $channame: $REMOTE_HASH${ESC}\n"
             fi
         else
             printf "${BOLD}${RED}Could not get commit hash for $channame${ESC}\n"
