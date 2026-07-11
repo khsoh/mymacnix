@@ -129,6 +129,12 @@ while read -r name url; do
 done < <(sudo -H nix-channel --list)
 
 LOCAL_NIXPKGSREVISION=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
+if [[ -n "$LOCAL_NIXPKGSREVISION" && ${#LOCAL_NIXPKGSREVISION} -lt 40 ]]; then
+    LONGREV=$(curl -s "https://api.github.com/repos/NixOS/nixpkgs/commits/$LOCAL_NIXPKGSREVISION" | jq -r '.sha' | tr -d '\r\n')
+    if [[ -n "$LONGREV" ]]; then
+        LOCAL_NIXPKGSREVISION="$LONGREV"
+    fi
+fi
 
 # Get the git revision from the effective URL of the nixpkgs channel
 REMOTE_NIXPKGSREVISION=""
