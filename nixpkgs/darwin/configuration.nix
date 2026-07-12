@@ -239,6 +239,8 @@ in
       protonmail-desktop
       bitwarden-desktop
 
+      element-desktop
+
       ## VM related stuff
       utm
       podman
