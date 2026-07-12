@@ -7,29 +7,10 @@ let
       # url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
       url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
-        "8c91a71d1345"
-        "173d0ad7a974"
-        "49a4bd0573c3"
-        "5a722a7155bf"
-        "9f11f828c213"
-        "9eac87a12312"
-        "3e41b24abd26"
-        "b3c092d3c36d"
-        "89570f24e97e"
-        "e1c1b84752fb"
-        "534ee3d8beb1"
-        "9c4c05a947a9"
-        "7a1a64774a5f"
-        "e52c192be9d7"
-        "f76e4c7b1840"
-        "e8273b29fe13"
-        "9e92285f211d"
-        "d33369954a67"
-        "19a8a1e6d8b7"
-        "6edbf1a6a03e"
         "c4013e501c04"
         "f205b5574fd0"
         "767b0d3ec98a"
+        "716c7a2664ca"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
