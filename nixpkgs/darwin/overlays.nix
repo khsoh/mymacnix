@@ -4,8 +4,8 @@ let
   # You can comment out everything within sources if there is nothing to override
   sources = {
     "bitwarden-desktop" = {
-      # url = "https://github.com/NixOS/nixpkgs/archive/d99b013d5d19.tar.gz";
-      url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
+      url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz"; # GOOD
+      # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
         "c4013e501c04"
         "f205b5574fd0"
@@ -17,6 +17,26 @@ let
       desc = "Modified bitwarden-desktop to support EOL electron";
       # Override with EOL electron version
       permittedInsecurePackages = [ "electron-39.8.10" ];
+    };
+    "rectangle" = {
+      url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
+      ignoredCommits = [
+        "c4013e501c04"
+        "f205b5574fd0"
+        "767b0d3ec98a"
+        "716c7a2664ca"
+        "3b32825de172"
+      ];
+    };
+    "audacity" = {
+      url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
+      ignoredCommits = [
+        "c4013e501c04"
+        "f205b5574fd0"
+        "767b0d3ec98a"
+        "716c7a2664ca"
+        "3b32825de172"
+      ];
     };
   };
 
