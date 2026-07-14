@@ -7,11 +7,11 @@ let
       url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz"; # GOOD
       # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
-        "c4013e501c04"
-        "f205b5574fd0"
+        "389ed85304b2"
         "767b0d3ec98a"
         "716c7a2664ca"
         "3b32825de172"
+        "6cdc7fc76e8b"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
@@ -21,21 +21,21 @@ let
     "rectangle" = {
       url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
       ignoredCommits = [
-        "c4013e501c04"
-        "f205b5574fd0"
+        "389ed85304b2"
         "767b0d3ec98a"
         "716c7a2664ca"
         "3b32825de172"
+        "6cdc7fc76e8b"
       ];
     };
     "audacity" = {
       url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
       ignoredCommits = [
-        "c4013e501c04"
-        "f205b5574fd0"
+        "389ed85304b2"
         "767b0d3ec98a"
         "716c7a2664ca"
         "3b32825de172"
+        "6cdc7fc76e8b"
       ];
     };
   };
