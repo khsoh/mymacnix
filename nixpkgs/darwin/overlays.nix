@@ -12,6 +12,7 @@ let
         "716c7a2664ca"
         "3b32825de172"
         "6cdc7fc76e8b"
+        "8431ff8a526b"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
@@ -26,6 +27,7 @@ let
         "716c7a2664ca"
         "3b32825de172"
         "6cdc7fc76e8b"
+        "8431ff8a526b"
       ];
     };
     "audacity" = {
@@ -36,6 +38,7 @@ let
         "716c7a2664ca"
         "3b32825de172"
         "6cdc7fc76e8b"
+        "8431ff8a526b"
       ];
     };
   };
