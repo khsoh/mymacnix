@@ -13,22 +13,12 @@ let
         "3b32825de172"
         "6cdc7fc76e8b"
         "8431ff8a526b"
+        "3889d66586e6"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
       # Override with EOL electron version
       permittedInsecurePackages = [ "electron-39.8.10" ];
-    };
-    "rectangle" = {
-      url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
-      ignoredCommits = [
-        "389ed85304b2"
-        "767b0d3ec98a"
-        "716c7a2664ca"
-        "3b32825de172"
-        "6cdc7fc76e8b"
-        "8431ff8a526b"
-      ];
     };
     "audacity" = {
       url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
@@ -39,6 +29,7 @@ let
         "3b32825de172"
         "6cdc7fc76e8b"
         "8431ff8a526b"
+        "3889d66586e6"
       ];
     };
   };
