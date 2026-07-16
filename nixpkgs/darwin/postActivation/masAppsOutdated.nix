@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -14,7 +15,7 @@ in
     lib.mkIf config.homebrew.enable
       # bash
       ''
-        MAS=${config.homebrew.prefix}/bin/mas
+        MAS=${pkgs.mas}/bin/mas
         TARGET_FILE="/tmp/masapps_upgrades"
         : > "$TARGET_FILE"
         chown ${config.system.primaryUser} "$TARGET_FILE"

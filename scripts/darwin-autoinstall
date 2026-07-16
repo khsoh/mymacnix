@@ -55,7 +55,7 @@ readonly BLUE="$(tput setaf 4)"
         echo "Installing Homebrew"
         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         ## Install mas
-        /opt/homebrew/bin/brew install mas
+        # /opt/homebrew/bin/brew install mas
     fi
 
     print_arrow "Downloading nix-darwin"
