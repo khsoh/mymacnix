@@ -44,9 +44,6 @@ in
   hostbrew.casks = [
   ];
 
-  hostbrew.masApps = {
-  };
-
   ## Host-specific info for networking
   networking = {
     hostName = "Sohs-Mac-mini";

@@ -207,9 +207,6 @@ in
       btop
       hyperfine
 
-      # For installing mas packages
-      mas
-
       ## Desktop and terminal related packages
       tmux
       rectangle
@@ -243,6 +240,9 @@ in
       bitwarden-desktop
 
       element-desktop
+
+      # For installing mas packages
+      mas
 
       ## VM related stuff
       utm
@@ -567,12 +567,9 @@ in
     [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
 
-  programs.mas = {
+  programs.mas = lib.mkIf (!isVM) {
     enable = true;
-    packages = {
-      Xcode = 497799835;
-      "1Password for Safari" = 1569813296;
-    };
+    packages = pkhostcfg.masPackages;
   };
 
   #!!!! Removed by nix-darwin commit 1d9f622

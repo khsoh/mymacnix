@@ -77,6 +77,7 @@ in
       '';
     };
 
+    # masApps will be moved to programs.mas.packages
     masApps = lib.mkOption {
       type = options.homebrew.masApps.type;
       default = { };
@@ -162,20 +163,5 @@ in
       greedy = true;
     }
   ];
-
-  config.hostbrew.masApps = lib.mkBefore {
-    "Cursor Pro" = 1447043133;
-    "Bible Study" = 472790630;
-    "Amazon Kindle" = 302584613;
-    "Drafts" = 1435957248;
-    "CleanMyMac" = 1339170533;
-    "MoneyWiz" = 1511185140;
-
-    ## Apple Apps
-    "Keynote" = 409183694;
-    "Numbers" = 409203825;
-    "Pages" = 409201541;
-    "iMovie" = 408981434;
-  };
 }
 # vim: set ts=2 sw=2 et ft=nix:

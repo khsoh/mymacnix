@@ -35,6 +35,5 @@ in
 
   hostbrew.brews = lib.mkForce [ ];
   hostbrew.casks = lib.mkForce [ ];
-  hostbrew.masApps = lib.mkForce { };
 }
 # vim: set ts=2 sw=2 et ft=nix:

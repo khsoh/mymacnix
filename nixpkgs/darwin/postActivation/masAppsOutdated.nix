@@ -6,7 +6,9 @@
 }:
 let
   idNameMap = builtins.attrValues (
-    builtins.mapAttrs (name: id: "${toString id}|${name}") config.homebrew.masApps
+    builtins.mapAttrs (name: id: "${toString id}|${name}") (
+      config.homebrew.masApps // config.programs.mas.packages
+    )
   );
   idNameMapStr = builtins.concatStringsSep "\n" idNameMap;
 in

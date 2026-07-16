@@ -92,7 +92,7 @@ in
     }
   ];
 
-  hostbrew.masApps = {
+  masPackages = {
     "Telegram" = 747648890;
   };
 
