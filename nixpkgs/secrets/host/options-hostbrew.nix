@@ -101,7 +101,6 @@ in
 
   config.hostbrew.brews = lib.mkBefore [
     "exercism"
-    "mas"
   ];
 
   config.hostbrew.casks = lib.mkBefore [
@@ -167,7 +166,6 @@ in
   config.hostbrew.masApps = lib.mkBefore {
     "Cursor Pro" = 1447043133;
     "Bible Study" = 472790630;
-    "1Password for Safari" = 1569813296;
     "Amazon Kindle" = 302584613;
     "Drafts" = 1435957248;
     "CleanMyMac" = 1339170533;

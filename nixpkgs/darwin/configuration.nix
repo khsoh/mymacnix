@@ -207,6 +207,9 @@ in
       btop
       hyperfine
 
+      # For installing mas packages
+      mas
+
       ## Desktop and terminal related packages
       tmux
       rectangle
@@ -563,6 +566,14 @@ in
   programs.bash.interactiveShellInit = ''
     [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
+
+  programs.mas = {
+    enable = true;
+    packages = {
+      Xcode = 497799835;
+      "1Password for Safari" = 1569813296;
+    };
+  };
 
   #!!!! Removed by nix-darwin commit 1d9f622
   # # For /etc/hosts - do not publicize contents for security reasons

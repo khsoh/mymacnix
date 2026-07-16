@@ -94,7 +94,6 @@ in
 
   hostbrew.masApps = {
     "Telegram" = 747648890;
-    "Xcode" = 497799835;
   };
 
   ## Host-specific info for networking
