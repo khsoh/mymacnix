@@ -20,6 +20,7 @@ let
         "a47c123a6092"
         "20535e48e12c"
         "b471514bed69"
+        "472e4428b5ae"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
@@ -42,6 +43,7 @@ let
         "a47c123a6092"
         "20535e48e12c"
         "b471514bed69"
+        "472e4428b5ae"
       ];
     };
   };
