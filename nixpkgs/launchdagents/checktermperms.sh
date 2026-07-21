@@ -44,16 +44,16 @@ for termprg in "${TERMPROGS[@]}"; do
     printf "${GREEN}${BOLD}=== $termprg security settings ===${ESC}\n"
     for svc in "${(@k)term_perms}"; do
         if [ ${term_perms[$svc]} -ne 2 ]; then
-            printf "${BLUE}${BOLD}==>${RED}${BOLD}  %*s permission disabled${ESC}\n" "$max_len" "$svc"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${(l:$max_len:):-$svc} permission disabled${ESC}\n"
         else
-            printf "${BLUE}${BOLD}==>${ESC}  %*s permission enabled\n" "$max_len" "$svc"
+            printf "${BLUE}${BOLD}==>${ESC}  ${(l:$max_len:):-$svc} permission enabled\n"
         fi
     done
 
     # Check for missing permissions
     for perm in "${required_perms[@]}"; do
         if [[ ! -v term_perms["$perm"] ]]; then
-            printf "${BLUE}${BOLD}==>${RED}${BOLD}  %*s permission missing${ESC}\n" "$max_len" "$perm"
+            printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${(l:$max_len:):-$perm} permission missing${ESC}\n"
         fi
     done
     printf "\n";

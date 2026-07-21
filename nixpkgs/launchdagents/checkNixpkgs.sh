@@ -55,7 +55,7 @@ get_conditional_substring() {
 }
 
 function cleanup() {
-    printf "%s" "$ESC"
+    printf "$ESC"
 }
 
 if [ "$OUTPUT" -eq 1 ]; then
@@ -124,7 +124,7 @@ while read -r name url; do
         FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
         FEEDS[$name]="$FEED_URL"
     else
-        printf "%s===> Channel %s: Unknown channel format - cannot derive feed%s\n" "${BOLD}${RED}" "$name" "${ESC}"
+        printf "${BOLD}${RED}===> Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
     fi
 done < <(sudo -H nix-channel --list)
 
@@ -149,8 +149,8 @@ LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 WORKFILE=~/.working-nixpkgs
 NONWORKFILE=~/.nonworking-nixpkgs
 if [[ "$LOCAL_NIXPKGSREVISION" == "$REMOTE_NIXPKGSREVISION" ]]; then
-    printf "%s=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===%s\n" "$GREEN$BOLD" "$ESC"
-    printf "%s==>%s  LOCAL_REVISION :: %s\n" "$BLUE$BOLD" "$ESC" "$LOCAL_NIXPKGSREVISION"
+    printf "${GREEN}${BOLD}=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===${ESC}\n"
+    printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $LOCAL_NIXPKGSREVISION\n"
 else
     WARNREV=
     if test -e $NONWORKFILE &&
@@ -159,9 +159,9 @@ else
             grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE); then
         WARNREV="(Failed last darwin-rebuild)"
     fi
-    printf "%s*** New version detected on nixpkgs-unstable channel ***%s\n" "$GREEN$BOLD" "$ESC" >&"$OUTPUT"
-    printf "%s==>%s  LOCAL_REVISION :: $(get_conditional_substring "$LOCAL_NIXPKGSREVISION" 10)\n" "$BLUE$BOLD" "$ESC" >&"$OUTPUT"
-    printf "%s==>%s  REMOTE_REVISION:: $(get_conditional_substring "$REMOTE_NIXPKGSREVISION" 10) %s%s\n" "$BLUE$BOLD" "$RED$BOLD" "$WARNREV" "$ESC" >&"$OUTPUT"
+    printf "${GREEN}${BOLD}*** New version detected on nixpkgs-unstable channel ***${ESC}\n" >&"$OUTPUT"
+    printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $(get_conditional_substring "$LOCAL_NIXPKGSREVISION" 10)\n" >&"$OUTPUT"
+    printf "${BLUE}${BOLD}==>${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring "$REMOTE_NIXPKGSREVISION" 10) $WARNREV${ESC}\n" >&"$OUTPUT"
 fi
 
 unset 'NIXCHANNELS[nixpkgs]'
@@ -199,14 +199,14 @@ for channame url in "${(@kv)FEEDS}"; do
 
     # 3. Compare the commit hashes
     if [[ "$LOCAL_HASH" == "$REMOTE_HASH" ]]; then
-        printf "%s=== Local package is up-to-date with %s channel ===%s\n" "${GREEN}${BOLD}" "$channame" "$ESC"
-        printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_hash" "$LOCAL_HASH"
+        printf "${GREEN}${BOLD}=== Local package is up-to-date with $channame channel ===${ESC}\n"
+        printf "${BLUE}${BOLD}==>${ESC}  ${(r:$max_namelen:):-${channame}_local_hash}: $LOCAL_HASH\n"
     elif [[ -n "$REMOTE_HASH" ]]; then
-        printf "%s*** New package detected on %s channel ***%s\n" "$GREEN$BOLD" "$channame" "$ESC" >&"$OUTPUT"
-        printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$ESC" "$max_namelen" "${channame}_local_hash" "$LOCAL_HASH" >&"$OUTPUT"
-        printf "%s==>%s  %-*s: %s\n" "$BLUE$BOLD" "$RED$BOLD" "$max_namelen" "${channame}_remote_hash" "$REMOTE_HASH$ESC" >&"$OUTPUT"
+        printf "${GREEN}${BOLD}*** New package detected on $channame channel ***${ESC}\n" >&"$OUTPUT"
+        printf "${BLUE}${BOLD}==>${ESC}  ${(r:$max_namelen:):-${channame}_local_hash}: $LOCAL_HASH\n" >&"$OUTPUT"
+        printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${(r:$max_namelen:):-${channame}_remote_hash}: $REMOTE_HASH${ESC}\n" >&"$OUTPUT"
     else
-        printf "%sCould not get commit hash for %s from %s%s\n" "${BOLD}${RED}" "$channame" "$url" "${ESC}"
+        printf "${BOLD}${RED}Could not get commit hash for $channame from $url${ESC}\n"
     fi
 done
 
@@ -215,9 +215,10 @@ brew update >/dev/null 2>&1
 BREWOUTDATED=$(brew outdated)
 if [[ -n "$BREWOUTDATED" ]]; then
     echo ""
-    printf "%s*** Outdated homebrew packages ***%s\n" "$GREEN$BOLD" "$ESC" >&"$OUTPUT"
+    echo "==============="
+    printf "${GREEN}${BOLD}*** Outdated homebrew packages ***${ESC}\n" >&"$OUTPUT"
     while IFS= read -r line; do
-        printf "%s==>%s  %s\n" "$BLUE$BOLD" "$RED$BOLD" "$line${ESC}" >&"$OUTPUT"
+        printf "${BLUE}${BOLD}==>${RED}${BOLD}  $line${ESC}\n" >&"$OUTPUT"
     done <<<"$BREWOUTDATED"
 fi
 
