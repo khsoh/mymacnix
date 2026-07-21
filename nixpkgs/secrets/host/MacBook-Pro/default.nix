@@ -54,7 +54,6 @@ in
     {
       name = "discord";
       greedy = true;
-      postinstall = restartApp "Discord";
     }
     {
       name = "dropbox";

@@ -42,6 +42,10 @@ in
   ];
 
   hostbrew.casks = [
+    {
+      name = "discord";
+      greedy = true;
+    }
   ];
 
   ## Host-specific info for networking
