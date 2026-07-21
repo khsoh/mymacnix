@@ -18,7 +18,7 @@ let
       lib,
       ...
     }@args:
-    {
+    builtins.seq options {
       options.name = lib.mkOption {
         type = lib.types.str;
         description = "The <hostname> folder in the <darwin-secrets>/host/<hostname>";
@@ -42,10 +42,11 @@ let
     {
       name,
       options,
+      pkgs,
       lib,
       ...
     }@args:
-    {
+    builtins.seq options {
       options.name = lib.mkOption {
         type = lib.types.str;
         description = "The <username> folder in the <darwin-secrets>/user/<username>";

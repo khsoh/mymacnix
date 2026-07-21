@@ -1,9 +1,10 @@
 {
   config,
+  pkgs,
   lib,
   ...
 }:
-{
+builtins.seq [ config pkgs ] {
   options.hardlinks = lib.mkOption {
     type = lib.types.attrsOf (
       lib.types.submodule {

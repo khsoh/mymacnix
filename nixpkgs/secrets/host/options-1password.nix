@@ -18,5 +18,6 @@
       description = "Indicate whether to install 1Password and CLI program";
     };
   };
+  config = { };
 }
 # vim: set ts=2 sw=2 et ft=nix:

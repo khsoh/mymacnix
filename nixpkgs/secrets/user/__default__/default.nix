@@ -1,5 +1,7 @@
 {
+  osConfig,
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -9,7 +11,7 @@ let
   sshpkfile = config.sshcfg.PKFILE;
   sshpubfile = config.sshcfg.PUBFILE;
 in
-{
+builtins.seq [ osConfig pkgs ] {
   agecfg = {
     OPURI = "op://Nix Bootstrap/NIXID age private key/notesPlain";
     PKFILE = "~/.age/nixid_key.txt";

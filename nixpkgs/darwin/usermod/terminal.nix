@@ -1,14 +1,15 @@
 {
   config,
   osConfig,
-  lib,
   pkgs,
+  lib,
+  user,
   ...
 }:
 let
   isVM = osConfig.machineInfo.is_vm;
 in
-{
+builtins.seq [ user ] {
   ## Terminal program for user
   options.terminal = {
     packages = lib.mkOption {

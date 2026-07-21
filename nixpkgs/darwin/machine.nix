@@ -18,7 +18,7 @@ let
       };
 
 in
-{
+builtins.seq [ config pkgs ] {
   options.machineInfo = {
     is_vm = lib.mkOption {
       type = lib.types.bool;

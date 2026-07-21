@@ -11,7 +11,7 @@ let
   restartApp = config.hostbrew.helpers.restartApp;
   restartApp2 = config.hostbrew.helpers.restartApp2;
 in
-{
+builtins.seq [ osConfig pkgs ] {
   usermap = {
     kokhong = "khsoh";
   };

@@ -7,7 +7,8 @@
   ...
 }:
 let
-  homecfg = config.home;
+  ## Use builtins.seq to disable editor diagnostic warning about unused 'user' parameter
+  homecfg = builtins.seq user config.home;
   onepasscfg = osConfig.secrets.target.host.onepassword;
   sshcfg = osConfig.secrets.target.user.sshcfg;
   ghcfg = config.github;

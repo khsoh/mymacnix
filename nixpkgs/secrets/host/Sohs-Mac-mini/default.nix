@@ -9,7 +9,7 @@ let
   agepkfile = config.agecfg.PKFILE;
   agepubfile = config.agecfg.PUBFILE;
 in
-{
+builtins.seq [ osConfig pkgs ] {
   usermap = {
     khsoh = "khsoh";
   };

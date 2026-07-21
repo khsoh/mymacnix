@@ -6,7 +6,7 @@
 }:
 let
   ageOptions =
-    { config, ... }:
+    { ... }:
     {
       options = {
         OPURI = lib.mkOption {

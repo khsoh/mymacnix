@@ -7,7 +7,7 @@
 let
   cfghost = config.secrets.target.host;
 in
-{
+builtins.seq [ pkgs lib ] {
   ### Homebrew setup.
   homebrew = {
     enable = true;

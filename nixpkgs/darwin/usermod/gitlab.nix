@@ -1,5 +1,12 @@
-{ lib, ... }:
 {
+  config,
+  osConfig,
+  pkgs,
+  lib,
+  user,
+  ...
+}:
+builtins.seq [ config osConfig pkgs user ] {
   options.gitlab = {
     enable = lib.mkEnableOption "Enables gitlab module";
     noreply_email = lib.mkOption {

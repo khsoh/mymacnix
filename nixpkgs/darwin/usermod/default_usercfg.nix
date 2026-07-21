@@ -10,7 +10,7 @@ let
   isVM = osConfig.machineInfo.is_vm;
   homeDir = config.home.homeDirectory;
 in
-{
+builtins.seq [ pkgs lib user isVM homeDir ] {
   # User configuration settings for home-manager modules
   config = {
     ##### github configuration
