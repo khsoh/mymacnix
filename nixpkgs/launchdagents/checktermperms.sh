@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 set -u
 set -o pipefail
@@ -15,9 +15,9 @@ function cleanup() {
 
 trap cleanup EXIT INT TERM QUIT
 
-TERMPROGS=("ghostty" "kitty")
+TERMPROGS=("ghostty")
 
-declare -A term_perms
+typeset -A term_perms
 
 required_perms=("kTCCServiceAccessibility" "kTCCServiceSystemPolicyAllFiles")
 max_len=0
@@ -42,7 +42,7 @@ for termprg in "${TERMPROGS[@]}"; do
         "SELECT service, client, auth_value FROM access WHERE client LIKE \"%$idprog%\";")
 
     printf "${GREEN}${BOLD}=== $termprg security settings ===${ESC}\n"
-    for svc in "${!term_perms[@]}"; do
+    for svc in "${(@k)term_perms}"; do
         if [ ${term_perms[$svc]} -ne 2 ]; then
             printf "${BLUE}${BOLD}==>${RED}${BOLD}  %*s permission disabled${ESC}\n" "$max_len" "$svc"
         else

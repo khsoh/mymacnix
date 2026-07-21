@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 is_running_under_login() {
     local ppid=$$
@@ -94,15 +94,15 @@ else
     readonly BLUE=""
 fi
 
-declare -A NIXCHANNELS
-declare -A FEEDS
+typeset -A NIXCHANNELS
+typeset -A FEEDS
 
 while read -r name url; do
     # Skip empty lines or lines missing a name
     [[ -z "$url" || -z "$name" ]] && continue
 
     # Assign the url to the name index
-    NIXCHANNELS["$name"]="$url"
+    NIXCHANNELS[$name]="$url"
 
     # Compute the feed
     if [[ "$url" =~ github\.com ]]; then
@@ -116,13 +116,13 @@ while read -r name url; do
         BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
 
         FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
-        FEEDS["$name"]="$FEED_URL"
+        FEEDS[$name]="$FEED_URL"
     elif [[ "$url" =~ nixos\.org ]]; then
         # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
         CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
 
         FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
-        FEEDS["$name"]="$FEED_URL"
+        FEEDS[$name]="$FEED_URL"
     else
         printf "%s===> Channel %s: Unknown channel format - cannot derive feed%s\n" "${BOLD}${RED}" "$name" "${ESC}"
     fi
@@ -138,11 +138,11 @@ fi
 
 # Get the git revision from the effective URL of the nixpkgs channel
 REMOTE_NIXPKGSREVISION=""
-if [[ -v FEEDS["nixpkgs"] ]]; then
-    REMOTE_NIXPKGSREVISION=$(get_atominfo "${FEEDS['nixpkgs']}")
+if [[ -v FEEDS[nixpkgs] ]]; then
+    REMOTE_NIXPKGSREVISION=$(get_atominfo "${FEEDS[nixpkgs]}")
 else
     # This is slower than getting from feed
-    REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS['nixpkgs']}")
+    REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS[nixpkgs]}")
 fi
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
@@ -164,12 +164,12 @@ else
     printf "%s==>%s  REMOTE_REVISION:: $(get_conditional_substring "$REMOTE_NIXPKGSREVISION" 10) %s%s\n" "$BLUE$BOLD" "$RED$BOLD" "$WARNREV" "$ESC" >&"$OUTPUT"
 fi
 
-unset 'NIXCHANNELS["nixpkgs"]'
-unset 'FEEDS["nixpkgs"]'
+unset 'NIXCHANNELS[nixpkgs]'
+unset 'FEEDS[nixpkgs]'
 
 ## Compute the maximum length of channel name
 max_namelen=0
-for channame in "${!NIXCHANNELS[@]}"; do
+for channame in "${(@k)NIXCHANNELS}"; do
     pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/"$channame")
     [[ -z ${pkgpath+x} ]] && continue
 
@@ -186,9 +186,7 @@ HASHDIR=~/.cache/nixchannels_hash
 mkdir -p $HASHDIR
 echo ""
 echo "==============="
-for channame in "${!FEEDS[@]}"; do
-    url=${FEEDS[$channame]}
-
+for channame url in "${(@kv)FEEDS}"; do
     # 1. Read the existing hash if it exists
     hashfile=$HASHDIR/${channame}_hash
     LOCAL_HASH=""
