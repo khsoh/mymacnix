@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <source_file> <destination_file>"
+    echo "Usage: $0 <source_file> <encrypted_age_file>"
     exit 1
 fi
 
