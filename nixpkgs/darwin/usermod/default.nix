@@ -1,19 +1,13 @@
 {
-  config,
   osConfig,
   lib,
   pkgs,
-  user,
   ...
 }:
 let
-  isVM = osConfig.machineInfo.is_vm;
   defaultTermPackages = [
     pkgs.ghostty-bin
-  ]
-  ++ (lib.optionals (!isVM) [
-    pkgs.kitty
-  ]);
+  ];
 
   cfgsec = osConfig.secrets.target.user;
   cfghost = osConfig.secrets.target.host;

@@ -910,7 +910,7 @@ in
             const TERMAPP = "${TERMPROG}";
             const terminal = Application(TERMAPP);
             try {
-              // Use the path to target the specific Kitty installation
+              // Use the path to target the specific terminal installation
               if (TERMAPP != "Terminal.app") {
                 const endTime = Date.now() + 15000;
                 while (!terminal.running() && Date.now() < endTime) {
