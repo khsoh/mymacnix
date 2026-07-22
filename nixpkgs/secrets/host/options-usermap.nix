@@ -1,5 +1,12 @@
-{ lib, ... }:
 {
+  osConfig,
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+builtins.seq [ osConfig config options pkgs ] {
   options.usermap = lib.mkOption {
     type = lib.types.attrsOf lib.types.str;
     example = {
@@ -7,7 +14,7 @@
       benjamin = "ben";
     };
     description = ''
-      An attribute set mapping the username in the current host to folder names under the 
+      An attribute set mapping the username in the current host to folder names under the
       <darwin-secrets>/user directory.
     '';
     default = {

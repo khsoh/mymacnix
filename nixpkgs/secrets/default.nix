@@ -14,11 +14,14 @@ let
   mkHostConfig =
     {
       name,
+      osConfig,
+      config,
       options,
+      pkgs,
       lib,
       ...
     }@args:
-    builtins.seq options {
+    builtins.seq [ options pkgs osConfig config ] {
       options.name = lib.mkOption {
         type = lib.types.str;
         description = "The <hostname> folder in the <darwin-secrets>/host/<hostname>";
@@ -41,12 +44,14 @@ let
   mkUserConfig =
     {
       name,
+      osConfig,
+      config,
       options,
       pkgs,
       lib,
       ...
     }@args:
-    builtins.seq options {
+    builtins.seq [ options pkgs osConfig config ] {
       options.name = lib.mkOption {
         type = lib.types.str;
         description = "The <username> folder in the <darwin-secrets>/user/<username>";

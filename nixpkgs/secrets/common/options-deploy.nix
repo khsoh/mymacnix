@@ -1,5 +1,12 @@
-{ lib, ... }:
 {
+  osConfig,
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+builtins.seq [ osConfig config options pkgs ] {
   options.deployment = lib.mkOption {
     type = lib.types.listOf (
       lib.types.submodule {

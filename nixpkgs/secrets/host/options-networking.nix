@@ -1,10 +1,12 @@
 {
+  osConfig,
   config,
-  lib,
   options,
+  pkgs,
+  lib,
   ...
 }:
-{
+builtins.seq [ osConfig pkgs ] {
   options.networking = {
     hostName = lib.mkOption {
       type = options.networking.hostName.type;

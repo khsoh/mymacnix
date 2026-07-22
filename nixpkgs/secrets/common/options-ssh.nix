@@ -1,5 +1,12 @@
-{ lib, ... }:
 {
+  osConfig,
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+builtins.seq [ osConfig config options pkgs ] {
   ## SSH private and public keys for the host/user
 
   ## Important - we must not use type lib.types.path in the options to

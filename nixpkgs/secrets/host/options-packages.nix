@@ -1,5 +1,12 @@
-{ lib, options, ... }:
 {
+  osConfig,
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+builtins.seq [ osConfig config pkgs ] {
   options.hostPackages = lib.mkOption {
     type = options.environment.systemPackages.type;
     default = [ ];

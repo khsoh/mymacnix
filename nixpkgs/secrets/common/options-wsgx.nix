@@ -1,5 +1,12 @@
-{ lib, ... }:
 {
+  osConfig,
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+builtins.seq [ osConfig config options pkgs ] {
   options.install_wsgx = lib.mkOption {
     type = lib.types.bool;
     default = false;

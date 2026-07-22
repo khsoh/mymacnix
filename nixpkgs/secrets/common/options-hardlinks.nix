@@ -1,11 +1,12 @@
 {
+  osConfig,
   config,
+  options,
   pkgs,
   lib,
-  options,
   ...
 }:
-import (<darwin-config> + "/usermod/hardlinks.nix") {
+builtins.seq [ osConfig config options pkgs ] import (<darwin-config> + "/usermod/hardlinks.nix") {
   inherit
     config
     pkgs

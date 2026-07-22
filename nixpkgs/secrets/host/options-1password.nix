@@ -1,12 +1,13 @@
 {
-  config,
   osConfig,
-  lib,
+  config,
+  options,
   pkgs,
+  lib,
   ...
 }:
 {
-  options.onepassword = {
+  options.onepassword = builtins.seq [ config options ] {
     SSHSIGN_PROGRAM = lib.mkOption {
       type = lib.types.str;
       default = "${osConfig.helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
@@ -18,6 +19,5 @@
       description = "Indicate whether to install 1Password and CLI program";
     };
   };
-  config = { };
 }
 # vim: set ts=2 sw=2 et ft=nix:

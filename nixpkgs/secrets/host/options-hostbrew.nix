@@ -1,7 +1,9 @@
 {
+  osConfig,
   config,
-  lib,
   options,
+  pkgs,
+  lib,
   ...
 }:
 let
@@ -54,7 +56,7 @@ let
 
   restartApp = config.hostbrew.helpers.restartApp;
 in
-{
+builtins.seq [ osConfig pkgs ] {
   ## Define host-specific homebrew options
   options.hostbrew = {
     brews = lib.mkOption {

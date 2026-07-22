@@ -1,4 +1,8 @@
 {
+  osConfig,
+  config,
+  options,
+  pkgs,
   lib,
   name,
   cfgdir,
@@ -36,7 +40,7 @@ let
       };
     };
 in
-{
+builtins.seq [ osConfig config options pkgs ] {
   options.agecfg = lib.mkOption {
     type = lib.types.submodule ageOptions;
     description = "Agenix configuration";
