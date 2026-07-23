@@ -45,14 +45,6 @@ builtins.seq [ config pkgs ] {
     };
   };
 
-  options.mas.canUpdate = lib.mkOption {
-    type = lib.types.bool;
-    default = false;
-    description = ''
-      Determine whether mas-cli can be used to update Apple App Store apps
-    '';
-  };
-
   config.machineInfo = {
     is_vm = machineInfo.is_vm > 0;
     hostname = machineInfo.hostname;
