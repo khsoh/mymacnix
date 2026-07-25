@@ -4,52 +4,22 @@ let
   # You can comment out everything within sources if there is nothing to override
   sources = {
     "bitwarden-desktop" = {
-      url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz"; # GOOD
-      # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
+      # url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz"; # GOOD
+      url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
-        "389ed85304b2"
-        "767b0d3ec98a"
-        "716c7a2664ca"
-        "3b32825de172"
-        "6cdc7fc76e8b"
-        "8431ff8a526b"
-        "3889d66586e6"
-        "35d3407a3816"
-        "6368bc923cec"
-        "59682e0069f0"
-        "a47c123a6092"
-        "20535e48e12c"
-        "b471514bed69"
-        "472e4428b5ae"
-        "a16c3fde2ffe"
-        "421eebfd0ec7"
+        "6d12004108e0"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
       # Override with EOL electron version
       permittedInsecurePackages = [ "electron-39.8.10" ];
     };
-    "audacity" = {
-      url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
-      ignoredCommits = [
-        "389ed85304b2"
-        "767b0d3ec98a"
-        "716c7a2664ca"
-        "3b32825de172"
-        "6cdc7fc76e8b"
-        "8431ff8a526b"
-        "3889d66586e6"
-        "35d3407a3816"
-        "6368bc923cec"
-        "59682e0069f0"
-        "a47c123a6092"
-        "20535e48e12c"
-        "b471514bed69"
-        "472e4428b5ae"
-        "a16c3fde2ffe"
-        "421eebfd0ec7"
-      ];
-    };
+    # "audacity" = {
+    #   url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
+    #   ignoredCommits = [
+    #     "6d12004108e0"
+    #   ];
+    # };
   };
 
   # 2. Helper function to create the override logic for a single package
