@@ -8,6 +8,7 @@ let
       url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
         "6d12004108e0"
+        "335f0738cb2f"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Modified bitwarden-desktop to support EOL electron";
