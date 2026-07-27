@@ -3,23 +3,17 @@ let
   # You can have different URLs/commits for different packages
   # You can comment out everything within sources if there is nothing to override
   sources = {
-    "bitwarden-desktop" = {
-      # url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz"; # GOOD
-      url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
-      ignoredCommits = [
-        "6d12004108e0"
-        "335f0738cb2f"
-      ];
-      # Optional: Add a description or version tag for clarity
-      desc = "Modified bitwarden-desktop to support EOL electron";
-      # Override with EOL electron version
-      permittedInsecurePackages = [ "electron-39.8.10" ];
-    };
-    # "audacity" = {
-    #   url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz";
+    # "bitwarden-desktop" = {
+    #   # url = "https://github.com/NixOS/nixpkgs/archive/05988b07fb05.tar.gz"; # GOOD
+    #   url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
     #   ignoredCommits = [
     #     "6d12004108e0"
+    #     "335f0738cb2f"
     #   ];
+    #   # Optional: Add a description or version tag for clarity
+    #   desc = "Modified bitwarden-desktop to support EOL electron";
+    #   # Override with EOL electron version
+    #   permittedInsecurePackages = [ "electron-39.8.10" ];
     # };
   };
 
