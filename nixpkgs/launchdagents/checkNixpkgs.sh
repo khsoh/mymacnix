@@ -36,7 +36,10 @@ get_atominfo() {
         --retry 3 \
         --retry-delay 10 \
         --retry-connrefused \
-        "$1" | awk '/<entry>/{flag=1} flag && /<id>/{print; exit}' | sed -E 's/.*Commit\///' | sed -e 's/<[^>]*>//g' | xargs
+        "$1" | \
+        xmllint --xpath '//*[local-name()="entry"][1]/*[local-name()="id"]/text()' - | \
+        sed -E 's/.*Commit\///' | \
+        xargs
 }
 
 is_running_under_login
