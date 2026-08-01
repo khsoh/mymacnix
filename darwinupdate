@@ -34,8 +34,9 @@ get_fullnixpkgshash() {
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
-# Get current nixpkgs revision
-LOCAL_NIXPKGSREVISION=$(darwin-version --nixpkgs-revision 2>/dev/null | tr -d '\r\n' || echo "")
+# Create hash directory
+HASHDIR=~/.cache/nixchannels_hash
+mkdir -p $HASHDIR
 
 ## Store the remote hash of each channel
 typeset -A RHASH
@@ -106,24 +107,22 @@ if [[ -n "$UPDCHAN" ]]; then
     sleep 3
 fi
 
-WORKFILE=~/.working-nixpkgs
-NONWORKFILE=~/.nonworking-nixpkgs
-[[ -f $WORKFILE ]] || touch $WORKFILE
+NONWORKFILE=${HASHDIR}/.nonworking-nixpkgs
 [[ -f $NONWORKFILE ]] || touch $NONWORKFILE
-LAST_GOOD_REV=$(awk 'END {print $1}' $WORKFILE || echo 0)
+LOCAL_NIXPKGS_REV=$(darwin-version --nixpkgs-revision 2>/dev/null | tr -d '\r\n' || echo "")
 LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
 if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
-    if [[ "$LAST_GOOD_REV" == "0" ]]; then
-        OPTIONS="[l/x]"
-    else
+    if [[ -n "$LOCAL_NIXPKGS_REV" ]]; then
         OPTIONS="[l/g/x]"
+    else
+        OPTIONS="[l/x]"
     fi
     echo "nixpkgs rev $LATEST_NIXPKGS_REV failed to build previously"
     echo "What would you like to build? $OPTIONS"
     echo " l/L - Latest nixpkgs rev"
-    if [[ "$LAST_GOOD_REV" != "0" ]]; then
+    if [[ -n "$LOCAL_NIXPKGS_REV" ]]; then
         echo " g/G - Last good rev"
     fi
     echo " x/X - Exit"
@@ -133,15 +132,15 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
         l|L)
             ;;
         g|G)
-            if [[ "$LAST_GOOD_REV" == "0" ]]; then
+            if [[ ! -n "$LOCAL_NIXPKGS_REV" ]]; then
                 exit 0
             fi
 
-            if [[ "${#LAST_GOOD_REV}" -lt 40 ]]; then
-                LAST_GOOD_REV=$(get_fullnixpkgshash $LAST_GOOD_REV)
+            if [[ "${#LOCAL_NIXPKGS_REV}" -lt 40 ]]; then
+                LOCAL_NIXPKGS_REV=$(get_fullnixpkgshash $LOCAL_NIXPKGS_REV)
             fi
-            BUILDARGS="-I nixpkgs=https://github.com/NixOS/nixpkgs/archive/${LAST_GOOD_REV}.tar.gz"
-            BUILDREV="$LAST_GOOD_REV"
+            BUILDARGS="-I nixpkgs=https://github.com/NixOS/nixpkgs/archive/${LOCAL_NIXPKGS_REV}.tar.gz"
+            BUILDREV=$LOCAL_NIXPKGS_REV
             ;;
         *)
             exit 0
@@ -151,7 +150,7 @@ fi
 SHORT_BUILDREV=${BUILDREV:0:12}
 
 ## Replace remote hash for nixpkgs channel with the one used to build this package
-RHASH[nixpkgs]=$SHORT_BUILDREV
+RHASH[nixpkgs]=$BUILDREV
 
 
 printf "${BOLD}${GREEN}====== Starting to rebuild system ========${ESC}\n"
@@ -169,20 +168,19 @@ TMPFILE=$(mktemp) || exit 1
 trap 'rm -f "$TMPFILE"' EXIT
 
 if [[ "$BUILDRESULT" == "0" ]]; then
-    if grep -q "^$SHORT_BUILDREV" $WORKFILE ; then
-        sed -i "/^$SHORT_BUILDREV.*$/c$SHORT_BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $WORKFILE
-    else
-        echo "$SHORT_BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $WORKFILE
-    fi
-    if [[ "$(wc -l < $WORKFILE | xargs)" -gt 40 ]]; then
-        if tail -n 20 $WORKFILE > "$TMPFILE"; then
-            mv "$TMPFILE" "$WORKFILE"
-        fi
-    fi
+    ## COMMENTED OUT AS $WORKFILE no longer required
+    # if grep -q "^$SHORT_BUILDREV" $WORKFILE ; then
+    #     sed -i "/^$SHORT_BUILDREV.*$/c$SHORT_BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $WORKFILE
+    # else
+    #     echo "$SHORT_BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $WORKFILE
+    # fi
+    # if [[ "$(wc -l < $WORKFILE | xargs)" -gt 40 ]]; then
+    #     if tail -n 20 $WORKFILE > "$TMPFILE"; then
+    #         mv "$TMPFILE" "$WORKFILE"
+    #     fi
+    # fi
     sed -i "/^$SHORT_BUILDREV/d" $NONWORKFILE
 
-    HASHDIR=~/.cache/nixchannels_hash
-    mkdir -p $HASHDIR
     for channame in "${(k)RHASH[@]}"; do
         # 1. Get the remote hash from the channel feed
         REMOTE_HASH=${RHASH[$channame]}
@@ -191,7 +189,7 @@ if [[ "$BUILDRESULT" == "0" ]]; then
         hashfile=$HASHDIR/${channame}_hash
         LOCAL_HASH=""
         if [[ "$channame" == "nixpkgs" ]]; then
-            LOCAL_HASH=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_HASH}}
+            LOCAL_HASH=${LOCAL_NIXPKGS_REV:0:${#REMOTE_HASH}}
         elif [[ -f "$hashfile" ]]; then
             LOCAL_HASH=$(cat "$hashfile")
         fi

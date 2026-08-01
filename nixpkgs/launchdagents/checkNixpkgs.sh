@@ -58,6 +58,10 @@ function cleanup() {
     printf "$ESC"
 }
 
+# Create hash directory
+HASHDIR=~/.cache/nixchannels_hash
+mkdir -p $HASHDIR
+
 if [ "$OUTPUT" -eq 1 ]; then
     ESC="$(tput sgr0)"
     BOLD="$(tput bold)"
@@ -146,17 +150,13 @@ else
 fi
 LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
 
-WORKFILE=~/.working-nixpkgs
-NONWORKFILE=~/.nonworking-nixpkgs
+NONWORKFILE=${HASHDIR}/.nonworking-nixpkgs
 if [[ "$LOCAL_NIXPKGSREVISION" == "$REMOTE_NIXPKGSREVISION" ]]; then
     printf "${GREEN}${BOLD}=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===${ESC}\n"
     printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $LOCAL_NIXPKGSREVISION\n"
 else
     WARNREV=
-    if test -e $NONWORKFILE &&
-        grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE &&
-        ! (test -e $WORKFILE &&
-            grep -q "^$REMOTE_NIXPKGSREVISION$" $WORKFILE); then
+    if test -e $NONWORKFILE && grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE; then
         WARNREV="(Failed last darwin-rebuild)"
     fi
     printf "${GREEN}${BOLD}*** New version detected on nixpkgs-unstable channel ***${ESC}\n" >&"$OUTPUT"
