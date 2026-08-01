@@ -34,6 +34,9 @@ get_fullnixpkgshash() {
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
+# Get current nixpkgs revision
+LOCAL_NIXPKGSREVISION=$(darwin-version --nixpkgs-revision 2>/dev/null | tr -d '\r\n' || echo "")
+
 ## Store the remote hash of each channel
 typeset -A RHASH
 
@@ -75,12 +78,6 @@ while read -r name url; do
 
     # Get the remote hash of the channel
     RHASH[$name]=$(get_atominfo "$FEED_URL")
-
-    if [[ "$name" == "nixpkgs" ]]; then
-        # Alternate method to get latest commit hash of nixpkgs channel
-        RHASH[$name]=$(curl -LIs -o /dev/null -w %{url_effective} $url | sed -e 's/.*\.//')
-    fi
-
 done <<< "$UPDCHAN"
 
 # Check that nixpkgs hash is present
@@ -153,6 +150,9 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
 fi
 SHORT_BUILDREV=${BUILDREV:0:12}
 
+## Replace remote hash for nixpkgs channel with the one used to build this package
+RHASH[nixpkgs]=$SHORT_BUILDREV
+
 
 printf "${BOLD}${GREEN}====== Starting to rebuild system ========${ESC}\n"
 
@@ -184,25 +184,25 @@ if [[ "$BUILDRESULT" == "0" ]]; then
     HASHDIR=~/.cache/nixchannels_hash
     mkdir -p $HASHDIR
     for channame in "${(k)RHASH[@]}"; do
-        # 0. Do not store nixpkgs commit hash
-        if [[ "$channame" == "nixpkgs" ]]; then
-            continue
-        fi
+        # 1. Get the remote hash from the channel feed
+        REMOTE_HASH=${RHASH[$channame]}
 
-        # 1. Read the existing commit hash if it exists
+        # 2. Read the existing commit hash if it exists
         hashfile=$HASHDIR/${channame}_hash
         LOCAL_HASH=""
-        if [[ -f "$hashfile" ]]; then
+        if [[ "$channame" == "nixpkgs" ]]; then
+            LOCAL_HASH=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_HASH}}
+        elif [[ -f "$hashfile" ]]; then
             LOCAL_HASH=$(cat "$hashfile")
         fi
-
-        # 2. Get the remote hash from the channel feed
-        REMOTE_HASH=${RHASH[$channame]}
 
         # 3. Save the hash if present
         if [[ -n "$REMOTE_HASH" ]]; then
             if [[ "$LOCAL_HASH" != "$REMOTE_HASH" ]]; then
-                echo "$REMOTE_HASH" | tee "$hashfile" > /dev/null
+                # Store commit hash if not nixpkgs channel
+                if [[ "$channame" != "nixpkgs" ]]; then
+                    echo "$REMOTE_HASH" | tee "$hashfile" > /dev/null
+                fi
                 printf "${BOLD}${RED}Updated commit hash for $channame: $REMOTE_HASH${ESC}\n"
             fi
         else
