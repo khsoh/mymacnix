@@ -104,6 +104,7 @@ builtins.seq [ osConfig pkgs ] {
 
   config.hostbrew.brews = lib.mkBefore [
     "exercism"
+    "mole"
   ];
 
   config.hostbrew.casks = lib.mkBefore [
