@@ -64,3 +64,8 @@ fi
 # Enable Apple watch to unlock on multi-monitor setup
 /usr/bin/defaults write ~/Library/Preferences/com.apple.security.authorization.plist ignoreArd -bool TRUE
 
+# Setup mole completion
+if output="$(mole completion zsh 2>/dev/null)"; then
+    eval "$output"
+fi
+
