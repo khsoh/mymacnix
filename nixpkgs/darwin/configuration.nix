@@ -402,9 +402,9 @@ in
           API_URL="https://api.github.com/repos/$REPO/contents/$PATH_IN_REPO"
           # Fetch file list from GitHub API
           JQ_PATTERN="Quad9_Secured_DNS_over_HTTPS_ECS_[0-9]{8}\\\\.mobileconfig"
-          Q9JSON=$(/usr/bin/curl -s $API_URL | ${pkgs.jq}/bin/jq -c "[.[] | select(.name | test(\"$JQ_PATTERN\"))] | sort_by(.name) | last")
+          Q9JSON=$(/usr/bin/curl --retry 3 -s $API_URL | ${pkgs.jq}/bin/jq -c "[.[] | select(.name | test(\"$JQ_PATTERN\"))] | sort_by(.name) | last" 2>/dev/null)
 
-          if [[ "$Q9JSON" == "null" ]]; then
+          if [[ ! -n "$Q9JSON" || "$Q9JSON" == "[]" ]]; then
             >&2 echo "========================"
             >&2 date
             >&2 echo "Error: Could not find any mobileconfig files in the repository."
