@@ -45,18 +45,6 @@ get_atominfo() {
 is_running_under_login
 OUTPUT=$?
 
-get_conditional_substring() {
-    local value=$1
-    local len=${2:-8}
-
-    if [[ "$OUTPUT" -eq 1 ]]; then
-        # Running in login - just use the whole length
-        echo "$value"
-    else
-        echo "${value:0:$len}"
-    fi
-}
-
 function cleanup() {
     printf "$ESC"
 }
@@ -112,7 +100,7 @@ while read -r name url; do
     pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/"$name")
     [[ -z ${pkgpath+x} ]] && continue
 
-    len=${#channame}
+    len=${#name}
 
     if ((len > max_namelen)); then
         max_namelen=$len
