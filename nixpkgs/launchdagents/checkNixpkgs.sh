@@ -101,15 +101,22 @@ else
     readonly BLUE=""
 fi
 
-typeset -A NIXCHANNELS
-typeset -A FEEDS
+NIXCHINFO=()
 
+## Compute the maximum length of channel name
+max_namelen=0
 while read -r name url; do
     # Skip empty lines or lines missing a name
     [[ -z "$url" || -z "$name" ]] && continue
 
-    # Assign the url to the name index
-    NIXCHANNELS[$name]="$url"
+    pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/"$name")
+    [[ -z ${pkgpath+x} ]] && continue
+
+    len=${#channame}
+
+    if ((len > max_namelen)); then
+        max_namelen=$len
+    fi
 
     # Compute the feed
     if [[ "$url" =~ github\.com ]]; then
@@ -123,77 +130,42 @@ while read -r name url; do
         BRANCH=$(echo "$CLEAN_PATH" | cut -d'/' -f3 | sed -E 's/\.(tar\.gz|zip)//')
 
         FEED_URL="https://github.com/${OWNER}/${REPO}/commits/${BRANCH}.atom"
-        FEEDS[$name]="$FEED_URL"
+        NIXCHINFO+=("$name $FEED_URL")
     elif [[ "$url" =~ nixos\.org ]]; then
         # This regex isolates the trailing identifier (e.g., nixpkgs-unstable) regardless of the domain prefix
         CHANNEL_NAME=$(echo "$url" | sed -E 's|https://(channels\.)?nixos\.org(/channels)?/||' | sed 's|/||g')
 
         FEED_URL="https://github.com/NixOS/nixpkgs/commits/${CHANNEL_NAME}.atom"
-        FEEDS[$name]="$FEED_URL"
+
+        ## nixpkgs channel is inserted at the top of array
+        NIXCHINFO=("$name $FEED_URL" "${NIXCHINFO[@]}")
     else
         printf "${BOLD}${RED}===> Channel $name: Unknown channel format - cannot derive feed${ESC}\n"
+        continue
     fi
+
 done < <(sudo -H nix-channel --list)
 
-LOCAL_NIXPKGSREVISION=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
-if [[ -n "$LOCAL_NIXPKGSREVISION" && ${#LOCAL_NIXPKGSREVISION} -lt 40 ]]; then
-    LONGREV=$(curl -s "https://api.github.com/repos/NixOS/nixpkgs/commits/$LOCAL_NIXPKGSREVISION" | jq -r '.sha' | tr -d '\r\n')
-    if [[ -n "$LONGREV" ]]; then
-        LOCAL_NIXPKGSREVISION="$LONGREV"
-    fi
-fi
-
-# Get the git revision from the effective URL of the nixpkgs channel
-REMOTE_NIXPKGSREVISION=""
-if [[ -v FEEDS[nixpkgs] ]]; then
-    REMOTE_NIXPKGSREVISION=$(get_atominfo "${FEEDS[nixpkgs]}")
-else
-    # This is slower than getting from feed
-    REMOTE_NIXPKGSREVISION=$(get_gitrevision "${NIXCHANNELS[nixpkgs]}")
-fi
-LOCAL_NIXPKGSREVISION=${LOCAL_NIXPKGSREVISION:0:${#REMOTE_NIXPKGSREVISION}}
-
-NONWORKFILE=${HASHDIR}/.nonworking-nixpkgs
-if [[ "$LOCAL_NIXPKGSREVISION" == "$REMOTE_NIXPKGSREVISION" ]]; then
-    printf "${GREEN}${BOLD}=== Local nixpkgs version is up-to-date with nixpkgs-unstable channel ===${ESC}\n"
-    printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $LOCAL_NIXPKGSREVISION\n"
-else
-    WARNREV=
-    if test -e $NONWORKFILE && grep -q "^$REMOTE_NIXPKGSREVISION$" $NONWORKFILE; then
-        WARNREV="(Failed last darwin-rebuild)"
-    fi
-    printf "${GREEN}${BOLD}*** New version detected on nixpkgs-unstable channel ***${ESC}\n" >&"$OUTPUT"
-    printf "${BLUE}${BOLD}==>${ESC}  LOCAL_REVISION :: $(get_conditional_substring "$LOCAL_NIXPKGSREVISION" 10)\n" >&"$OUTPUT"
-    printf "${BLUE}${BOLD}==>${RED}${BOLD}  REMOTE_REVISION:: $(get_conditional_substring "$REMOTE_NIXPKGSREVISION" 10) $WARNREV${ESC}\n" >&"$OUTPUT"
-fi
-
-unset 'NIXCHANNELS[nixpkgs]'
-unset 'FEEDS[nixpkgs]'
-
-## Compute the maximum length of channel name
-max_namelen=0
-for channame in "${(@k)NIXCHANNELS}"; do
-    pkgpath=$(readlink -f ~/.nix-defexpr/channels_root/"$channame")
-    [[ -z ${pkgpath+x} ]] && continue
-
-    len=${#channame}
-
-    if ((len > max_namelen)); then
-        max_namelen=$len
-    fi
-done
 # Add length of _remote_hash
 ((max_namelen = max_namelen + $(echo -n "_remote_hash" | wc -m)))
 
 HASHDIR=~/.cache/nixchannels_hash
 mkdir -p $HASHDIR
-echo ""
-echo "==============="
-for channame url in "${(@kv)FEEDS}"; do
+for item in "${NIXCHINFO[@]}"; do
+    read channame url <<< "$item"
+
     # 1. Read the existing hash if it exists
     hashfile=$HASHDIR/${channame}_hash
     LOCAL_HASH=""
-    if [[ -f "$hashfile" ]]; then
+    if [[ "$channame" == "nixpkgs" ]]; then
+        LOCAL_HASH=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
+        if [[ -n "$LOCAL_HASH" && ${#LOCAL_HASH} -lt 40 ]]; then
+            LONGREV=$(curl -s "https://api.github.com/repos/NixOS/nixpkgs/commits/$LOCAL_HASH" | jq -r '.sha' | tr -d '\r\n')
+            if [[ -n "$LONGREV" ]]; then
+                LOCAL_HASH="$LONGREV"
+            fi
+        fi
+    elif [[ -f "$hashfile" ]]; then
         LOCAL_HASH=$(cat "$hashfile")
     fi
 
@@ -205,9 +177,14 @@ for channame url in "${(@kv)FEEDS}"; do
         printf "${GREEN}${BOLD}=== Local package is up-to-date with $channame channel ===${ESC}\n"
         printf "${BLUE}${BOLD}==>${ESC}  ${(r:$max_namelen:):-${channame}_local_hash}: $LOCAL_HASH\n"
     elif [[ -n "$REMOTE_HASH" ]]; then
+        NONWORKFILE=${HASHDIR}/.nonworking-nixpkgs
+        EXTRA=
+        if test -e $NONWORKFILE && grep -q "^$REMOTE_HASH$" $NONWORKFILE; then
+            EXTRA=" (Failed last darwin-rebuild)"
+        fi
         printf "${GREEN}${BOLD}*** New package detected on $channame channel ***${ESC}\n" >&"$OUTPUT"
         printf "${BLUE}${BOLD}==>${ESC}  ${(r:$max_namelen:):-${channame}_local_hash}: $LOCAL_HASH\n" >&"$OUTPUT"
-        printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${(r:$max_namelen:):-${channame}_remote_hash}: $REMOTE_HASH${ESC}\n" >&"$OUTPUT"
+        printf "${BLUE}${BOLD}==>${RED}${BOLD}  ${(r:$max_namelen:):-${channame}_remote_hash}: $REMOTE_HASH${EXTRA}${ESC}\n" >&"$OUTPUT"
     else
         printf "${BOLD}${RED}Could not get commit hash for $channame from $url${ESC}\n"
     fi
