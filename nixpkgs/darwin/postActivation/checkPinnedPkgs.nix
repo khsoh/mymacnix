@@ -4,7 +4,7 @@
   lib,
   ...
 }:
-{
+builtins.seq [ pkgs ] {
   system.activationScripts.postActivation.text =
     let
       # Filter for packages that have overlays
