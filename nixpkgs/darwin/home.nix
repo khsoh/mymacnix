@@ -1373,7 +1373,9 @@ in
           ''
             PRHEAD=
             ${builtins.concatStringsSep "\n" (
-              lib.mapAttrsToList (name: value: ''
+              lib.mapAttrsToList (name: value:
+              # bash
+              ''
                 if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
                   if [[ ! -n "$PRHEAD" ]]; then
                     printf "''${GREEN}''${BOLD}--- Creating hardlinks ---''${ESC}\n"
