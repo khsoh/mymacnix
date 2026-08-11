@@ -43,13 +43,7 @@ let
 
   # 2. Extract the exact hash from the -I archive URL string
   urlMatch = builtins.match ".*archive/([0-9a-fA-F]{7,40})\\.tar\\.gz" activeNixpkgsPathStr;
-  gitRevPath = "${activeNixpkgsPathStr}/.git-revision";
-  gitRevStr =
-    if builtins.pathExists gitRevPath then
-      builtins.readFile "${activeNixpkgsPathStr}/.git-revision"
-    else
-      null;
-  currentRevision = if urlMatch != null then builtins.head urlMatch else gitRevStr;
+  currentRevision = if urlMatch != null then builtins.head urlMatch else null;
 in
 {
   # Replace with pkgs-pinned packages (the default)
