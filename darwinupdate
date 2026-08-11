@@ -116,13 +116,15 @@ LOCAL_NIXPKGS_REV=$(darwin-version --nixpkgs-revision 2>/dev/null | tr -d '\r\n'
 LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
-if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
+SHORT_BUILDREV=${BUILDREV:0:12}
+
+if grep -q "^$SHORT_BUILDREV" $NONWORKFILE; then
     if [[ -n "$LOCAL_NIXPKGS_REV" ]]; then
         OPTIONS="[l/g/x]"
     else
         OPTIONS="[l/x]"
     fi
-    echo "nixpkgs rev $LATEST_NIXPKGS_REV failed to build previously"
+    echo "nixpkgs rev $SHORT_BUILDREV failed to build previously"
     echo "What would you like to build? $OPTIONS"
     echo " l/L - Latest nixpkgs rev"
     if [[ -n "$LOCAL_NIXPKGS_REV" ]]; then
@@ -144,13 +146,13 @@ if grep -q "^$LATEST_NIXPKGS_REV" $NONWORKFILE; then
             fi
             BUILDARGS="-I nixpkgs=https://github.com/NixOS/nixpkgs/archive/${LOCAL_NIXPKGS_REV}.tar.gz"
             BUILDREV=$LOCAL_NIXPKGS_REV
+            SHORT_BUILDREV=${BUILDREV:0:12}
             ;;
         *)
             exit 0
             ;;
     esac
 fi
-SHORT_BUILDREV=${BUILDREV:0:12}
 
 ## Replace remote hash for nixpkgs channel with the one used to build this package
 RHASH[nixpkgs]=$BUILDREV
