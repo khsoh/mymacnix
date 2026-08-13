@@ -38,8 +38,8 @@ SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
 # Create hash directory
-HASHDIR=~/.cache/nixchannels_hash
-mkdir -p $HASHDIR
+NIXBUILD=~/.cache/nixbld_status
+mkdir -p $NIXBUILD
 
 ## Store the remote hash of each channel
 typeset -A RHASH
@@ -110,7 +110,7 @@ if [[ -n "$UPDCHAN" ]]; then
     sleep 3
 fi
 
-NONWORKFILE=${HASHDIR}/.nonworking-nixpkgs
+NONWORKFILE=${NIXBUILD}/.nonworking-nixpkgs
 [[ -f $NONWORKFILE ]] || touch $NONWORKFILE
 LOCAL_NIXPKGS_REV=$(darwin-version --nixpkgs-revision 2>/dev/null | tr -d '\r\n' || echo "")
 LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
@@ -180,12 +180,11 @@ if [[ "$BUILDRESULT" == "0" ]]; then
         REMOTE_HASH=${RHASH[$channame]}
 
         # 2. Read the existing commit hash if it exists
-        hashfile=$HASHDIR/${channame}_hash
         LOCAL_HASH=""
         if [[ "$channame" == "nixpkgs" ]]; then
             LOCAL_HASH=${LOCAL_NIXPKGS_REV:0:${#REMOTE_HASH}}
-        elif [[ -f "$hashfile" ]]; then
-            LOCAL_HASH=$(cat "$hashfile")
+        else
+            LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
         fi
 
         # 3. Save the hash if present
@@ -193,7 +192,7 @@ if [[ "$BUILDRESULT" == "0" ]]; then
             if [[ "$LOCAL_HASH" != "$REMOTE_HASH" ]]; then
                 # Store commit hash if not nixpkgs channel
                 if [[ "$channame" != "nixpkgs" ]]; then
-                    echo "$REMOTE_HASH" | tee "$hashfile" > /dev/null
+                    valkey-cli -p $VALKEY_PORT hset nixch $channame $REMOTE_HASH
                 fi
                 printf "${BOLD}${RED}Updated commit hash for $channame: $REMOTE_HASH${ESC}\n"
             fi

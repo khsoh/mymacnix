@@ -50,8 +50,8 @@ function cleanup() {
 }
 
 # Create hash directory
-HASHDIR=~/.cache/nixchannels_hash
-mkdir -p $HASHDIR
+NIXBUILD=~/.cache/nixbld_status
+mkdir -p $NIXBUILD
 
 if [ "$OUTPUT" -eq 1 ]; then
     ESC="$(tput sgr0)"
@@ -137,13 +137,10 @@ done < <(sudo -H nix-channel --list)
 # Add length of _remote_hash
 ((max_namelen = max_namelen + $(echo -n "_remote_hash" | wc -m)))
 
-HASHDIR=~/.cache/nixchannels_hash
-mkdir -p $HASHDIR
 for item in "${NIXCHINFO[@]}"; do
     read channame url <<< "$item"
 
     # 1. Read the existing hash if it exists
-    hashfile=$HASHDIR/${channame}_hash
     LOCAL_HASH=""
     if [[ "$channame" == "nixpkgs" ]]; then
         LOCAL_HASH=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
@@ -153,8 +150,8 @@ for item in "${NIXCHINFO[@]}"; do
                 LOCAL_HASH="$LONGREV"
             fi
         fi
-    elif [[ -f "$hashfile" ]]; then
-        LOCAL_HASH=$(cat "$hashfile")
+    else
+        LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
     fi
 
     # 2. Get the remote commit hash of the channel feed
@@ -165,7 +162,7 @@ for item in "${NIXCHINFO[@]}"; do
         printf "${GREEN}${BOLD}=== Local package is up-to-date with $channame channel ===${ESC}\n"
         printf "${BLUE}${BOLD}==>${ESC}  ${(r:$max_namelen:):-${channame}_local_hash}: $LOCAL_HASH\n"
     elif [[ -n "$REMOTE_HASH" ]]; then
-        NONWORKFILE=${HASHDIR}/.nonworking-nixpkgs
+        NONWORKFILE=${NIXBUILD}/.nonworking-nixpkgs
         EXTRA=
         if test -e $NONWORKFILE && grep -q "^$REMOTE_HASH$" $NONWORKFILE; then
             EXTRA=" (Failed last darwin-rebuild)"
