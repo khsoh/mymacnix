@@ -19,6 +19,10 @@ let
   pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkhostcfg.agecfg.PUBFILE);
 
+  valkey_base_port = 6379;
+  valkey_port = valkey_base_port + userInfo.uid;
+  valkey_dir = "${userInfo.home}/.local/share/valkey-private-data";
+
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
 
@@ -190,6 +194,7 @@ in
       openssh # Install this as macOS disables use of HW security keys for SSH
 
       ## System Utilities
+      valkey
       duti
       rsync
       ripgrep
@@ -263,6 +268,7 @@ in
 
   environment.variables = {
     HOMEBREW_UPDATE_TO_TAG = "1";
+    VALKEY_PORT = "$((${toString valkey_base_port}+$UID))";
   };
 
   # Append a darwin-secrets path
@@ -499,6 +505,40 @@ in
     };
   };
 
+  ## Setting up valkey-server for user
+  launchd.user.agents.valkey-private = {
+    serviceConfig = {
+      ProgramArguments = [
+        "${pkgs.valkey}/bin/valkey-server"
+        "--port"
+        "${toString valkey_port}"
+        "--dir"
+        "${valkey_dir}"
+        "--appendonly"
+        "yes"
+
+        # Automatic background save
+        "--save"
+        "3600"
+        "1"
+        "--save"
+        "300"
+        "3"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${userInfo.home}/log/org.nixos.user.valkey-private-Out.log";
+      StandardErrorPath = "${userInfo.home}/log/org.nixos.user.valkey-private-Error.log";
+    };
+  };
+
+  # Ensure the valkey_dir exists with the proper permissions
+  system.activationScripts.postActivation.text = lib.mkAfter ''
+    mkdir -p ${valkey_dir}
+    chown ${userInfo.name}:staff ${valkey_dir}
+    chmod 700 ${valkey_dir}
+  '';
+
   nix.optimise.automatic = true;
 
   # Setup aliases
@@ -512,6 +552,7 @@ in
       alias drb="sudo -H darwin-rebuild build"
       alias drs="sudo -H darwin-rebuild switch"
       alias drlg="sudo -H darwin-rebuild --list-generations"
+      alias valkey-cli="valkey-cli -p \$VALKEY_PORT"
       alias ..="cd .."
       if [[ $- == *i* ]]; then
         L="$HOME/resize-$TERM_PROGRAM.lock"
@@ -662,6 +703,9 @@ in
   services.tailscale = {
     enable = !isVM;
   };
+
+  # Disable global system-wide redis
+  services.redis.enable = true;
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
