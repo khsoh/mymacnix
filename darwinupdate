@@ -112,7 +112,7 @@ fi
 
 NONWORKFILE=${NIXBUILD}/.nonworking-nixpkgs
 [[ -f $NONWORKFILE ]] || touch $NONWORKFILE
-LOCAL_NIXPKGS_REV=$(darwin-version --nixpkgs-revision 2>/dev/null | tr -d '\r\n' || echo "")
+LOCAL_NIXPKGS_REV=$(valkey-cli -p $VALKEY_PORT hget nixch nixpkgs)
 LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
@@ -179,21 +179,14 @@ if [[ "$BUILDRESULT" == "0" ]]; then
         # 1. Get the remote hash from the channel feed
         REMOTE_HASH=${RHASH[$channame]}
 
-        # 2. Read the existing commit hash if it exists
-        LOCAL_HASH=""
-        if [[ "$channame" == "nixpkgs" ]]; then
-            LOCAL_HASH=${LOCAL_NIXPKGS_REV:0:${#REMOTE_HASH}}
-        else
-            LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
-        fi
+        # 2. Read the existing commit hash
+        LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
 
         # 3. Save the hash if present
         if [[ -n "$REMOTE_HASH" ]]; then
             if [[ "$LOCAL_HASH" != "$REMOTE_HASH" ]]; then
-                # Store commit hash if not nixpkgs channel
-                if [[ "$channame" != "nixpkgs" ]]; then
-                    valkey-cli -p $VALKEY_PORT hset nixch $channame $REMOTE_HASH >/dev/null
-                fi
+                # Store commit hash for the channel
+                valkey-cli -p $VALKEY_PORT hset nixch $channame $REMOTE_HASH >/dev/null
                 printf "${BOLD}${RED}Updated commit hash for $channame: $REMOTE_HASH${ESC}\n"
             fi
         else

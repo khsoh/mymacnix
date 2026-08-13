@@ -141,18 +141,7 @@ for item in "${NIXCHINFO[@]}"; do
     read channame url <<< "$item"
 
     # 1. Read the existing hash if it exists
-    LOCAL_HASH=""
-    if [[ "$channame" == "nixpkgs" ]]; then
-        LOCAL_HASH=$(darwin-version --nixpkgs-revision | tr -d '\r\n')
-        if [[ -n "$LOCAL_HASH" && ${#LOCAL_HASH} -lt 40 ]]; then
-            LONGREV=$(curl -s "https://api.github.com/repos/NixOS/nixpkgs/commits/$LOCAL_HASH" | jq -r '.sha' | tr -d '\r\n')
-            if [[ -n "$LONGREV" ]]; then
-                LOCAL_HASH="$LONGREV"
-            fi
-        fi
-    else
-        LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
-    fi
+    LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
 
     # 2. Get the remote commit hash of the channel feed
     REMOTE_HASH=$(get_atominfo "$url")
