@@ -517,13 +517,9 @@ in
         "--appendonly"
         "yes"
 
-        # Automatic background save
-        "--save"
-        "3600"
-        "1"
-        "--save"
-        "300"
-        "3"
+        # Ensures updates hit the disk within 1 second
+        "--appendfsync"
+        "everysec"
       ];
       RunAtLoad = true;
       KeepAlive = true;
