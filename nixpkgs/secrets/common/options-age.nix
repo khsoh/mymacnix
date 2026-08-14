@@ -36,7 +36,7 @@ let
       };
 
       config = {
-        pubkey = (import "${cfgdir}/${name}/key.nix").pubkey;
+        pubkey = (import (cfgdir + "/${name}/key.nix")).pubkey;
       };
     };
 in
