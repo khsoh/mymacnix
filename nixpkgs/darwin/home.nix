@@ -157,20 +157,20 @@ in
       source = ./kitty/tab_bar.py;
     };
 
-    nvim = {
-      ## The defaults are commented out
-      # enable = true;
-
-      target = "nvim";
-      source = pkgs.fetchFromGitHub {
-        owner = ghcfg.username;
-        repo = "kickstart.nvim";
-        rev = "32885707751b8717e5c5fd799ca17a2bf84c7aa9";
-        hash = "sha256-+IMm92EXvlcXRxs6Yv8OplJWPXyx9+fir0ULiyaMZ3U=";
-        #hash = lib.fakeSha256;
-      };
-      recursive = true;
-    };
+    # nvim = {
+    #   ## The defaults are commented out
+    #   # enable = true;
+    #
+    #   target = "nvim";
+    #   source = pkgs.fetchFromGitHub {
+    #     owner = ghcfg.username;
+    #     repo = "kickstart.nvim";
+    #     rev = "32885707751b8717e5c5fd799ca17a2bf84c7aa9";
+    #     hash = "sha256-+IMm92EXvlcXRxs6Yv8OplJWPXyx9+fir0ULiyaMZ3U=";
+    #     #hash = lib.fakeSha256;
+    #   };
+    #   recursive = true;
+    # };
 
     op_agent_toml = lib.mkIf (onepasscfg.enable && sshcfg != null && sshcfg.OPURI != null) {
       target = "1Password/ssh/agent.toml";
@@ -280,11 +280,11 @@ in
     hbb = "brew bundle";
     hbu = "brew update";
     nvim-tmp = "nvim - \"+set buftype=nofile\"";
-    nvx = "NVIM_APPNAME=${minimaxName} nvim";
-    nvxupdate = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" +qa";
-    nvxsync = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" +qa";
-    nvxlu = "NVIM_APPNAME=${minimaxName} nvim --headless -l \"${minimaxConfig}/listUpdates.lua\"";
-    nvxlist = "NVIM_APPNAME=${minimaxName} nvim --headless \"+lua for _, p in ipairs(vim.pack.get(nil, { info = false })) do print(p.spec.name) end; print()\" +qa";
+    nvx = "nvim";
+    nvxupdate = "nvim --headless \"+lua vim.pack.update(nil, { force = true })\" +qa";
+    nvxsync = "nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" +qa";
+    nvxlu = "nvim --headless -l \"${minimaxConfig}/listUpdates.lua\"";
+    nvxlist = "nvim --headless \"+lua for _, p in ipairs(vim.pack.get(nil, { info = false })) do print(p.spec.name) end; print()\" +qa";
     nvt = "NVIM_APPNAME=${nvtestName} nvim";
     nvtupdate = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua vim.pack.update(nil, { force = true })\" +qa";
     nvtsync = "NVIM_APPNAME=${nvtestName} nvim --headless \"+lua vim.pack.update(nil, { target = 'lockfile', force = true })\" +qa";
@@ -1373,28 +1373,29 @@ in
           ''
             PRHEAD=
             ${builtins.concatStringsSep "\n" (
-              lib.mapAttrsToList (name: value:
-              # bash
-              ''
-                if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
-                  if [[ ! -n "$PRHEAD" ]]; then
-                    printf "''${GREEN}''${BOLD}--- Creating hardlinks ---''${ESC}\n"
-                    PRHEAD=1
+              lib.mapAttrsToList (
+                name: value:
+                # bash
+                ''
+                  if [[ ! "${value.source}" -ef "$HOME/${value.target}" ]]; then
+                    if [[ ! -n "$PRHEAD" ]]; then
+                      printf "''${GREEN}''${BOLD}--- Creating hardlinks ---''${ESC}\n"
+                      PRHEAD=1
+                    fi
+
+                    printf "''${BLUE}''${BOLD}==>''${ESC} Linking ${value.source} to $HOME/${value.target}...\n"
+                    # Ensure target directory exists
+                    run mkdir -p "$(dirname "$HOME/${value.target}")"
+
+                    # Remove existing file/link to avoid errors
+                    run rm -f "$HOME/${value.target}"
+
+                    # Create the hardlink
+                    run ln "${value.source}" "$HOME/${value.target}"
+
+                    ${value.postHardlinkCmds}
                   fi
-
-                  printf "''${BLUE}''${BOLD}==>''${ESC} Linking ${value.source} to $HOME/${value.target}...\n"
-                  # Ensure target directory exists
-                  run mkdir -p "$(dirname "$HOME/${value.target}")"
-
-                  # Remove existing file/link to avoid errors
-                  run rm -f "$HOME/${value.target}"
-
-                  # Create the hardlink
-                  run ln "${value.source}" "$HOME/${value.target}"
-
-                  ${value.postHardlinkCmds}
-                fi
-              '') hlcfg
+                '') hlcfg
             )}
             unset PRHEAD
           ''
