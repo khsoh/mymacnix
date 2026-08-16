@@ -49,10 +49,6 @@ function cleanup() {
     printf "$ESC"
 }
 
-# Create hash directory
-NIXBUILD=~/.cache/nixbld_status
-mkdir -p $NIXBUILD
-
 if [ "$OUTPUT" -eq 1 ]; then
     ESC="$(tput sgr0)"
     BOLD="$(tput bold)"
@@ -151,9 +147,8 @@ for item in "${NIXCHINFO[@]}"; do
         printf "${GREEN}${BOLD}=== Local package is up-to-date with $channame channel ===${ESC}\n"
         printf "${BLUE}${BOLD}==>${ESC}  ${(r:$max_namelen:):-${channame}_local_hash}: $LOCAL_HASH\n"
     elif [[ -n "$REMOTE_HASH" ]]; then
-        NONWORKFILE=${NIXBUILD}/.nonworking-nixpkgs
         EXTRA=
-        if test -e $NONWORKFILE && grep -q "^$REMOTE_HASH$" $NONWORKFILE; then
+        if [ -n "$(valkey-cli -p $VALKEY_PORT hget nixbld-fail ${REMOTE_HASH:0:12})" ]; then
             EXTRA=" (Failed last darwin-rebuild)"
         fi
         printf "${GREEN}${BOLD}*** New package detected on $channame channel ***${ESC}\n" >&"$OUTPUT"

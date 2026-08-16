@@ -37,10 +37,6 @@ get_fullnixpkgshash() {
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
-# Create hash directory
-NIXBUILD=~/.cache/nixbld_status
-mkdir -p $NIXBUILD
-
 ## Store the remote hash of each channel
 typeset -A RHASH
 
@@ -110,15 +106,13 @@ if [[ -n "$UPDCHAN" ]]; then
     sleep 3
 fi
 
-NONWORKFILE=${NIXBUILD}/.nonworking-nixpkgs
-[[ -f $NONWORKFILE ]] || touch $NONWORKFILE
 LOCAL_NIXPKGS_REV=$(valkey-cli -p $VALKEY_PORT hget nixch nixpkgs)
 LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
 SHORT_BUILDREV=${BUILDREV:0:12}
 
-if grep -q "^$SHORT_BUILDREV" $NONWORKFILE; then
+if [ -n "$(valkey-cli -p $VALKEY_PORT hget nixbld-fail "$SHORT_BUILDREV")" ]; then
     if [[ -n "$LOCAL_NIXPKGS_REV" ]]; then
         OPTIONS="[l/g/x]"
     else
@@ -173,7 +167,7 @@ TMPFILE=$(mktemp) || exit 1
 trap 'rm -f "$TMPFILE"' EXIT
 
 if [[ "$BUILDRESULT" == "0" ]]; then
-    sed -i "/^$SHORT_BUILDREV/d" $NONWORKFILE
+    valkey-cli -p $VALKEY_PORT hdel nixbld-fail "$SHORT_BUILDREV" >/dev/null
 
     for channame in "${(k)RHASH[@]}"; do
         # 1. Get the remote hash from the channel feed
@@ -195,16 +189,26 @@ if [[ "$BUILDRESULT" == "0" ]]; then
     done
 
 else
-    if grep -q "^$SHORT_BUILDREV" $NONWORKFILE ; then
-        sed -i "/^$SHORT_BUILDREV.*$/c$SHORT_BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" $NONWORKFILE
-    else
-        echo "$SHORT_BUILDREV : $(date +"%d %b %Y %I:%M:%S %p")" >> $NONWORKFILE
-    fi
-    if [[ "$(wc -l < $NONWORKFILE | xargs)" -gt 40 ]]; then
-        if tail -n 20 $NONWORKFILE > "$TMPFILE"; then
-            mv "$TMPFILE" "$NONWORKFILE"
+    valkey-cli -p $VALKEY_PORT hset nixbld-fail "$SHORT_BUILDREV" "$(date +"%d %b %Y %I:%M:%S %p")"
+
+    ## Trim older values
+    dtlimit=$(date -v-60d +%s)
+    FORMAT="%d %b %Y %I:%M:%S %p"
+
+    valkey-cli -p $VALKEY_PORT hgetall nx | paste - - | while read -r field value; do
+        value=$(echo "$value" | xargs)
+        field=$(echo "$field" | xargs)
+
+        FIELD_TS=$(date -j -f "$FORMAT" "$value" +%s 2>/dev/null)
+
+        if [ -z "$FIELD_TS" ]; then
+            continue
         fi
-    fi
+
+        if [ "$FIELD_TS" -lt "$dtlimit" ]; then
+            valkey-cli -p $VALKEY_PORT hdel nx "$field" > /dev/null
+        fi
+    done
 fi
 
 printf "\n${BOLD}${GREEN}====== Checking permissions of terminal programs ======${ESC}\n"
