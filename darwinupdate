@@ -195,7 +195,7 @@ else
     dtlimit=$(date -v-60d +%s)
     FORMAT="%d %b %Y %I:%M:%S %p"
 
-    valkey-cli -p $VALKEY_PORT hgetall nx | paste - - | while read -r field value; do
+    valkey-cli -p $VALKEY_PORT hgetall nixbld-fail | paste - - | while read -r field value; do
         value=$(echo "$value" | xargs)
         field=$(echo "$field" | xargs)
 
@@ -206,7 +206,7 @@ else
         fi
 
         if [ "$FIELD_TS" -lt "$dtlimit" ]; then
-            valkey-cli -p $VALKEY_PORT hdel nx "$field" > /dev/null
+            valkey-cli -p $VALKEY_PORT hdel nixbld-fail "$field" > /dev/null
         fi
     done
 fi
