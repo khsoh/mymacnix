@@ -1469,6 +1469,44 @@ in
               fi
             done
           '';
+
+      fixWhatsAppSpaces = lib.mkIf (Helpers.brewAppInstalled "whatsapp") (
+        lib.hm.dag.entryAfter [ "initTermCtrlVars" ]
+          # bash
+          ''
+            PLIST_PATH="$HOME/Library/Preferences/com.apple.spaces.plist"
+            NEED_DOCK_RESTART=0
+
+            # 1. Check for the incorrect lowercase entry
+            if /usr/libexec/PlistBuddy -c "Print :app-bindings:net.whatsapp.whatsapp" "$PLIST_PATH" &>/dev/null; then
+              if [[ "$NEED_DOCK_RESTART" -eq 0 ]]; then
+                printf "''${GREEN}''${BOLD}--- Fixing up incorrect WhatsApp entries in com.apple.spaces app-bindings dictionary ---''${ESC}\n"
+                NEED_DOCK_RESTART=1
+              fi
+              printf "''${BLUE}''${BOLD}==>''${ESC} Removing incorrect case-sensitive net.whatsapp.whatsapp entry\n"
+              /usr/libexec/PlistBuddy -c "Delete :app-bindings:net.whatsapp.whatsapp" "$PLIST_PATH"
+            fi
+
+            # 2. Check for the corrupt standalone entry
+            if /usr/libexec/PlistBuddy -c "Print :app-bindings:whatsapp" "$PLIST_PATH" &>/dev/null; then
+              if [[ "$NEED_DOCK_RESTART" -eq 0 ]]; then
+                printf "''${GREEN}''${BOLD}--- Fixing up incorrect WhatsApp entries in com.apple.spaces app-bindings dictionary ---''${ESC}\n"
+                NEED_DOCK_RESTART=1
+              fi
+              printf "''${BLUE}''${BOLD}==>''${ESC} Removing corrupt standalone whatsapp entry\n"
+              /usr/libexec/PlistBuddy -c "Delete :app-bindings:whatsapp" "$PLIST_PATH"
+            fi
+
+            # 3. Correct entry and restart the Dock only if structural modifications happened
+            if [ $NEED_DOCK_RESTART -eq 1 ]; then
+              /usr/bin/defaults write com.apple.spaces app-bindings -dict-add "net.whatsapp.WhatsApp" "AllSpaces"
+              printf "''${RED}''${BOLD}==>''${ESC} Adding correct net.whatsapp.WhatsApp entry\n"
+              /usr/bin/killall Dock
+            fi
+            unset PLIST_PATH
+            unset NEED_DOCK_RESTART
+          ''
+      );
     };
 
   # The state version is required and should stay at the version you
