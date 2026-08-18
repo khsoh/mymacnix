@@ -1500,6 +1500,7 @@ in
             # 3. Correct entry and restart the Dock only if structural modifications happened
             if [ $NEED_DOCK_RESTART -eq 1 ]; then
               /usr/bin/defaults write com.apple.spaces app-bindings -dict-add "net.whatsapp.WhatsApp" "AllSpaces"
+              /usr/bin/defaults write com.apple.spaces app-bindings -dict-add "net.whatsapp.whatsapp" "AllSpaces"
               printf "''${RED}''${BOLD}==>''${ESC} Adding correct net.whatsapp.WhatsApp entry\n"
               /usr/bin/killall Dock
             fi
