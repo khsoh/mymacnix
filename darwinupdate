@@ -37,8 +37,9 @@ get_fullnixpkgshash() {
 SCRIPTNAME=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "$SCRIPTNAME")
 
-## Store the remote hash of each channel
+## Store the remote hash and local hash of each channel
 typeset -A RHASH
+typeset -A LHASH
 
 printf "${BOLD}${GREEN}Updating nix-darwin...${ESC}\n"
 UPDCHAN=$(sudo -H nix-channel --list)
@@ -48,10 +49,14 @@ if [[ ! -n "$UPDCHAN" ]]; then
 fi
 
 printf "${BOLD}${GREEN}====== Starting to update root channels ======\n"
+NIXCH_UPDATED=0
 while read -r name url; do
     # Skip empty lines or lines missing a name
     [[ -z "$url" || -z "$name" ]] && continue
     printf "--- $name $url\n"
+
+    # Get the local hash of the channel
+    LHASH[$name]=$(valkey-cli -p $VALKEY_PORT hget nixch $name)
 
     # Compute the remote feed
     if [[ "$url" =~ "github\.com" ]]; then
@@ -78,6 +83,14 @@ while read -r name url; do
 
     # Get the remote hash of the channel
     RHASH[$name]=$(get_atominfo "$FEED_URL")
+
+    if [[ "${LHASH[$name]}" != "${RHASH[$name]}" ]]; then
+        # Update channel because remote hash is newer
+        printf "${BOLD}${RED}"
+        sudo -H nix-channel --update --verbose $name 2>&1 | sed '$d'
+        printf "${ESC}"
+        NIXCH_UPDATED=1
+    fi
 done <<< "$UPDCHAN"
 
 # Check that nixpkgs hash is present
@@ -87,9 +100,11 @@ if [[ ! -v "RHASH[nixpkgs]" ]]; then
 fi
 
 
-printf "${BOLD}${RED}"
-sudo -H nix-channel --update --verbose 2>&1 | tail -n +2
-printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
+if [ $NIXCH_UPDATED -eq 1 ]; then
+    printf "${BOLD}${GREEN}====== Completed updating root channels ======${ESC}\n\n\n"
+else
+    printf "${BOLD}${GREEN}====== All root channels are already up to date ======${ESC}\n\n\n"
+fi
 sleep 3
 
 UPDCHAN=$(nix-channel --list)
@@ -106,7 +121,7 @@ if [[ -n "$UPDCHAN" ]]; then
     sleep 3
 fi
 
-LOCAL_NIXPKGS_REV=$(valkey-cli -p $VALKEY_PORT hget nixch nixpkgs)
+LOCAL_NIXPKGS_REV=${LHASH[nixpkgs]}
 LATEST_NIXPKGS_REV=${RHASH[nixpkgs]}
 BUILDARGS=""
 BUILDREV="$LATEST_NIXPKGS_REV"
@@ -174,7 +189,7 @@ if [[ "$BUILDRESULT" == "0" ]]; then
         REMOTE_HASH=${RHASH[$channame]}
 
         # 2. Read the existing commit hash
-        LOCAL_HASH=$(valkey-cli -p $VALKEY_PORT hget nixch $channame)
+        LOCAL_HASH=${LHASH[$channame]}
 
         # 3. Save the hash if present
         if [[ -n "$REMOTE_HASH" ]]; then
