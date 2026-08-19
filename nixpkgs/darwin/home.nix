@@ -1119,8 +1119,8 @@ in
 
             # Get the signing time
             SIGNTIME=$(/usr/bin/openssl cms -inform DER -in "$WSGX_FILE" -cmsout -print|grep -A 2 "signingTime"|grep "UTCTIME" | ${pkgs.gnused}/bin/sed 's/.*UTCTIME://' | tr -d '\n')
-            EXPIRE_DATE="$(date -j -v+6m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%b %d %Y")"
-            WARN_EPOCH="$(date -j -v+5m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%s")"
+            EXPIRE_DATE="$(date -j -v+12m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%b %d %Y")"
+            WARN_EPOCH="$(date -j -v +11m -v +10d -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%s")"
 
             # Check if need to update the profile
             if [[ "$(date "+%s")" -gt "$WARN_EPOCH" ]]; then
