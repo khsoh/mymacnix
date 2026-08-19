@@ -58,7 +58,6 @@ builtins.seq [ osConfig pkgs ] {
     {
       name = "dropbox";
       greedy = true;
-      postinstall = restartApp "Dropbox";
     }
     {
       name = "displaylink";
