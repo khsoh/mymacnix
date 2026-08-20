@@ -115,7 +115,6 @@ builtins.seq [ osConfig pkgs ] {
     {
       name = "signal";
       greedy = true;
-      postinstall = restartApp "Signal";
     }
     {
       name = "keet";
