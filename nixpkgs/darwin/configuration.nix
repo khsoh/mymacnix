@@ -260,9 +260,6 @@ in
 
       ## P2P support
       iroh-ssh
-
-      ## Yabai to talk to macOS WindowServer
-      yabai
     ];
 
   # Use a custom configuration.nix location.
@@ -714,18 +711,6 @@ in
 
   # Disable global system-wide redis
   services.redis.enable = true;
-
-  # Enable yabai for non-VM setup
-  services.yabai = {
-    enable = !isVM;
-    config = {
-      layout = "float";
-    };
-  };
-  launchd.user.agents.yabai.serviceConfig = {
-    StandardOutPath = "${userInfo.home}/log/org.nixos.yabai-Out.log";
-    StandardErrorPath = "${userInfo.home}/log/org.nixos.yabai-Error.log";
-  };
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
