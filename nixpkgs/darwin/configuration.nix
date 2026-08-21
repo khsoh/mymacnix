@@ -260,6 +260,9 @@ in
 
       ## P2P support
       iroh-ssh
+
+      ## Yabai to talk to macOS WindowServer
+      yabai
     ];
 
   # Use a custom configuration.nix location.
