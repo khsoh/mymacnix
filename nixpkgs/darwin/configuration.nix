@@ -640,6 +640,7 @@ in
   system.primaryUser = userInfo.name;
 
   system.defaults.dock = {
+    mru-spaces = false;
     showLaunchpadGestureEnabled = true;
     showMissionControlGestureEnabled = true;
     persistent-apps = lib.filter (a: a != "") (
@@ -675,6 +676,14 @@ in
     TrackpadThreeFingerDrag = true;
     TrackpadThreeFingerHorizSwipeGesture = 1;
   };
+  system.defaults = {
+    # Disables Stage Manager and ensures normal window behavior
+    WindowManager.StageManagerHideWidgets = false;
+
+    # Ensures that displays have single space (multi-monitor support)
+    spaces.spans-displays = true;
+  };
+
   ##### Sample code for system.activationScripts.*.text - this is undocumented
   ###     stuff from nix-darwin
   # system.activationScripts.preActivation.text = ''
@@ -705,6 +714,18 @@ in
 
   # Disable global system-wide redis
   services.redis.enable = true;
+
+  # Enable yabai for non-VM setup
+  services.yabai = {
+    enable = !isVM;
+    config = {
+      layout = "float";
+    };
+  };
+  launchd.user.agents.yabai.serviceConfig = {
+    StandardOutPath = "${userInfo.home}/log/org.nixos.yabai-Out.log";
+    StandardErrorPath = "${userInfo.home}/log/org.nixos.yabai-Error.log";
+  };
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
