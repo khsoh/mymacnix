@@ -12,7 +12,14 @@ let
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
 
+  # TOGGLE THIS:
+  # true  = Unified spanning desktop ("Displays have separate Spaces" turned OFF)
+  # false = Isolated monitors ("Displays have separate Spaces" turned ON)
+  useSpannedDesktops = true;
+
   isVM = config.machineInfo.is_vm;
+
+  enableYabai = !isVM && !useSpannedDesktops;
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
@@ -260,6 +267,9 @@ in
 
       ## P2P support
       iroh-ssh
+    ]
+    ++ lib.optionals enableYabai [
+      yabai
     ];
 
   # Use a custom configuration.nix location.
@@ -673,12 +683,59 @@ in
     TrackpadThreeFingerDrag = true;
     TrackpadThreeFingerHorizSwipeGesture = 1;
   };
+
+  ## Setup for multiple displays and spaces
   system.defaults = {
+    # 1. Manage the fundamental Space behavior
+    spaces.spans-displays = useSpannedDesktops;
+
     # Disables Stage Manager and ensures normal window behavior
     WindowManager.StageManagerHideWidgets = false;
 
-    # Ensures that displays have single space (multi-monitor support)
-    spaces.spans-displays = true;
+    ## Setup to debloat brave browser
+    CustomUserPreferences = {
+      "com.brave.Browser" =
+        lib.mkIf ((Helpers.pkgInstalled pkgs.brave) || (Helpers.brewAppInstalled "brave-browser"))
+          {
+            # 1. Web3 & Crypto Debloat
+            BraveRewardsDisabled = true;
+            BraveWalletDisabled = true;
+
+            # 2. AI Chat & Leo
+            BraveAIChatEnabled = false;
+
+            # 3. Network, VPN & Video Conferencing
+            BraveVPNDisabled = true;
+            BraveTalkDisabled = true;
+
+            # 4. Security & Password Management
+            PasswordManagerEnabled = false;
+
+            # 5. Forcefully turns off the Brave News feed infrastructure entirely
+            BraveNewsDisabled = true;
+
+            # 6. Disables Promotional Tabs
+            PromotionalTabsEnabled = false;
+
+            # 7. Disables Promotions
+            PromotionsEnabled = false;
+          };
+    };
+  };
+
+  services.yabai = {
+    enable = enableYabai;
+    config = {
+      layout = "float";
+      mouse_follows_focus = "on";
+    };
+  };
+
+  launchd.user.agents.yabai = lib.mkIf enableYabai {
+    serviceConfig = {
+      StandardOutPath = "${userInfo.home}/log/org.nixos.user.yabai-Out.log";
+      StandardErrorPath = "${userInfo.home}/log/org.nixos.user.yabai-Error.log";
+    };
   };
 
   ##### Sample code for system.activationScripts.*.text - this is undocumented
