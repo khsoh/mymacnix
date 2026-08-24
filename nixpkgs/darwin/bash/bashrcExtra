@@ -1,18 +1,18 @@
 # Use vi-mode for command line editing
 set -o vi
 
-tmux () {
-    [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
-        if [[ -z ${1+x} ]]; then
-            resize_app
-            /run/current-system/sw/bin/tmux new-session -A
-        else
-            /run/current-system/sw/bin/tmux $@
-        fi
-}
+# tmux () {
+#     [ -x ~/.config/tmux/setup_terminal_font.zsh ] && ~/.config/tmux/setup_terminal_font.zsh
+#         if [[ -z ${1+x} ]]; then
+#             resize_app
+#             /run/current-system/sw/bin/tmux new-session -A
+#         else
+#             /run/current-system/sw/bin/tmux $@
+#         fi
+# }
 
 ## Resizes the terminal window
-# By default, if no arguments given, it resizes app "Terminal" in main display 
+# By default, if no arguments given, it resizes app "Terminal" in main display
 # to half-width and full-height
 # Otherwise, the 3 arguments are the app name, fractional width and height of the main
 # display.

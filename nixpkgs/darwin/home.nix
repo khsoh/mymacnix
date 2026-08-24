@@ -114,7 +114,7 @@ in
       neovim-bin = "${homecfg.homeDirectory}/${config.xdg.configFile.neovideLauncher.target}"
     '';
 
-    tmux = {
+    tmux = lib.mkIf (Helpers.pkgInstalled pkgs.tmux) {
       ## The defaults are commented out
       # enable = true;
 
@@ -940,7 +940,7 @@ in
         ];
       };
     };
-    updateTmuxPlugins = {
+    updateTmuxPlugins = lib.mkIf (Helpers.pkgInstalled pkgs.tmux) {
       enable = true;
       config = {
         Label = "org.nixos.hm.updateTmuxPlugins";

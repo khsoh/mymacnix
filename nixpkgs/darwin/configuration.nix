@@ -220,7 +220,7 @@ in
       hyperfine
 
       ## Desktop and terminal related packages
-      tmux
+      # tmux
       rectangle
       stow
 
