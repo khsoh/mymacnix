@@ -789,6 +789,13 @@ in
     };
   };
 
+  programs.npm = {
+    enable = true;
+    settings = {
+      prefix = "\${HOME}/.npm";
+      update-notifier = false;
+    };
+  };
   ### Setup the user-specific launch agents
   launchd.enable = true;
 
