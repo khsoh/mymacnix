@@ -647,9 +647,19 @@ in
   system.primaryUser = userInfo.name;
 
   system.defaults.dock = {
+    autohide = true;
+    appswitcher-all-displays = true;
     mru-spaces = false;
+    orientation = "bottom";
     showLaunchpadGestureEnabled = true;
     showMissionControlGestureEnabled = true;
+
+    # Corner settings
+    wvous-bl-corner = 1; # Disabled
+    wvous-br-corner = 13; # Lock Screen
+    wvous-tl-corner = 1; # Disabled
+    wvous-tr-corner = 1; # Disabled
+
     persistent-apps = lib.filter (a: a != "") (
       [
         "/System/Applications/Apps.app"
