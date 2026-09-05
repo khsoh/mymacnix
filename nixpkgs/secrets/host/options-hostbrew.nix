@@ -141,6 +141,10 @@ builtins.seq [ osConfig pkgs ] {
       postinstall = restartApp "Proton Drive";
     }
     {
+      name = "proton-meet";
+      greedy = true;
+    }
+    {
       name = "logos";
       greedy = true;
       postinstall = restartApp "Logos";

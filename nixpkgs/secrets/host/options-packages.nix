@@ -26,7 +26,6 @@ builtins.seq [ osConfig config pkgs ] {
 
   config.masPackages = {
     "Xcode" = 497799835;
-    "1Password for Safari" = 1569813296;
     "Cursor Pro" = 1447043133;
     "Bible Study" = 472790630;
     "Amazon Kindle" = 302584613;
