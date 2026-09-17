@@ -3,8 +3,11 @@ KEYTIMEOUT=5
 
 nixclean () {
     DDAYS=${1:-20d}
-    echo "$(tput setaf 9)Performing garbage collection on Nix store objects older than ${DDAYS%d} days${reset_color}"
+    echo "$(tput setaf 9)Deleting all unused softare, packages, and files in Nix store${reset_color}"
+    sleep 1
     sudo -H nix-store --gc
+    echo "$(tput setaf 9)Deleting old Nix system and profile history older than ${DDAYS%d} days${reset_color}"
+    sleep 1
     sudo -H nix-collect-garbage --delete-older-than ${DDAYS}
 }
 
