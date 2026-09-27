@@ -27,7 +27,7 @@ let
         };
 
         ###  Important note: This pubkey must be assigned because agenix needs the key to embed in
-        # secrets.nix
+        # agenix-rules.nix
         pubkey = lib.mkOption {
           type = lib.types.str;
           description = "AGE public key string - will be read from key.nix";

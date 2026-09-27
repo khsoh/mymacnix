@@ -11,8 +11,8 @@ let
   userDir = "user/${cfgsec.target.user.name}";
 
   # Define current host and current user secrets.nix
-  hostSecrets = ./. + "/${hostDir}/secrets.nix";
-  userSecrets = ./. + "/${userDir}/secrets.nix";
+  hostSecrets = ./. + "/${hostDir}/agenix-rules.nix";
+  userSecrets = ./. + "/${userDir}/agenix-rules.nix";
 
   # Helper to prefix attribute names with their subdirectory
   prefixSecrets =

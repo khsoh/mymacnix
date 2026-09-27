@@ -32,8 +32,7 @@ builtins.seq [ osConfig config options pkgs ] {
             description = "Path to SSH public key.";
           };
 
-          ###  Important note: This pubkey must be assigned because agenix needs the key to embed in
-          # secrets.nix
+          ###  Important note: This pubkey must be assigned because git requires the ssh pubkey
           pubkey = lib.mkOption {
             type = lib.types.str;
             description = "Public key string - this attribute must be set if sshcfg is not null";
