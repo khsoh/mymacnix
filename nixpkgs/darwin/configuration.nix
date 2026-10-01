@@ -542,12 +542,9 @@ in
 
   # Ensure the user-specific directories exist exists with the proper permissions
   system.activationScripts.preActivation.text = lib.mkAfter ''
-    mkdir -p ${valkey_dir}
-    chown ${userInfo.name}:staff ${valkey_dir}
-    chmod 700 ${valkey_dir}
-    mkdir -p ${nixprofile_dir}
-    chown ${userInfo.name}:staff ${nixprofile_dir}
-    chmod 700 ${nixprofile_dir}
+    /usr/bin/sudo -u ${userInfo.name} mkdir -p ${valkey_dir}
+    /usr/bin/sudo -u ${userInfo.name} chmod 700 ${valkey_dir}
+    /usr/bin/sudo -u ${userInfo.name} mkdir -p ${nixprofile_dir}
   '';
 
   nix.optimise.automatic = true;
