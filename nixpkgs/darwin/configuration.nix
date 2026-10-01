@@ -558,6 +558,7 @@ in
       alias drb="sudo -H darwin-rebuild build"
       alias drs="sudo -H darwin-rebuild switch"
       alias drlg="sudo -H darwin-rebuild --list-generations"
+      alias dru='$(nix-instantiate --eval -E '\'''<darwin-config> + "/../../darwinupdate"'\''')'
       alias valkey-cli="valkey-cli -p \$VALKEY_PORT"
       alias ..="cd .."
       if [[ $- == *i* ]]; then
