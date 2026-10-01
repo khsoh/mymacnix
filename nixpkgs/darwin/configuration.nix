@@ -30,6 +30,8 @@ let
   valkey_port = valkey_base_port + userInfo.uid;
   valkey_dir = "${userInfo.home}/.local/share/valkey-private-data";
 
+  nixprofile_dir = "${userInfo.home}/.local/state/nix/profiles";
+
   # 1. Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
 
@@ -538,11 +540,14 @@ in
     };
   };
 
-  # Ensure the valkey_dir exists with the proper permissions
-  system.activationScripts.postActivation.text = lib.mkAfter ''
+  # Ensure the user-specific directories exist exists with the proper permissions
+  system.activationScripts.preActivation.text = lib.mkAfter ''
     mkdir -p ${valkey_dir}
     chown ${userInfo.name}:staff ${valkey_dir}
     chmod 700 ${valkey_dir}
+    mkdir -p ${nixprofile_dir}
+    chown ${userInfo.name}:staff ${nixprofile_dir}
+    chmod 700 ${nixprofile_dir}
   '';
 
   nix.optimise.automatic = true;
