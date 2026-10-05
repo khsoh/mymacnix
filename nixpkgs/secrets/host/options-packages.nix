@@ -30,7 +30,6 @@ builtins.seq [ osConfig config pkgs ] {
     "Bible Study" = 472790630;
     "Amazon Kindle" = 302584613;
     "Drafts" = 1435957248;
-    "CleanMyMac" = 1339170533;
     "MoneyWiz" = 1511185140;
 
     ## Apple Apps
