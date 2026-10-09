@@ -147,7 +147,6 @@ builtins.seq [ osConfig pkgs ] {
     {
       name = "logos";
       greedy = true;
-      postinstall = restartApp "Logos";
     }
     {
       name = "microsoft-office";
