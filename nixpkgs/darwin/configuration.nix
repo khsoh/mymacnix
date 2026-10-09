@@ -137,142 +137,146 @@ in
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages =
-    with pkgs;
-    [
-      ## Viewers, editors and supporting utilities
-      vim
-      neovim
-      neovide
-      tree
-      mupdf
+    if pkhostcfg.hostPackages != [ ] then
+      pkhostcfg.hostPackages
+    else
+      (
+        with pkgs;
+        [
+          ## Viewers, editors and supporting utilities
+          vim
+          neovim
+          neovide
+          tree
+          mupdf
 
-      ## Programming development
-      git
-      git-credential-manager
-      git-lfs
-      git-repo
-      git-filter-repo
-      gh
+          ## Programming development
+          git
+          git-credential-manager
+          git-lfs
+          git-repo
+          git-filter-repo
+          gh
 
-      ## LSPs for Neovim
-      nixd
-      lua-language-server
-      bash-language-server
-      typescript-language-server
-      biome # Is also formatter and linter for JavaScript, TypeScript, JSON
-      marksman # Markdown
-      powershell-editor-services # PowerShell
-      powershell
-      pyright # Python
-      clang-tools # clangd
-      gopls # Go
-      rust-analyzer # Rust
-      rustc # Rust
-      zls # Zig
-      lemminx # XML
-      superhtml # HTML
+          ## LSPs for Neovim
+          nixd
+          lua-language-server
+          bash-language-server
+          typescript-language-server
+          biome # Is also formatter and linter for JavaScript, TypeScript, JSON
+          marksman # Markdown
+          powershell-editor-services # PowerShell
+          powershell
+          pyright # Python
+          clang-tools # clangd
+          gopls # Go
+          rust-analyzer # Rust
+          rustc # Rust
+          zls # Zig
+          lemminx # XML
+          superhtml # HTML
 
-      ## Formatters for Neovim
-      nixfmt
-      stylua
-      prettier
-      shfmt # Formatter for bash - called by bashls
-      ruff # Formatter and linter for python
+          ## Formatters for Neovim
+          nixfmt
+          stylua
+          prettier
+          shfmt # Formatter for bash - called by bashls
+          ruff # Formatter and linter for python
 
-      ## Linters for Neovim
-      shellcheck
+          ## Linters for Neovim
+          shellcheck
 
-      ## Parsing engine for Neovim
-      tree-sitter
+          ## Parsing engine for Neovim
+          tree-sitter
 
-      python3
-      nix-prefetch-github
-      cargo
-      zig
-      # The following packages are to support neovim-related builds
-      go
-      nodejs
+          python3
+          nix-prefetch-github
+          cargo
+          zig
+          # The following packages are to support neovim-related builds
+          go
+          nodejs
 
-      # Required for peek.nvim execution
-      deno
+          # Required for peek.nvim execution
+          deno
 
-      # Security related packages
-      gnupg
-      age
-      (callPackage <agenix/pkgs/agenix.nix> { })
-      openssh # Install this as macOS disables use of HW security keys for SSH
+          # Security related packages
+          gnupg
+          age
+          (callPackage <agenix/pkgs/agenix.nix> { })
+          openssh # Install this as macOS disables use of HW security keys for SSH
 
-      ## System Utilities
-      valkey
-      duti
-      rsync
-      ripgrep
-      unzip
-      wget
-      fd
-      squashfsTools
-      bat
-      gnused
-      moreutils
-      jq
-      exiftool
-      ttyplot
-      fastfetch
-      btop
-      hyperfine
+          ## System Utilities
+          valkey
+          duti
+          rsync
+          ripgrep
+          unzip
+          wget
+          fd
+          squashfsTools
+          bat
+          gnused
+          moreutils
+          jq
+          exiftool
+          ttyplot
+          fastfetch
+          btop
+          hyperfine
 
-      ## Desktop and terminal related packages
-      # tmux
-      rectangle
-      stow
+          ## Desktop and terminal related packages
+          # tmux
+          rectangle
+          stow
 
-      ### Sample demo to use overrideAttrs to embed a postPhase in the installation
-      # (_1password-gui.overrideAttrs {
-      #   postPhases = [ "mypostrun" ];
-      #   mypostrun = ''
-      #   echo "Hello World!!!!!"
-      #   echo "This is a postPhase that is executed after installation"
-      #   '';
-      # })
+          ### Sample demo to use overrideAttrs to embed a postPhase in the installation
+          # (_1password-gui.overrideAttrs {
+          #   postPhases = [ "mypostrun" ];
+          #   mypostrun = ''
+          #   echo "Hello World!!!!!"
+          #   echo "This is a postPhase that is executed after installation"
+          #   '';
+          # })
 
-      ## The following packages that could not be installed because these are marked as broken
-      # handbrake
-    ]
-    ++ allTerminalPackages
-    ++ lib.optionals install_onepassword [
-      _1password-cli # Helpful for deploying secrets
-      _1password-gui
-    ]
-    ++ pkhostcfg.hostPackages
-    ++ lib.optionals (!isVM) [
-      # Included in builds of the real thing
-      ### The following are to setup use of Yubikey
-      yubikey-manager
-      yubico-piv-tool
+          ## The following packages that could not be installed because these are marked as broken
+          # handbrake
+        ]
+        ++ allTerminalPackages
+        ++ lib.optionals install_onepassword [
+          _1password-cli # Helpful for deploying secrets
+          _1password-gui
+        ]
+        ++ lib.optionals (!isVM) [
+          # Included in builds of the real thing
+          ### The following are to setup use of Yubikey
+          yubikey-manager
+          yubico-piv-tool
 
-      protonmail-desktop
-      bitwarden-desktop
+          protonmail-desktop
+          bitwarden-desktop
 
-      element-desktop
+          element-desktop
 
-      # For installing mas packages
-      mas
+          # For installing mas packages
+          mas
 
-      ## VM related stuff
-      utm
-      podman
-      rustup
+          ## VM related stuff
+          utm
+          podman
+          rustup
 
-      ## Multimedia related utilities
-      vlc-bin
-      audacity
+          ## Multimedia related utilities
+          vlc-bin
+          audacity
 
-      ## P2P support
-      iroh-ssh
-    ]
-    ++ lib.optionals enableYabai [
-      yabai
-    ];
+          ## P2P support
+          iroh-ssh
+        ]
+        ++ lib.optionals enableYabai [
+          yabai
+        ]
+      );
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
