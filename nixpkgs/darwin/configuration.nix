@@ -748,6 +748,17 @@ in
   # '';
   system.activationScripts.postActivation.text = lib.mkAfter pkhostcfg.postActivationScriptText;
 
+  # Do not allow Guest login
+  system.defaults.loginwindow.GuestEnabled = false;
+
+  system.defaults.NSGlobalDomain.AppleShowAllExtensions = lib.mkIf pkhostcfg.isHeadlessServer true;
+
+  # For headless server - never sleep
+  power.sleep = lib.mkIf pkhostcfg.isHeadlessServer {
+    computer = "never";
+    display = "never";
+  };
+
   services = lib.mkMerge [
     {
       openssh = {

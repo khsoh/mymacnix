@@ -157,6 +157,18 @@ builtins.seq [ osConfig pkgs ] {
   postActivationScriptText = ''
     echo "Ensuring Remote Login (SSH) is enabled..."
     /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
+
+    echo "Applying headless hardware crash and power survival defaults..."
+
+    # 1. Force immediate hardware reboot on a Kernel Panic/System Crash
+    # (Setting to 1 tells the boot-rom to bypass standard crash screens and reboot instantly)
+    /usr/sbin/nvram panic-restart-by-default=%01
+
+    # 2. Automatically power back ON if the Mac mini loses wall power and regains it
+    # (Essential for surviving power outages in a server closet)
+    /usr/bin/pmset -a autorestart 1
   '';
+
+  isHeadlessServer = true;
 }
 # vim: set ts=2 sw=2 et ft=nix:
