@@ -41,7 +41,6 @@ builtins.seq [ osConfig pkgs ] {
   hostbrew.brews = [
     "ollama"
     "podman"
-    "podman-compose"
   ];
 
   hostbrew.casks = [
@@ -143,6 +142,8 @@ builtins.seq [ osConfig pkgs ] {
     _1password-gui
     # For installing mas packages
     mas
+    # Supporting podman
+    podman-compose
   ];
 
   ## Host-specific info for networking
