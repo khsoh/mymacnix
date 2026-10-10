@@ -19,8 +19,6 @@ let
 
   isVM = config.machineInfo.is_vm;
 
-  enableYabai = !isVM && !useSpannedDesktops;
-
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
   pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
@@ -272,9 +270,6 @@ in
 
           ## P2P support
           iroh-ssh
-        ]
-        ++ lib.optionals enableYabai [
-          yabai
         ]
       );
 
@@ -740,21 +735,6 @@ in
     };
   };
 
-  services.yabai = {
-    enable = enableYabai;
-    config = {
-      layout = "float";
-      mouse_follows_focus = "on";
-    };
-  };
-
-  launchd.user.agents.yabai = lib.mkIf enableYabai {
-    serviceConfig = {
-      StandardOutPath = "${userInfo.home}/log/org.nixos.user.yabai-Out.log";
-      StandardErrorPath = "${userInfo.home}/log/org.nixos.user.yabai-Error.log";
-    };
-  };
-
   ##### Sample code for system.activationScripts.*.text - this is undocumented
   ###     stuff from nix-darwin
   # system.activationScripts.preActivation.text = ''
@@ -766,50 +746,48 @@ in
   # system.activationScripts.postActivation.text = lib.mkAfter ''
   #   echo "I am in PostActivation"
   # '';
+  system.activationScripts.postActivation.text = lib.mkAfter pkhostcfg.postActivationScriptText;
 
-  # services.openssh = {
-  #   enable = true;
-  #   extraConfig = ''
-  #     PasswordAuthentication no
-  #     ChallengeResponseAuthentication no
-  #     KbdInteractiveAuthentication no
-  #     PermitRootLogin no
-  #   '';
-  # };
-  services.openssh = {
-    enable = true;
+  services = lib.mkMerge [
+    {
+      openssh = {
+        enable = true;
 
-    # Pass all structural configuration variables directly as raw configurations
-    extraConfig = ''
-      # 1. Enforce Public Key Authentication exclusively
-      PasswordAuthentication no
-      ChallengeResponseAuthentication no
-      KbdInteractiveAuthentication no
+        # Pass all structural configuration variables directly as raw configurations
+        extraConfig = ''
+          # 1. Enforce Public Key Authentication exclusively
+          PasswordAuthentication no
+          ChallengeResponseAuthentication no
+          KbdInteractiveAuthentication no
 
-      # 2. Prevent remote root session access elevation attempts
-      PermitRootLogin no
+          # 2. Prevent remote root session access elevation attempts
+          PermitRootLogin no
 
-      # 3. Limit structural attack vectors by disabling older tunnel mechanics
-      X11Forwarding no
-      AllowTcpForwarding yes
+          # 3. Limit structural attack vectors by disabling older tunnel mechanics
+          X11Forwarding no
+          AllowTcpForwarding yes
 
-      # 4. Proactively close stale connections that freeze up host threads
-      ClientAliveInterval 300
-      ClientAliveCountMax 2
+          # 4. Proactively close stale connections that freeze up host threads
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
 
-      # 5. Restrict connection boundaries exclusively to your active deployment account
-      # Replace 'admin' with your actual macOS account username
-      AllowUsers ${userInfo.name}
-    '';
-  };
+          # 5. Restrict connection boundaries exclusively to your active deployment account
+          # Replace 'admin' with your actual macOS account username
+          AllowUsers ${userInfo.name}
+        '';
+      };
 
-  # Enable tailscale only if not in VM
-  services.tailscale = {
-    enable = !isVM;
-  };
+      # Enable tailscale only if not in VM
+      tailscale.enable = !isVM;
 
-  # Disable global system-wide redis
-  services.redis.enable = true;
+      # Enable global system-wide redis
+      redis.enable = true;
+    }
+
+    # Add host-specific services
+    pkhostcfg.services
+
+  ];
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog

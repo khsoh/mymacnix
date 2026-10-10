@@ -38,6 +38,8 @@ let
         ./host/options-packages.nix
         ./host/options-hostbrew.nix
         ./host/options-networking.nix
+        ./host/options-services.nix
+        ./host/options-postActivationScripts.nix
       ];
     };
 

@@ -152,5 +152,11 @@ builtins.seq [ osConfig pkgs ] {
     localHostName = "sohfam-ai";
     computerName = "sohfam-ai";
   };
+
+  ## Postactivation script
+  postActivationScriptText = ''
+    echo "Ensuring Remote Login (SSH) is enabled..."
+    /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
+  '';
 }
 # vim: set ts=2 sw=2 et ft=nix:
