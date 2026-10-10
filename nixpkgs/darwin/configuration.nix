@@ -767,15 +767,40 @@ in
   #   echo "I am in PostActivation"
   # '';
 
+  # services.openssh = {
+  #   enable = true;
+  #   extraConfig = ''
+  #     PasswordAuthentication no
+  #     ChallengeResponseAuthentication no
+  #     KbdInteractiveAuthentication no
+  #     PermitRootLogin no
+  #   '';
+  # };
   services.openssh = {
     enable = true;
+
+    # Pass all structural configuration variables directly as raw configurations
     extraConfig = ''
+      # 1. Enforce Public Key Authentication exclusively
       PasswordAuthentication no
       ChallengeResponseAuthentication no
       KbdInteractiveAuthentication no
+
+      # 2. Prevent remote root session access elevation attempts
       PermitRootLogin no
+
+      # 3. Limit structural attack vectors by disabling older tunnel mechanics
+      X11Forwarding no
+      AllowTcpForwarding yes
+
+      # 4. Proactively close stale connections that freeze up host threads
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+
+      # 5. Restrict connection boundaries exclusively to your active deployment account
+      # Replace 'admin' with your actual macOS account username
+      AllowUsers ${userInfo.name}
     '';
-    hostKeys = [ ]; # Ensure host keys are not generated
   };
 
   # Enable tailscale only if not in VM
