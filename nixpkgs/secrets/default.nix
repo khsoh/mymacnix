@@ -40,6 +40,7 @@ let
         ./host/options-networking.nix
         ./host/options-services.nix
         ./host/options-postActivationScripts.nix
+        ./host/options-headless.nix
       ];
     };
 
