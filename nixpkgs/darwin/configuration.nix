@@ -624,7 +624,7 @@ in
   '';
 
   programs.mas = {
-    enable = true;
+    enable = isVM;
     packages = {
       "Xcode" = 497799835;
       "Cursor Pro" = 1447043133;
