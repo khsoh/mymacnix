@@ -114,11 +114,8 @@
     ]
   );
 
-  programs.mas = {
-    enable = true;
-    packages = {
-      "Xcode" = 497799835;
-    };
+  programs.mas.packages = lib.mkForce {
+    "Xcode" = 497799835;
   };
 
   homebrew.brews = [

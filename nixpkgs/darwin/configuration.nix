@@ -620,6 +620,24 @@ in
     [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
 
+  programs.mas = {
+    enable = true;
+    packages = {
+      "Xcode" = 497799835;
+      "Cursor Pro" = 1447043133;
+      "Bible Study" = 472790630;
+      "Amazon Kindle" = 302584613;
+      "Drafts" = 1435957248;
+      "MoneyWiz" = 1511185140;
+
+      ## Apple Apps
+      "Keynote" = 361285480;
+      "Numbers" = 361304891;
+      "Pages" = 361309726;
+      "iMovie" = 408981434;
+    };
+  };
+
   #!!!! Removed by nix-darwin commit 1d9f622
   # # For /etc/hosts - do not publicize contents for security reasons
   # networking.hostFiles = [ "/etc/hosts.private" ];
