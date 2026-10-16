@@ -32,10 +32,5 @@ in
       ];
     }
   ];
-
-  hostbrew.brews = lib.mkForce [ ];
-  hostbrew.casks = lib.mkForce [ ];
-
-  masPackages = lib.mkForce { };
 }
 # vim: set ts=2 sw=2 et ft=nix:

@@ -55,6 +55,14 @@ let
   # 2. Extract the exact hash from the -I archive URL string
   urlMatch = builtins.match ".*archive/([0-9a-fA-F]{7,40})\\.tar\\.gz" activeNixpkgsPathStr;
   currentRevision = if urlMatch != null then builtins.head urlMatch else null;
+
+  hostname =
+    if builtins.pathExists "/etc/nix-darwin/machine-info.nix" then
+      (import "/etc/nix-darwin/machine-info.nix").hostname
+    else
+      "__default__";
+  hostConfigPath = ./host + "/${hostname}/config.nix";
+
 in
 {
   # Replace with pkgs-pinned packages (the default)
@@ -68,7 +76,8 @@ in
     ./brews.nix
     ./machine.nix
     ./postActivation
-  ];
+  ]
+  ++ lib.optional (builtins.pathExists hostConfigPath) hostConfigPath;
 
   ######### Configuration of modules #########
 
@@ -135,143 +144,138 @@ in
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages =
-    if pkhostcfg.hostPackages != [ ] then
-      pkhostcfg.hostPackages
-    else
-      (
-        with pkgs;
-        [
-          ## Viewers, editors and supporting utilities
-          vim
-          neovim
-          neovide
-          tree
-          mupdf
+    with pkgs;
+    [
+      ## Viewers, editors and supporting utilities
+      vim
+      neovim
+      neovide
+      tree
+      mupdf
 
-          ## Programming development
-          git
-          git-credential-manager
-          git-lfs
-          git-repo
-          git-filter-repo
-          gh
+      ## Programming development
+      git
+      git-credential-manager
+      git-lfs
+      git-repo
+      git-filter-repo
+      gh
 
-          ## LSPs for Neovim
-          nixd
-          lua-language-server
-          bash-language-server
-          typescript-language-server
-          biome # Is also formatter and linter for JavaScript, TypeScript, JSON
-          marksman # Markdown
-          powershell-editor-services # PowerShell
-          powershell
-          pyright # Python
-          clang-tools # clangd
-          gopls # Go
-          rust-analyzer # Rust
-          rustc # Rust
-          zls # Zig
-          lemminx # XML
-          superhtml # HTML
+      ## LSPs for Neovim
+      nixd
+      lua-language-server
+      bash-language-server
+      typescript-language-server
+      biome # Is also formatter and linter for JavaScript, TypeScript, JSON
+      marksman # Markdown
+      powershell-editor-services # PowerShell
+      powershell
+      pyright # Python
+      clang-tools # clangd
+      gopls # Go
+      rust-analyzer # Rust
+      rustc # Rust
+      zls # Zig
+      lemminx # XML
+      superhtml # HTML
 
-          ## Formatters for Neovim
-          nixfmt
-          stylua
-          prettier
-          shfmt # Formatter for bash - called by bashls
-          ruff # Formatter and linter for python
+      ## Formatters for Neovim
+      nixfmt
+      stylua
+      prettier
+      shfmt # Formatter for bash - called by bashls
+      ruff # Formatter and linter for python
 
-          ## Linters for Neovim
-          shellcheck
+      ## Linters for Neovim
+      shellcheck
 
-          ## Parsing engine for Neovim
-          tree-sitter
+      ## Parsing engine for Neovim
+      tree-sitter
 
-          python3
-          nix-prefetch-github
-          cargo
-          zig
-          # The following packages are to support neovim-related builds
-          go
-          nodejs
+      python3
+      nix-prefetch-github
+      cargo
+      zig
+      # The following packages are to support neovim-related builds
+      go
+      nodejs
 
-          # Required for peek.nvim execution
-          deno
+      # Required for peek.nvim execution
+      deno
 
-          # Security related packages
-          gnupg
-          age
-          (callPackage <agenix/pkgs/agenix.nix> { })
-          openssh # Install this as macOS disables use of HW security keys for SSH
+      # Security related packages
+      gnupg
+      age
+      (callPackage <agenix/pkgs/agenix.nix> { })
+      openssh # Install this as macOS disables use of HW security keys for SSH
 
-          ## System Utilities
-          valkey
-          duti
-          rsync
-          ripgrep
-          unzip
-          wget
-          fd
-          squashfsTools
-          bat
-          gnused
-          moreutils
-          jq
-          exiftool
-          ttyplot
-          fastfetch
-          btop
-          hyperfine
+      ## System Utilities
+      valkey
+      duti
+      rsync
+      ripgrep
+      unzip
+      wget
+      fd
+      squashfsTools
+      bat
+      gnused
+      moreutils
+      jq
+      exiftool
+      ttyplot
+      fastfetch
+      btop
+      hyperfine
 
-          ## Desktop and terminal related packages
-          # tmux
-          rectangle
-          stow
+      ## Desktop and terminal related packages
+      # tmux
+      rectangle
+      stow
 
-          ### Sample demo to use overrideAttrs to embed a postPhase in the installation
-          # (_1password-gui.overrideAttrs {
-          #   postPhases = [ "mypostrun" ];
-          #   mypostrun = ''
-          #   echo "Hello World!!!!!"
-          #   echo "This is a postPhase that is executed after installation"
-          #   '';
-          # })
+      ### Sample demo to use overrideAttrs to embed a postPhase in the installation
+      # (_1password-gui.overrideAttrs {
+      #   postPhases = [ "mypostrun" ];
+      #   mypostrun = ''
+      #   echo "Hello World!!!!!"
+      #   echo "This is a postPhase that is executed after installation"
+      #   '';
+      # })
 
-          ## The following packages that could not be installed because these are marked as broken
-          # handbrake
-        ]
-        ++ allTerminalPackages
-        ++ lib.optionals install_onepassword [
-          _1password-cli # Helpful for deploying secrets
-          _1password-gui
-        ]
-        ++ lib.optionals (!isVM) [
-          # Included in builds of the real thing
-          ### The following are to setup use of Yubikey
-          yubikey-manager
-          yubico-piv-tool
+      ## The following packages that could not be installed because these are marked as broken
+      # handbrake
+    ]
+    ++ allTerminalPackages
+    ++ lib.optionals install_onepassword [
+      _1password-cli # Helpful for deploying secrets
+      _1password-gui
+    ]
+    ++ lib.optionals (!isVM) [
+      # Included in builds of the real thing
+      ### The following are to setup use of Yubikey
+      yubikey-manager
+      yubico-piv-tool
 
-          protonmail-desktop
-          bitwarden-desktop
+      protonmail-desktop
+      bitwarden-desktop
 
-          element-desktop
+      element-desktop
 
-          # For installing mas packages
-          mas
+      # For installing mas packages
+      mas
 
-          ## VM related stuff
-          utm
-          podman
-          rustup
+      ## VM related stuff
+      utm
+      podman
+      rustup
 
-          ## Multimedia related utilities
-          vlc-bin
-          audacity
+      ## Multimedia related utilities
+      vlc-bin
+      audacity
 
-          ## P2P support
-          iroh-ssh
-        ]
-      );
+      ## P2P support
+      iroh-ssh
+    ];
 
   # Use a custom configuration.nix location.
   # $ darwin-rebuild switch -I darwin-config=$HOME/.config/nixpkgs/darwin
@@ -616,16 +620,9 @@ in
     [[ -f ${./bashprompt} ]] && source ${./bashprompt}
   '';
 
-  programs.mas = lib.mkIf (!isVM) {
-    enable = true;
-    packages = pkhostcfg.masPackages;
-  };
-
   #!!!! Removed by nix-darwin commit 1d9f622
   # # For /etc/hosts - do not publicize contents for security reasons
   # networking.hostFiles = [ "/etc/hosts.private" ];
-
-  networking = if builtins.hasAttr "networking" pkhostcfg then pkhostcfg.networking else { };
 
   # Add sudo_local security services
   security.pam.services.sudo_local = {
@@ -746,59 +743,44 @@ in
   # system.activationScripts.postActivation.text = lib.mkAfter ''
   #   echo "I am in PostActivation"
   # '';
-  system.activationScripts.postActivation.text = lib.mkAfter pkhostcfg.postActivationScriptText;
 
   # Do not allow Guest login
   system.defaults.loginwindow.GuestEnabled = false;
 
-  system.defaults.NSGlobalDomain.AppleShowAllExtensions = lib.mkIf pkhostcfg.isHeadlessServer true;
+  services = {
+    openssh = {
+      enable = true;
 
-  # For headless server - never sleep
-  power.sleep = lib.mkIf pkhostcfg.isHeadlessServer {
-    computer = "never";
-    display = "never";
+      # Pass all structural configuration variables directly as raw configurations
+      extraConfig = ''
+        # 1. Enforce Public Key Authentication exclusively
+        PasswordAuthentication no
+        ChallengeResponseAuthentication no
+        KbdInteractiveAuthentication no
+
+        # 2. Prevent remote root session access elevation attempts
+        PermitRootLogin no
+
+        # 3. Limit structural attack vectors by disabling older tunnel mechanics
+        X11Forwarding no
+        AllowTcpForwarding yes
+
+        # 4. Proactively close stale connections that freeze up host threads
+        ClientAliveInterval 300
+        ClientAliveCountMax 2
+
+        # 5. Restrict connection boundaries exclusively to your active deployment account
+        # Replace 'admin' with your actual macOS account username
+        AllowUsers ${userInfo.name}
+      '';
+    };
+
+    # Enable tailscale only if not in VM
+    tailscale.enable = !isVM;
+
+    # Enable global system-wide redis
+    redis.enable = true;
   };
-
-  services = lib.mkMerge [
-    {
-      openssh = {
-        enable = true;
-
-        # Pass all structural configuration variables directly as raw configurations
-        extraConfig = ''
-          # 1. Enforce Public Key Authentication exclusively
-          PasswordAuthentication no
-          ChallengeResponseAuthentication no
-          KbdInteractiveAuthentication no
-
-          # 2. Prevent remote root session access elevation attempts
-          PermitRootLogin no
-
-          # 3. Limit structural attack vectors by disabling older tunnel mechanics
-          X11Forwarding no
-          AllowTcpForwarding yes
-
-          # 4. Proactively close stale connections that freeze up host threads
-          ClientAliveInterval 300
-          ClientAliveCountMax 2
-
-          # 5. Restrict connection boundaries exclusively to your active deployment account
-          # Replace 'admin' with your actual macOS account username
-          AllowUsers ${userInfo.name}
-        '';
-      };
-
-      # Enable tailscale only if not in VM
-      tailscale.enable = !isVM;
-
-      # Enable global system-wide redis
-      redis.enable = true;
-    }
-
-    # Add host-specific services
-    pkhostcfg.services
-
-  ];
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog

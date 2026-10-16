@@ -6,6 +6,7 @@
 }:
 let
   cfghost = config.secrets.target.host;
+  Helpers = config.helpers;
 in
 builtins.seq [ pkgs lib ] {
   ### Homebrew setup.
@@ -32,11 +33,73 @@ builtins.seq [ pkgs lib ] {
     };
     ### End Setup for updates via Nix
 
-    brews = cfghost.hostbrew.brews;
+    brews = [
+      "exercism"
+      "mole"
+    ];
 
-    casks = cfghost.hostbrew.casks;
-
-    masApps = cfghost.hostbrew.masApps;
+    casks = [
+      {
+        name = "whatsapp";
+        greedy = true;
+      }
+      {
+        name = "signal";
+        greedy = true;
+        postinstall = Helpers.restartApp "Signal";
+      }
+      {
+        name = "keet";
+        greedy = true;
+      }
+      {
+        name = "google-drive";
+        greedy = true;
+      }
+      {
+        name = "google-chrome";
+        greedy = true;
+        postinstall = Helpers.restartApp "Google Chrome";
+      }
+      {
+        name = "brave-browser";
+        greedy = true;
+        postinstall = Helpers.restartApp "Brave Browser";
+      }
+      {
+        name = "proton-drive";
+        greedy = true;
+        postinstall = Helpers.restartApp "Proton Drive";
+      }
+      {
+        name = "proton-meet";
+        greedy = true;
+      }
+      {
+        name = "logos";
+        greedy = true;
+      }
+      {
+        name = "microsoft-office";
+        greedy = true;
+      }
+      {
+        name = "zoom";
+        greedy = true;
+      }
+      {
+        name = "affinity";
+        greedy = true;
+      }
+      {
+        name = "handbrake-app";
+        greedy = true;
+      }
+      {
+        name = "yubico-authenticator";
+        greedy = true;
+      }
+    ];
   };
 }
 # vim: set ts=2 sw=2 et ft=nix:

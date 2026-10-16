@@ -35,12 +35,6 @@ let
         ./common/options-ssh.nix
         ./host/options-usermap.nix
         ./host/options-1password.nix
-        ./host/options-packages.nix
-        ./host/options-hostbrew.nix
-        ./host/options-networking.nix
-        ./host/options-services.nix
-        ./host/options-postActivationScripts.nix
-        ./host/options-headless.nix
       ];
     };
 
@@ -159,12 +153,6 @@ in
     secrets.users = importConfig ./user;
 
     assertions = [
-      {
-        # Check the target host networking must be present for non-VM machine
-        assertion = config.machineInfo.is_vm || (builtins.hasAttr "networking" cfghost);
-        message = "networking configuration must be defined in ${<darwin-secrets>}/host/${cfghost.name}/default.nix";
-      }
-
       {
         # Check the target user private key file
         assertion = (sshpkfile == null) || (builtins.pathExists (mkAbsPath sshpkfile));

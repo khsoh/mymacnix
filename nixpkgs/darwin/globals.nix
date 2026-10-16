@@ -77,6 +77,14 @@ in
         || (builtins.any (x: getBrewName x == name) config.homebrew.casks)
         # Check casks
         || (builtins.hasAttr name config.homebrew.masApps); # Check Mac App Store apps
+
+      ## Helper functions to restart apps
+      restartApp = app: ''
+        ${./jxa/reqCloseApp.js} \"${app}\"
+      '';
+      restartApp2 = appName: procName: ''
+        ${./jxa/reqCloseApp.js} \"${appName}\" \"${procName}\"
+      '';
     };
 
   };
