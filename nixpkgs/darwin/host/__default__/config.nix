@@ -5,7 +5,10 @@
   ...
 }:
 {
-  programs.mas.enable = false;
+  programs.mas = lib.mkForce {
+    enable = false;
+    packages = { };
+  };
 
   homebrew.brews = lib.mkForce [ ];
   homebrew.casks = lib.mkForce [ ];
