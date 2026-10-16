@@ -62,6 +62,9 @@ let
     else
       "__default__";
   hostConfigPath = ./host + "/${hostname}/config.nix";
+  defaultHostConfigPath = ./host + "/__default__/config.nix";
+  actualHostConfigPath =
+    if builtins.pathExists hostConfigPath then hostConfigPath else defaultHostConfigPath;
 
 in
 {
@@ -77,7 +80,7 @@ in
     ./machine.nix
     ./postActivation
   ]
-  ++ lib.optional (builtins.pathExists hostConfigPath) hostConfigPath;
+  ++ [ actualHostConfigPath ];
 
   ######### Configuration of modules #########
 

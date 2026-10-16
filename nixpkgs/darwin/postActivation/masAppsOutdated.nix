@@ -14,7 +14,7 @@ let
 in
 {
   system.activationScripts.preActivation.text =
-    lib.mkIf config.homebrew.enable
+    lib.mkIf config.programs.mas.enable
       # bash
       ''
         MAS=${pkgs.mas}/bin/mas
