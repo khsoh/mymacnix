@@ -5,6 +5,20 @@
   ...
 }:
 {
+  environment.interactiveShellInit = ''
+    alias docker="podman"
+    alias docker-compose="podman-compose"
+
+    # Monitoring memory space when hosting 32B+ models locally
+    alias llm-stat="top -o mem"
+    alias ollama-qwen="ollama run qwen3.5:32b"
+  '';
+
+  environment.variables = {
+    # Dynamically injects the correct user home path (e.g., /Users/yourname)
+    DOCKER_HOST = "unix://${config.home.homeDirectory}/.local/share/containers/podman/machine/podman.sock";
+  };
+
   environment.systemPackages = lib.mkForce (
     with pkgs;
     [

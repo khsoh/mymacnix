@@ -80,4 +80,15 @@ in
     localHostName = "MacBook-Pro";
     computerName = "MacBook-Pro";
   };
+
+  system.defaults.dock.persistent-apps = [
+    "/System/Applications/Calendar.app"
+    "/System/Applications/Contacts.app"
+    "/System/Applications/Messages.app"
+    "/System/Applications/Phone.app"
+    "/System/Applications/iPhone Mirroring.app"
+    "/System/Applications/Photos.app"
+    "/System/Applications/Notes.app"
+    "/System/Applications/Reminders.app"
+  ];
 }

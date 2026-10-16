@@ -665,16 +665,6 @@ in
         "/System/Applications/Preview.app"
         "/System/Applications/System Settings.app"
       ]
-      ++ lib.optionals (!isVM) [
-        "/System/Applications/Calendar.app"
-        "/System/Applications/Contacts.app"
-        "/System/Applications/Messages.app"
-        "/System/Applications/Phone.app"
-        "/System/Applications/iPhone Mirroring.app"
-        "/System/Applications/Photos.app"
-        "/System/Applications/Notes.app"
-        "/System/Applications/Reminders.app"
-      ]
       ++ map (p: Helpers.getMacBundleAppName p) allTerminalPackages
       ++ lib.optional (Helpers.pkgInstalled pkgs.google-chrome) (
         Helpers.getMacBundleAppName pkgs.google-chrome
