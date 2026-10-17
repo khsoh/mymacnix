@@ -6,9 +6,6 @@
 }:
 let
   isVM = config.machineInfo.is_vm;
-
-  standardPriority = 1000;
-  mkHostOverride = lib.mkOverride (standardPriority - 100);
 in
 {
   environment.interactiveShellInit = ''
@@ -26,100 +23,14 @@ in
   };
 
   # Override the default systemPackages
-  environment.systemPackages = mkHostOverride (
-    with pkgs;
-    [
-      ## Viewers, editors and supporting utilities
-      vim
-      neovim
-      neovide
-      tree
-      mupdf
-
-      ## Programming development
-      git
-      git-credential-manager
-      git-lfs
-      git-repo
-      git-filter-repo
-      gh
-
-      ## LSPs for Neovim
-      nixd
-      lua-language-server
-      bash-language-server
-      typescript-language-server
-      biome # Is also formatter and linter for JavaScript, TypeScript, JSON
-      marksman # Markdown
-      powershell-editor-services # PowerShell
-      powershell
-      pyright # Python
-      clang-tools # clangd
-      gopls # Go
-      rust-analyzer # Rust
-      rustc # Rust
-      zls # Zig
-      lemminx # XML
-      superhtml # HTML
-
-      ## Formatters for Neovim
-      nixfmt
-      stylua
-      prettier
-      shfmt # Formatter for bash - called by bashls
-      ruff # Formatter and linter for python
-
-      ## Linters for Neovim
-      shellcheck
-
-      ## Parsing engine for Neovim
-      tree-sitter
-
-      python3
-      nix-prefetch-github
-      cargo
-      zig
-      # The following packages are to support neovim-related builds
-      go
-      nodejs
-
-      # Required for peek.nvim execution
-      deno
-
-      # Security related packages
-      gnupg
-      age
-      (callPackage <agenix/pkgs/agenix.nix> { })
-      openssh # Install this as macOS disables use of HW security keys for SSH
-
-      ## System Utilities
-      valkey
-      duti
-      rsync
-      ripgrep
-      unzip
-      wget
-      fd
-      squashfsTools
-      bat
-      gnused
-      moreutils
-      jq
-      fastfetch
-      btop
-      hyperfine
-
-      stow
-
-      ghostty-bin
-      _1password-cli # Helpful for deploying secrets
-      _1password-gui
-      # For installing mas packages
-      mas
-      # Supporting podman
-      podman-compose
-    ]
-  );
+  environment.systemPackages = with pkgs; [
+    _1password-cli # Helpful for deploying secrets
+    _1password-gui
+    # For installing mas packages
+    mas
+    # Supporting podman
+    podman-compose
+  ];
 
   programs.mas = lib.mkForce {
     enable = !isVM;

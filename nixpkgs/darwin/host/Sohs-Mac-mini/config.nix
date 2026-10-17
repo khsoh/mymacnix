@@ -5,6 +5,39 @@
   ...
 }:
 {
+  environment.systemPackages = with pkgs; [
+    exiftool
+    ttyplot
+
+    ## Desktop and terminal related packages
+    rectangle
+
+    # Included in builds of the real thing
+    ### The following are to setup use of Yubikey
+    yubikey-manager
+    yubico-piv-tool
+
+    protonmail-desktop
+    bitwarden-desktop
+
+    element-desktop
+
+    # For installing mas packages
+    mas
+
+    ## VM related stuff
+    utm
+    podman
+    rustup
+
+    ## Multimedia related utilities
+    vlc-bin
+    audacity
+
+    ## P2P support
+    iroh-ssh
+  ];
+
   homebrew.casks = [
     {
       name = "discord";

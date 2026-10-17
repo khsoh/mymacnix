@@ -225,15 +225,10 @@ in
       gnused
       moreutils
       jq
-      exiftool
-      ttyplot
       fastfetch
       btop
       hyperfine
 
-      ## Desktop and terminal related packages
-      # tmux
-      rectangle
       stow
 
       ### Sample demo to use overrideAttrs to embed a postPhase in the installation
@@ -252,32 +247,6 @@ in
     ++ lib.optionals install_onepassword [
       _1password-cli # Helpful for deploying secrets
       _1password-gui
-    ]
-    ++ lib.optionals (!isVM) [
-      # Included in builds of the real thing
-      ### The following are to setup use of Yubikey
-      yubikey-manager
-      yubico-piv-tool
-
-      protonmail-desktop
-      bitwarden-desktop
-
-      element-desktop
-
-      # For installing mas packages
-      mas
-
-      ## VM related stuff
-      utm
-      podman
-      rustup
-
-      ## Multimedia related utilities
-      vlc-bin
-      audacity
-
-      ## P2P support
-      iroh-ssh
     ];
 
   # Use a custom configuration.nix location.
