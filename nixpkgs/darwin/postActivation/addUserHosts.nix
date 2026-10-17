@@ -36,7 +36,7 @@ in
             NEW_BLOCK+="$END_MARKER"
 
             # Extract the existing block and strip its blank lines
-            CURRENT_BLOCK=$(sed -n "/$START_MARKER/,/$END_MARKER/p" /etc/hosts | grep -v "^\s*$")
+            CURRENT_BLOCK=$(sed -n "/$START_MARKER/,/$END_MARKER/p" /etc/hosts | grep -v "^\s*$" || echo "")
 
             # Only edit /etc/hosts if the contents do not match
             if [ "$NEW_BLOCK" != "$CURRENT_BLOCK" ]; then
