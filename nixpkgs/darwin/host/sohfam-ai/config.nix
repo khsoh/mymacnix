@@ -16,7 +16,7 @@
 
   environment.variables = {
     # Dynamically injects the correct user home path (e.g., /Users/yourname)
-    DOCKER_HOST = "unix://${config.home.homeDirectory}/.local/share/containers/podman/machine/podman.sock";
+    DOCKER_HOST = "unix:///Users/${config.system.primaryUser}/.local/share/containers/podman/machine/podman.sock";
   };
 
   environment.systemPackages = lib.mkForce (
