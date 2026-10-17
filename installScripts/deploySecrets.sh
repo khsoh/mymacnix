@@ -83,19 +83,13 @@ XUSER=$(run "/usr/bin/id -un")
 
 PKDATA=$(nix-instantiate --eval --strict --json -E "
   let
-    removeFunctions = value:
-      if builtins.isAttrs value then
-        builtins.listToAttrs (
-          builtins.concatMap (name:
-            let val = value.\${name};
-            in if builtins.isFunction val then [ ] else [ { name = name; value = removeFunctions val; } ]
-          ) (builtins.attrNames value)
-        )
-      else if builtins.isList value then
-        builtins.map (e: removeFunctions e) (builtins.filter (e: !builtins.isFunction e) value)
-      else
-        value;
-  in removeFunctions (import (<darwin-secrets> + \"/deploy.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; })
+    obj = (import (<darwin-secrets> + \"/deploy.nix\") { host=\"$XHOST\"; user=\"$XUSER\"; });
+  in {
+    userName = obj.user.name;
+    userDeployment = obj.user.deployment;
+    hostName = obj.host.name;
+    hostDeployment = obj.host.deployment;
+  }
 ")
 
 USERCMDS=$(
@@ -127,9 +121,9 @@ print_green "Creating clean deployment directory in ~/.deploy at $XHOST"
 run "rm -rf ~/.deploy && mkdir -p ~/.deploy/root"
 
 ## Copy the user secrets
-XUSER=$(echo $PKDATA | jq '.user.name')
+XUSER=$(echo $PKDATA | jq '.userName')
 print_green "Deploying secrets from <darwin-secrets>/user/${XUSER}"
-echo $PKDATA | jq '.user.deployment' | jq -c '.[]' | while read -r item; do
+echo $PKDATA | jq '.userDeployment' | jq -c '.[]' | while read -r item; do
     opuri=$(echo "$item" | jq -r ".OPURI")
     file=$(echo "$item" | jq -r ".FILE")
     cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
@@ -148,9 +142,9 @@ USERCMDS="$USERCMDS\npopd\nprintf \"\${ESC}\""
 echo "$USERCMDS" | run "cat > ~/.deploy/userdeploy.sh && chmod +x ~/.deploy/userdeploy.sh"
 
 ## Copy the host secrets
-XHOST=$(echo $PKDATA | jq '.host.name')
+XHOST=$(echo $PKDATA | jq '.hostName')
 print_green "Deploying secrets from <darwin-secrets>/host/${XHOST}"
-echo $PKDATA | jq '.host.deployment' | jq -c '.[]' | while read -r item; do
+echo $PKDATA | jq '.hostDeployment' | jq -c '.[]' | while read -r item; do
     opuri=$(echo "$item" | jq -r ".OPURI")
     file=$(echo "$item" | jq -r ".FILE")
     cmds=$(echo "$item" | jq -r ".POSTCMD" | jq -r '.[]')
