@@ -6,6 +6,9 @@
 }:
 let
   isVM = config.machineInfo.is_vm;
+
+  standardPriority = 1000;
+  mkHostOverride = lib.mkOverride (standardPriority - 100);
 in
 {
   environment.interactiveShellInit = ''
@@ -23,7 +26,7 @@ in
   };
 
   # Override the default systemPackages
-  environment.systemPackages = lib.mkOverride (lib.modules.defaultPriority - 50) (
+  environment.systemPackages = mkHostOverride (
     with pkgs;
     [
       ## Viewers, editors and supporting utilities
