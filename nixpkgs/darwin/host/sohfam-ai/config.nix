@@ -4,6 +4,9 @@
   config,
   ...
 }:
+let
+  isVM = config.machineInfo.is_vm;
+in
 {
   environment.interactiveShellInit = ''
     alias docker="podman"
@@ -114,20 +117,20 @@
     ]
   );
 
-  programs.mas.packages = lib.mkForce {
-    "Xcode" = 497799835;
+  programs.mas = lib.mkForce {
+    enable = !isVM;
+    packages = {
+      "Xcode" = 497799835;
+    };
   };
 
-  homebrew.brews = [
+  homebrew.brews = lib.mkForce [
     "ollama"
     "podman"
+    "mole"
   ];
 
-  homebrew.casks = [
-    {
-      name = "bazecor";
-      greedy = true;
-    }
+  homebrew.casks = lib.mkForce [
   ];
 
   ## Postactivation script for sohfam-ai
