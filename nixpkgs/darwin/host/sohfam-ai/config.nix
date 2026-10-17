@@ -131,7 +131,7 @@
   ];
 
   ## Postactivation script for sohfam-ai
-  postActivationScriptText = ''
+  system.activationScripts.postActivation.text = ''
     echo "Ensuring Remote Login (SSH) is enabled..."
     /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
 
