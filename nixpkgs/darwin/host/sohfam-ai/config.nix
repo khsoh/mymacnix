@@ -22,7 +22,8 @@ in
     DOCKER_HOST = "unix:///Users/${config.system.primaryUser}/.local/share/containers/podman/machine/podman.sock";
   };
 
-  environment.systemPackages = lib.mkForce (
+  # Override the default systemPackages
+  environment.systemPackages = lib.mkOverride (lib.modules.defaultPriority - 50) (
     with pkgs;
     [
       ## Viewers, editors and supporting utilities
