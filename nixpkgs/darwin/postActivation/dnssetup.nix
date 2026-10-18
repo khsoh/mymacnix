@@ -44,9 +44,11 @@
             # shellcheck disable=SC2059
             printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for Quad9 Secured DNS\n"
             /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
+
             # shellcheck disable=SC2059
             printf "''${RED}"
-            read -n 1 -s -r -p "...Press any key after you have installed the profile..."
+            /usr/bin/read -n 1 -s -r -p "...Press any key after you have installed the profile..." < /dev/tty
+
             # shellcheck disable=SC2059
             printf "''${ESC}"
             echo ""
