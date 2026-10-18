@@ -7,6 +7,8 @@
   ...
 }:
 let
+  isVM = osConfig.machineInfo.is_vm;
+
   ## Use builtins.seq to disable editor diagnostic warning about unused 'user' parameter
   homecfg = builtins.seq user config.home;
   onepasscfg = osConfig.secrets.target.host.onepassword;
@@ -884,7 +886,7 @@ in
 
                 app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
             EOF_javascript
-            ${lib.optionalString (builtins.pathExists secretsjsonPath)
+            ${lib.optionalString (!isVM && builtins.pathExists secretsjsonPath)
               # zsh
               ''
                 IMSGID=$(${pkgs.jq}/bin/jq  -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
@@ -1049,7 +1051,7 @@ in
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
-            ${lib.optionalString (builtins.pathExists secretsjsonPath)
+            ${lib.optionalString (!isVM && builtins.pathExists secretsjsonPath)
               # zsh
               ''
                 IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
@@ -1182,7 +1184,7 @@ in
                 GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
                 if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                   EXIT_STATUS=0
-                  ${lib.optionalString (builtins.pathExists secretsjsonPath)
+                  ${lib.optionalString (!isVM && builtins.pathExists secretsjsonPath)
                     # zsh
                     ''
                       IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
