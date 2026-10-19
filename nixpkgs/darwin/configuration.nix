@@ -409,9 +409,9 @@ in
           END_MARKER="# --- END AGENIX HOSTS ---"
 
           # Create the new block
-          NEW_BLOCK="$START_MARKER
-          $( [ -f "$SECRET_PATH" ] && cat "$SECRET_PATH" || echo "" )
-          $END_MARKER"
+          NEW_BLOCK="$START_MARKER$'\n'
+          [ -f "$SECRET_PATH" ] && NEW_BLOCK+=$(cat "$SECRET_PATH")$'\n' || true
+          NEW_BLOCK+="$END_MARKER"
 
           # Extract the existing block and strip its blank lines
           CURRENT_BLOCK=$(sed -n "/$START_MARKER/,/$END_MARKER/p" /etc/hosts | grep -v "^\s*$" || echo "")
