@@ -1366,15 +1366,13 @@ in
               printf "\n''${GREEN}''${BOLD}--- Executing 1Password ---''${ESC}\n"
               run ${open} -a "1Password" --args --silent
               sleep 2
-
-              # Ensure at least one account is configured on this machine
-              OPACCTS=$(${OPCLI} account list 2>/dev/null)
-              if [ "$(echo "$OPACCTS" | wc -l)" -lt 2 ]; then
-                printf "''${BLUE}''${BOLD}==>''${ESC} Not yet signed in to your 1Password account\n"
-              fi
-
             fi
 
+            # Ensure at least one account is configured on this machine
+            OPACCTS=$(${OPCLI} account list 2>/dev/null)
+            if [ "$(echo "$OPACCTS" | wc -l)" -lt 2 ]; then
+              printf "''${RED}''${BOLD}==> Not yet signed in to your 1Password account''${ESC}\n"
+            fi
           ''
       );
 
