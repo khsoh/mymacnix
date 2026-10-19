@@ -1368,9 +1368,9 @@ in
               sleep 2
 
               # Ensure at least one account is configured on this machine
-              if ! ${OPCLI} account list > /dev/null 2>&1; then
-                printf "''${BLUE}''${BOLD}==>''${ESC} No 1Password account found. Starting initial setup...\n"
-                ${OPCLI} account add
+              OPACCTS=$(${OPCLI} account list 2>/dev/null)
+              if [ "$(echo "$OPACCTS" | wc -l)" -lt 2 ]; then
+                printf "''${BLUE}''${BOLD}==>''${ESC} Not yet signed in to your 1Password account\n"
               fi
 
             fi
