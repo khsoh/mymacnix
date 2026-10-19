@@ -48,6 +48,9 @@
 
             # Block from further execution until OK button is pressed
             /bin/launchctl asuser "$CUSERID" /usr/bin/osascript -e 'display dialog "Press OK after you have finished installing the configuration profile." buttons {"OK"} default button "OK" with title "Profile Installation"' >/dev/null 2>&1
+
+            # shellcheck disable=SC2059
+            printf "''${BLUE}''${BOLD}==>''${ESC} Completed installation of Quad9 Secured DNS profile\n"
           fi
 
           ## Check the DNS setup

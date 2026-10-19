@@ -27,6 +27,7 @@ in
         # shellcheck disable=SC2059
         printf "''${GREEN}''${BOLD}======== nixpkgs Apps re-registration ========''${ESC}\n"
         PRINT_HEADER=1
+        CUSERID=$(/usr/bin/id -u "$(/usr/bin/stat -f%Su /dev/console)")
 
         # 1. Map previous binaries to their store paths
         # We use 'find' to safely resolve every symlink in the old bin directory.
@@ -122,7 +123,7 @@ in
                 sleep 3
                 # shellcheck disable=SC2059
                 printf "''${RED}==>''${ESC} Re-opening $APP_NAME...\n"
-                open "$FULLAPP"
+                /bin/launchctl asuser "$CUSERID" /usr/bin/open "$FULLAPP"
               fi
               echo ""
             fi
