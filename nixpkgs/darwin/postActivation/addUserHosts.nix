@@ -53,27 +53,24 @@ in
           printf "''${BLUE}''${BOLD}==>''${ESC} Completed User Host Mappings\n"
         ''
       )
+    else if (userHostsPath == null) then
+      (lib.mkAfter
+        # bash
+        ''
+          # shellcheck disable=SC2059
+          printf "''${GREEN}''${BOLD}======== Skipping User Host Mappings ========''${ESC}\n"
+          # shellcheck disable=SC2059
+          printf "''${GREEN}''${BOLD}  ====== userHostsPath is null ========''${ESC}\n"
+        ''
+      )
     else
-      (
-        lib.mkAfter
-          # bash
-          ''
-            # shellcheck disable=SC2059
-            printf "''${GREEN}''${BOLD}======== Skipping User Host Mappings ========''${ESC}\n"
-          ''
-        + (
-          if (userHostsPath == null) then
-            # bash
-            ''
-              # shellcheck disable=SC2059
-              printf "''${GREEN}''${BOLD}  ====== userHostsPath is null ========''${ESC}\n"
-            ''
-          else
-            # bash
-            ''
-              # shellcheck disable=SC2059
-              printf "''${GREEN}''${BOLD}  ====== userHostsPath: ${toString userHostsPath} does not exist ========''${ESC}\n"
-            ''
-        )
+      (lib.mkAfter
+        # bash
+        ''
+          # shellcheck disable=SC2059
+          printf "''${GREEN}''${BOLD}======== Skipping User Host Mappings ========''${ESC}\n"
+          # shellcheck disable=SC2059
+          printf "''${GREEN}''${BOLD}  ====== userHostsPath: ${toString userHostsPath} does not exist ========''${ESC}\n"
+        ''
       );
 }
