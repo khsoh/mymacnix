@@ -400,7 +400,7 @@ in
         "-c"
         # zsh
         ''
-          sleep 2   # Wait a while for file to be completely updated
+          sleep 5   # Wait a while for file to be completely updated
 
           # Nix will automatically evaluate this to your user's specific runtime path
           SECRET_PATH="${userHostsPath}"
@@ -419,7 +419,7 @@ in
           # Only edit /etc/hosts if the contents do not match
           if [ "$NEW_BLOCK" != "$CURRENT_BLOCK" ]; then
             # Root cleans out the old markers from /etc/hosts
-            sed -i "" "/$START_MARKER/,/$END_MARKER/d" /etc/hosts
+            sed -i "/$START_MARKER/,/$END_MARKER/d" /etc/hosts
 
             # Add in the new block
             echo "$NEW_BLOCK" >> /etc/hosts
