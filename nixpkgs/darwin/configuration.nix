@@ -66,6 +66,16 @@ let
   actualHostConfigPath =
     if builtins.pathExists hostConfigPath then hostConfigPath else defaultHostConfigPath;
 
+  # The following is for updating /etc/hosts
+  userHostsPath = lib.attrByPath [
+    "home-manager"
+    "users"
+    config.system.primaryUser
+    "age"
+    "secrets"
+    "custom-hosts"
+    "path"
+  ] null config;
 in
 {
   # Replace with pkgs-pinned packages (the default)
@@ -365,6 +375,54 @@ in
               app.displayNotification("Contents of Host Age Public key file ${pkhostcfg.agecfg.PUBFILE} does not match with its pubkey attribute value in ${pkhostDir}/default.nix!", { withTitle: "Security Alert" });
               void(0);
           EOF_javascript
+          fi
+        ''
+      ];
+    };
+  };
+
+  launchd.daemons.hosts-file-update = lib.mkIf (userHostsPath != null) {
+    serviceConfig = {
+      Label = "org.nixos.host-file-update";
+      RunAtLoad = true;
+
+      # Use the one-shot settings to prevent looping
+      KeepAlive = false;
+      AbandonProcessGroup = true;
+
+      WatchPaths = [
+        "${userHostsPath}"
+      ];
+      StandardOutPath = "/var/log/org.nixos.host-file-update-Out.log";
+      StandardErrorPath = "/var/log/org.nixos.host-file-update-Error.log";
+      ProgramArguments = [
+        "${pkgs.zsh}/bin/zsh"
+        "-c"
+        # zsh
+        ''
+          sleep 2   # Wait a while for file to be completely updated
+
+          # Nix will automatically evaluate this to your user's specific runtime path
+          SECRET_PATH="${userHostsPath}"
+
+          START_MARKER="# --- START AGENIX HOSTS ---"
+          END_MARKER="# --- END AGENIX HOSTS ---"
+
+          # Create the new block
+          NEW_BLOCK="$START_MARKER
+          $( [ -f "$SECRET_PATH" ] && cat "$SECRET_PATH" || echo "" )
+          $END_MARKER"
+
+          # Extract the existing block and strip its blank lines
+          CURRENT_BLOCK=$(sed -n "/$START_MARKER/,/$END_MARKER/p" /etc/hosts | grep -v "^\s*$" || echo "")
+
+          # Only edit /etc/hosts if the contents do not match
+          if [ "$NEW_BLOCK" != "$CURRENT_BLOCK" ]; then
+            # Root cleans out the old markers from /etc/hosts
+            sed -i "" "/$START_MARKER/,/$END_MARKER/d" /etc/hosts
+
+            # Add in the new block
+            echo "$NEW_BLOCK" >> /etc/hosts
           fi
         ''
       ];

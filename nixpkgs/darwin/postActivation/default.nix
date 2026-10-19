@@ -11,7 +11,6 @@ in
     ./nixAppsRegister.nix
     ./checkPinnedPkgs.nix
     ./masAppsOutdated.nix
-    ./addUserHosts.nix
     ./brewCleanup.nix
   ];
 
