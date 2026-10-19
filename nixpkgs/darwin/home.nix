@@ -1345,7 +1345,7 @@ in
               run ${open} "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
 
               # Block from further execution until OK button is pressed
-              /usr/bin/osascript -e 'display dialog "Press OK after you have finished installing the configuration profile." buttons {"OK"} default button "OK" with title "1Password Profile Installation"' >/dev/null 2>&1
+              /usr/bin/osascript -e 'display dialog "Press OK after you have finished installing the 1Password configuration profile." buttons {"OK"} default button "OK" with title "1Password Profile Installation"' >/dev/null 2>&1
             fi
           ''
       );
