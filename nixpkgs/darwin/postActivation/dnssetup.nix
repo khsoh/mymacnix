@@ -16,6 +16,7 @@
         TMPFILE=$(/usr/bin/mktemp /tmp/quad9.XXXXXX)
         TMPCFG="$TMPFILE".mobileconfig
         rm -f "$TMPFILE"
+        CUSERID=$(/usr/bin/id -u "$(/usr/bin/stat -f%Su /dev/console)")
 
 
         ### Validate the configuration file and save the clean config into temporary file
@@ -45,13 +46,8 @@
             printf "''${BLUE}''${BOLD}==>''${ESC} Installing Profile UUID $PAYLOAD_UUID version $PAYLOAD_VERSION for Quad9 Secured DNS\n"
             /usr/bin/open "x-apple.systempreferences:com.apple.preferences.configurationprofiles" "$CFGFILE"
 
-            # shellcheck disable=SC2059
-            printf "''${RED}"
-            /usr/bin/read -n 1 -s -r -p "...Press any key after you have installed the profile..." < /dev/tty
-
-            # shellcheck disable=SC2059
-            printf "''${ESC}"
-            echo ""
+            # Block from further execution until OK button is pressed
+            /bin/launchctl asuser "$CUSERID" /usr/bin/osascript -e 'display dialog "Press OK after you have finished installing the configuration profile." buttons {"OK"} default button "OK" with title "Profile Installation"' >/dev/null 2>&1
           fi
 
           ## Check the DNS setup
