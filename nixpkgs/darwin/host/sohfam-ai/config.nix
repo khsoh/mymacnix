@@ -28,6 +28,10 @@ in
     docker-compose
   ];
 
+  environment.variables = {
+    DOCKER_HOST = "unix://${userInfo.home}/.docker/run/docker.sock";
+  };
+
   programs.mas = lib.mkForce {
     enable = !isVM;
     packages = {
