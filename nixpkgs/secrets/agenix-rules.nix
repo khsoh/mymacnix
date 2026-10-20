@@ -29,10 +29,20 @@ let
 
   rawHostSecrets = importIfExists hostSecrets;
   rawUserSecrets = importIfExists userSecrets;
+
+  admin = cfgsec.users.khsoh.agecfg.pubkey;
+  nondefaultHostKeys = map (x: x.agecfg.pubkey) (
+    builtins.attrValues (removeAttrs cfgsec.hosts [ "__default__" ])
+  );
 in
 {
   "mac-raise2.json.age" = {
     publicKeys = map (x: x.agecfg.pubkey) (allHosts ++ allUsers);
+    armor = true;
+  };
+
+  "hosts.age" = {
+    publicKeys = [ admin ] ++ nondefaultHostKeys;
     armor = true;
   };
 }

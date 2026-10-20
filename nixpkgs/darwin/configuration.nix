@@ -66,16 +66,7 @@ let
   actualHostConfigPath =
     if builtins.pathExists hostConfigPath then hostConfigPath else defaultHostConfigPath;
 
-  # The following is for updating /etc/hosts
-  userHostsPath = lib.attrByPath [
-    "home-manager"
-    "users"
-    config.system.primaryUser
-    "age"
-    "secrets"
-    "custom-hosts"
-    "path"
-  ] null config;
+  isDefaultHost = pkhostcfg.name == "__default__";
 in
 {
   # Replace with pkgs-pinned packages (the default)
@@ -98,6 +89,26 @@ in
   age.identityPaths = lib.mkIf (builtins.pathExists pkhostcfg.agecfg.PKFILE) [
     pkhostcfg.agecfg.PKFILE
   ];
+
+  age.secrets."custom-hosts" = lib.mkIf (!isDefaultHost) {
+    file = /. + "${secretsDir}/hosts.age";
+
+    # path should be a string expression (in quotes), not a path expression
+    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    path = "/etc/nix-darwin/custom-hosts";
+
+    # The default is true if not specified.  We want to make sure that
+    # the "file" (decrypted secret) is symlinked and not generated directly into
+    # that location
+    symlink = true;
+
+    # The following are needed to ensure the decrypted secret has the correct permission
+    mode = "644";
+
+    # Note that the owner and group attribute are absent from home-manager module
+    #owner = "${username}";
+    #group = "staff";
+  };
 
   ##### home-manager configuration
 
@@ -381,7 +392,7 @@ in
     };
   };
 
-  launchd.daemons.hosts-file-update = lib.mkIf (userHostsPath != null) {
+  launchd.daemons.hosts-file-update = lib.mkIf (!isDefaultHost) {
     serviceConfig = {
       Label = "org.nixos.host-file-update";
       RunAtLoad = true;
@@ -391,7 +402,7 @@ in
       AbandonProcessGroup = true;
 
       WatchPaths = [
-        "${userHostsPath}"
+        "${config.age.secrets.custom-hosts.path}"
       ];
       StandardOutPath = "/var/log/org.nixos.host-file-update-Out.log";
       StandardErrorPath = "/var/log/org.nixos.host-file-update-Error.log";
@@ -403,7 +414,7 @@ in
           sleep 5   # Wait a while for file to be completely updated
 
           # Nix will automatically evaluate this to your user's specific runtime path
-          SECRET_PATH="${userHostsPath}"
+          SECRET_PATH="${config.age.secrets.custom-hosts.path}"
 
           START_MARKER="# --- START AGENIX HOSTS ---"
           END_MARKER="# --- END AGENIX HOSTS ---"
