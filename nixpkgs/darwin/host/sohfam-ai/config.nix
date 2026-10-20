@@ -13,18 +13,10 @@ let
 in
 {
   environment.interactiveShellInit = ''
-    alias docker="podman"
-    alias docker-compose="podman-compose"
-
     # Monitoring memory space when hosting 32B+ models locally
     alias llm-stat="top -o mem"
     alias ollama-qwen="ollama run qwen3.5:32b"
   '';
-
-  environment.variables = {
-    # Dynamically injects the correct user home path (e.g., /Users/yourname)
-    DOCKER_HOST = "unix://${userInfo.home}/.local/share/containers/podman/machine/podman.sock";
-  };
 
   # Override the default systemPackages
   environment.systemPackages = with pkgs; [
@@ -32,8 +24,8 @@ in
     _1password-gui
     # For installing mas packages
     mas
-    # Supporting podman
-    podman-compose
+    # Supporting docker
+    docker-compose
   ];
 
   programs.mas = lib.mkForce {
@@ -48,7 +40,7 @@ in
   ];
 
   homebrew.casks = lib.mkForce [
-    "podman-desktop"
+    "docker-desktop"
     "ollama-app"
   ];
 
@@ -105,7 +97,7 @@ in
   };
 
   # Ensure that ~/ai-server directory is created
-  home-manager.users."${userInfo.name}".home.file."ai-server/podman-compose.yml".text = ''
+  home-manager.users."${userInfo.name}".home.file."ai-server/docker-compose.yml".text = ''
     version: '3.8'
 
     services:
@@ -201,23 +193,27 @@ in
   '';
 
   # --- AUTOMATED CONTAINER INFRASTRUCTURE LAUNCH ---
-  launchd.user.agents.podman-compose-startup = {
+  launchd.user.agents.docker-compose-startup = {
     serviceConfig = {
-      Label = "org.podman.compose-startup";
+      Label = "org.docker.compose-startup";
       RunAtLoad = true;
       KeepAlive = false;
-      WorkingDirectory = "${userInfo.home}/ai-server"; # Your docker-compose/podman-compose folder path
-      StandardOutPath = "${userInfo.home}/log/podman-compose-startup.log";
-      StandardErrorPath = "${userInfo.home}/log/podman-compose-startup-err.log";
+      WorkingDirectory = "${userInfo.home}/ai-server"; # Your docker-compose folder path
+      StandardOutPath = "${userInfo.home}/log/docker-compose-startup.log";
+      StandardErrorPath = "${userInfo.home}/log/docker-compose-startup-err.log";
     };
     script = ''
-      # 1. Wait until the background Podman Linux VM finishes booting completely
-      until /opt/homebrew/bin/podman info >/dev/null 2>&1; do
-        sleep 2
+      echo "Initializing headless Docker virtualization platform engine..."
+      # Opens Docker Desktop silently without spawning visual graphical interface layers
+      open -a "Docker" --args --background
+
+      # Polling sequence: block until the local system engine API socket becomes responsive
+      until /Applications/Docker.app/Contents/Resources/bin/docker info >/dev/null 2>&1; do
+        sleep 3
       done
 
-      # 2. Start the stack referencing absolute binary paths
-      /run/current-system/sw/bin/podman-compose --env-file ${config.age.secrets.authentik-env.path} up -d
+      echo "Docker socket responsive. Mounting container stack..."
+      /run/current-system/sw/bin/docker-compose --env-file ${config.age.secrets.authentik-env.path} -f ${userInfo.home}/ai-server/docker-compose.yml up -d
     '';
   };
 }
