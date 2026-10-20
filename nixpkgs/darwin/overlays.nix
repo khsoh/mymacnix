@@ -15,6 +15,15 @@ let
     #   # Override with EOL electron version
     #   permittedInsecurePackages = [ "electron-39.8.10" ];
     # };
+    "audacity" = {
+      url = "https://github.com/NixOS/nixpkgs/archive/f20cd90e28fe.tar.gz"; # GOOD
+      # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
+      ignoredCommits = [
+        "7a6522c86871"
+      ];
+      # Optional: Add a description or version tag for clarity
+      desc = "Used older audacity";
+    };
   };
 
   # 2. Helper function to create the override logic for a single package
