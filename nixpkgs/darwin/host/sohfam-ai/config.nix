@@ -6,6 +6,10 @@
 }:
 let
   isVM = config.machineInfo.is_vm;
+  userInfo = import ./userinfo.nix;
+  secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
+  pkhostcfg = config.secrets.target.host;
+  pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
 in
 {
   environment.interactiveShellInit = ''
@@ -19,7 +23,7 @@ in
 
   environment.variables = {
     # Dynamically injects the correct user home path (e.g., /Users/yourname)
-    DOCKER_HOST = "unix:///Users/${config.system.primaryUser}/.local/share/containers/podman/machine/podman.sock";
+    DOCKER_HOST = "unix://${userInfo.home}/.local/share/containers/podman/machine/podman.sock";
   };
 
   # Override the default systemPackages
@@ -78,5 +82,49 @@ in
     hostName = "sohfam-ai";
     localHostName = "sohfam-ai";
     computerName = "sohfam-ai";
+  };
+
+  age.secrets.authentik-env = lib.mkIf {
+    file = /. + "${pkhostDir}/authentik-env.age";
+
+    # path should be a string expression (in quotes), not a path expression
+    # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
+    # NOT specified - so this defaults to /run/agenix/authentik-env
+
+    # The default is true if not specified.  We want to make sure that
+    # the "file" (decrypted secret) is symlinked and not generated directly into
+    # that location
+    # symlink = true;
+
+    # The following are needed to ensure the decrypted secret has the correct permission
+    mode = "600";
+
+    # Note that the owner and group attribute are absent from home-manager module
+    owner = "${userInfo.name}";
+    group = "staff";
+  };
+
+  # Ensure that ~/ai-server directory is created
+  home-manager.users."${userInfo.name}".home.file."ai-server/.keep".text = "";
+
+  # --- AUTOMATED CONTAINER INFRASTRUCTURE LAUNCH ---
+  launchd.user.agents.podman-compose-startup = {
+    serviceConfig = {
+      Label = "org.podman.compose-startup";
+      RunAtLoad = true;
+      KeepAlive = false;
+      WorkingDirectory = "${userInfo.home}/ai-server"; # Your docker-compose/podman-compose folder path
+      StandardOutPath = "${userInfo.home}/log/podman-compose-startup.log";
+      StandardErrorPath = "${userInfo.home}/log/podman-compose-startup-err.log";
+    };
+    script = ''
+      # 1. Wait until the background Podman Linux VM finishes booting completely
+      until /opt/homebrew/bin/podman info >/dev/null 2>&1; do
+        sleep 2
+      done
+
+      # 2. Start the stack referencing absolute binary paths
+      /run/current-system/sw/bin/podman-compose --env-file ${config.age.secrets.authentik-env.path} up -d
+    '';
   };
 }

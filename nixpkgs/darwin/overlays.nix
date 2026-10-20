@@ -21,6 +21,7 @@ let
       ignoredCommits = [
         "7a6522c86871"
         "f3a77a0c9b18"
+        "682ba80136e2"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Used older audacity";
