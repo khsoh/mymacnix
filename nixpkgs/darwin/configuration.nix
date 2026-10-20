@@ -418,11 +418,8 @@ in
 
           # Only edit /etc/hosts if the contents do not match
           if [ "$NEW_BLOCK" != "$CURRENT_BLOCK" ]; then
-            # Root cleans out the old markers from /etc/hosts
-            sed -i "/$START_MARKER/,/$END_MARKER/d" /etc/hosts
-
-            # Add in the new block
-            echo "$NEW_BLOCK" >> /etc/hosts
+            # Root cleans out the old markers from /etc/hosts and appends a new block
+            sed -i "/$START_MARKER/,/$END_MARKER/d; $ r"<(echo "$NEW_BLOCK") /etc/hosts
           fi
         ''
       ];
