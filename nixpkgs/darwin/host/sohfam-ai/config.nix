@@ -44,12 +44,12 @@ in
   };
 
   homebrew.brews = lib.mkForce [
-    "ollama"
-    "podman"
     "mole"
   ];
 
   homebrew.casks = lib.mkForce [
+    "podman-desktop"
+    "ollama-app"
   ];
 
   ## Postactivation script for sohfam-ai
