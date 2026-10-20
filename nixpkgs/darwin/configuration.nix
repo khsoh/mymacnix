@@ -95,7 +95,7 @@ in
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "/etc/nix-darwin/custom-hosts";
+    # NOT specified - so this defaults to /run/agenix/custom-hosts
 
     # The default is true if not specified.  We want to make sure that
     # the "file" (decrypted secret) is symlinked and not generated directly into
