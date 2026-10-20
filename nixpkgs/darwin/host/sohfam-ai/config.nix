@@ -123,7 +123,7 @@ in
           - redis:/data
 
       authentik-server:
-        image: ghcr.io/goauthentik/server:2026.8.2
+        image: ghcr.io/goauthentik/server:2026.8.4
         restart: unless-stopped
         command: server
         environment:
@@ -144,7 +144,7 @@ in
           - authentik-redis
 
       authentik-worker:
-        image: ghcr.io/goauthentik/server:2026.8.2
+        image: ghcr.io/goauthentik/server:2026.8.4
         restart: unless-stopped
         command: worker
         environment:
@@ -155,6 +155,7 @@ in
           AUTHENTIK_POSTGRESQL__PASSWORD: ''${PG_PASS:?error}
           AUTHENTIK_SECRET_KEY: ''${AUTHENTIK_SECRET_KEY:?error}
         volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
           - ./authentik/media:/media
           - ./authentik/certs:/certs
           - ./authentik/custom-templates:/templates
@@ -164,22 +165,22 @@ in
 
       # --- PRESENTON ---
       presenton:
-        image: ghcr.io/presenton/presenton:latest
+        image: ghcr.io/presenton/presenton:v0.9.11-beta
         restart: unless-stopped
         ports:
           - "5000:80"
         volumes:
           - ./presenton_data:/app/user_data
         environment:
-          - OPENAI_API_BASE=http://containers.internal # Routes Presenton to host's Ollama
+          - OPENAI_API_BASE=http://docker.internal
           - OPENAI_API_KEY=ollama # Dummy string required by OpenAI-compatible endpoints
         extra_hosts:
-          - "host.containers.internal:host-gateway"
+          - "host.docker.internal:host-gateway"
 
       # --- AUTHENTIK PROXY OUTPOST ---
       # Protects Presenton & Ollama endpoints with your Google SSO policy
       authentik-proxy:
-        image: ghcr.io/goauthentik/proxy:latest
+        image: ghcr.io/goauthentik/proxy:2026.8.4
         restart: unless-stopped
         ports:
           - "80:9000"
