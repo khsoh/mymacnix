@@ -20,6 +20,7 @@ let
       # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
       ignoredCommits = [
         "7a6522c86871"
+        "f3a77a0c9b18"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Used older audacity";
