@@ -24,12 +24,12 @@ in
     _1password-gui
     # For installing mas packages
     mas
-    # Supporting docker
-    docker-compose
+    # Supporting podman
+    podman-compose
   ];
 
   environment.variables = {
-    DOCKER_HOST = "unix://${userInfo.home}/.docker/run/docker.sock";
+    DOCKER_HOST = "unix://${userInfo.home}/.local/share/containers/podman/machine/podman.sock";
   };
 
   programs.mas = lib.mkForce {
@@ -44,7 +44,7 @@ in
   ];
 
   homebrew.casks = lib.mkForce [
-    "docker-desktop"
+    "podman-desktop"
     "ollama-app"
   ];
 
@@ -101,7 +101,7 @@ in
   };
 
   # Ensure that ~/ai-server directory is created
-  home-manager.users."${userInfo.name}".home.file."ai-server/docker-compose.yml".text = ''
+  home-manager.users."${userInfo.name}".home.file."ai-server/podman-compose.yml".text = ''
     version: '3.8'
 
     services:
@@ -123,7 +123,7 @@ in
           - redis:/data
 
       authentik-server:
-        image: ghcr.io/goauthentik/server:2026.8.4
+        image: ghcr.io/goauthentik/server:2026.8.2
         restart: unless-stopped
         command: server
         environment:
@@ -144,7 +144,7 @@ in
           - authentik-redis
 
       authentik-worker:
-        image: ghcr.io/goauthentik/server:2026.8.4
+        image: ghcr.io/goauthentik/server:2026.8.2
         restart: unless-stopped
         command: worker
         environment:
@@ -155,7 +155,6 @@ in
           AUTHENTIK_POSTGRESQL__PASSWORD: ''${PG_PASS:?error}
           AUTHENTIK_SECRET_KEY: ''${AUTHENTIK_SECRET_KEY:?error}
         volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
           - ./authentik/media:/media
           - ./authentik/certs:/certs
           - ./authentik/custom-templates:/templates
@@ -165,22 +164,22 @@ in
 
       # --- PRESENTON ---
       presenton:
-        image: ghcr.io/presenton/presenton:v0.9.11-beta
+        image: ghcr.io/presenton/presenton:latest
         restart: unless-stopped
         ports:
           - "5000:80"
         volumes:
           - ./presenton_data:/app/user_data
         environment:
-          - OPENAI_API_BASE=http://docker.internal
+          - OPENAI_API_BASE=http://containers.internal
           - OPENAI_API_KEY=ollama # Dummy string required by OpenAI-compatible endpoints
         extra_hosts:
-          - "host.docker.internal:host-gateway"
+          - "host.containers.internal:host-gateway"
 
       # --- AUTHENTIK PROXY OUTPOST ---
       # Protects Presenton & Ollama endpoints with your Google SSO policy
       authentik-proxy:
-        image: ghcr.io/goauthentik/proxy:2026.8.4
+        image: ghcr.io/goauthentik/proxy:latest
         restart: unless-stopped
         ports:
           - "80:9000"
@@ -198,27 +197,33 @@ in
   '';
 
   # --- AUTOMATED CONTAINER INFRASTRUCTURE LAUNCH ---
-  launchd.user.agents.docker-compose-startup = {
+  launchd.user.agents.podman-compose-startup = lib.mkIf (!isVM) {
     serviceConfig = {
-      Label = "org.docker.compose-startup";
+      Label = "org.podman.compose-startup";
       RunAtLoad = true;
       KeepAlive = false;
-      WorkingDirectory = "${userInfo.home}/ai-server"; # Your docker-compose folder path
-      StandardOutPath = "${userInfo.home}/log/docker-compose-startup.log";
-      StandardErrorPath = "${userInfo.home}/log/docker-compose-startup-err.log";
+      WorkingDirectory = "${userInfo.home}/ai-server"; # Your podman-compose folder path
+      StandardOutPath = "${userInfo.home}/log/podman-compose-startup.log";
+      StandardErrorPath = "${userInfo.home}/log/podman-compose-startup-err.log";
     };
     script = ''
-      echo "Initializing headless Docker virtualization platform engine..."
-      # Opens Docker Desktop silently without spawning visual graphical interface layers
-      open -a "Docker" --args --background
+      # 1. Ensure the Podman VM exists. If not, initialize it.
+       if ! /opt/homebrew/bin/podman machine inspect podman-machine-default >/dev/null 2>&1; then
+         /opt/homebrew/bin/podman machine init --cpus 6 --memory 16384 --disk-size 60
+       fi
 
-      # Polling sequence: block until the local system engine API socket becomes responsive
-      until /Applications/Docker.app/Contents/Resources/bin/docker info >/dev/null 2>&1; do
-        sleep 3
-      done
+       # 2. If the machine is stopped, boot it up
+       if [ "$(/opt/homebrew/bin/podman machine inspect podman-machine-default --format '{{.State}}')" != "running" ]; then
+         /opt/homebrew/bin/podman machine start
+       fi
 
-      echo "Docker socket responsive. Mounting container stack..."
-      /run/current-system/sw/bin/docker-compose --env-file ${config.age.secrets.authentik-env.path} -f ${userInfo.home}/ai-server/docker-compose.yml up -d
+       # 3. Wait until the engine's internal socket bridge responds
+       until /opt/homebrew/bin/podman info >/dev/null 2>&1; do
+         sleep 2
+       done
+
+       # 4. Safely launch the stack
+       /run/current-system/sw/bin/podman-compose --env-file ${config.age.secrets.authentik-env.path} up -d
     '';
   };
 }
