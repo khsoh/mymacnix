@@ -49,20 +49,44 @@ in
   ];
 
   ## Postactivation script for sohfam-ai
-  system.activationScripts.postActivation.text = ''
-    echo "Ensuring Remote Login (SSH) is enabled..."
-    /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
+  system.activationScripts.postActivation.text =
+    lib.mkAfter
+      # bash
+      ''
+        # shellcheck disable=SC2059
+        printf "''${GREEN}''${BOLD}======== Enabling Remote Login (SSH) ========''${ESC}\n"
+        /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
 
-    echo "Applying headless hardware crash and power survival defaults..."
+        printf "''${GREEN}''${BOLD}======== Applying headless hardware crash and power survival defaults ========''${ESC}\n"
 
-    # 1. Force immediate hardware reboot on a Kernel Panic/System Crash
-    # (Setting to 1 tells the boot-rom to bypass standard crash screens and reboot instantly)
-    /usr/sbin/nvram panic-restart-by-default=%01
+        # 1. Force immediate hardware reboot on a Kernel Panic/System Crash
+        # (Setting to 1 tells the boot-rom to bypass standard crash screens and reboot instantly)
+        /usr/sbin/nvram panic-restart-by-default=%01
 
-    # 2. Automatically power back ON if the Mac mini loses wall power and regains it
-    # (Essential for surviving power outages in a server closet)
-    /usr/bin/pmset -a autorestart 1
-  '';
+        # 2. Automatically power back ON if the Mac mini loses wall power and regains it
+        # (Essential for surviving power outages in a server closet)
+        /usr/bin/pmset -a autorestart 1
+
+        # 3. Enable screen sharing permissions
+        printf "''${GREEN}''${BOLD}======== Enabling screen sharing permissions ========''${ESC}\n"
+        ## First, check if permissions already enabled
+        ss_enabled=0
+        while IFS='|' read -r client auth_value; do
+          ss_enabled=1
+          break
+        done < <(sqlite3 --readonly "/Library/Application Support/com.apple.TCC/TCC.db" \
+          "SELECT client, auth_value FROM access WHERE service='kTCCServiceScreenCapture';")
+
+        if [ "$ss_enabled" -eq 0 ]; then
+          CUSERID=$(/usr/bin/id -u "$(/usr/bin/stat -f%Su /dev/console)")
+
+          ## Screen sharing not enabled - prompt user to enable screen sharing
+          open "x-apple.systempreferences:com.apple.Sharing-Settings.extension?Services_ScreenSharing"
+
+          ## Block from further execution until OK button is pressed
+          /bin/launchctl asuser "$CUSERID" /usr/bin/osascript -e 'display dialog "Press OK after you have enabled Screen Sharing" buttons {"OK"} default button "OK" with title "Enable Screen Sharing Permissions"' >/dev/null 2>&1
+        fi
+      '';
 
   # Show all extensions in Finder for sohfam-ai server
   system.defaults.NSGlobalDomain.AppleShowAllExtensions = true;
