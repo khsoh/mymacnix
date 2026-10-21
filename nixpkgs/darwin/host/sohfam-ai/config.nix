@@ -44,7 +44,7 @@ in
 
   ## Postactivation script for sohfam-ai
   system.activationScripts.postActivation.text =
-    lib.mkAfter
+    lib.mkBefore
       # bash
       ''
         # shellcheck disable=SC2059
