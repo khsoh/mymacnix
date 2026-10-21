@@ -42,7 +42,13 @@ in
 
   homebrew.casks = lib.mkForce [
     "podman-desktop"
-    "ollama-binary"
+    {
+      name = "ollama-binary";
+      postinstall = ''
+        /usr/bin/xattr -dr com.apple.quarantine "${brewPrefix}/Caskroom/ollama-binary" 2>/dev/null || true
+      '';
+
+    }
   ];
 
   ## Postactivation script for sohfam-ai
