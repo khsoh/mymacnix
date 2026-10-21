@@ -7,9 +7,12 @@
 let
   isVM = config.machineInfo.is_vm;
   userInfo = import ../../userinfo.nix;
+  aiHome = "${userInfo.home}/ai-server";
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
   pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
+  brewPrefix = config.homebrew.prefix;
+  ollamaBin = "${brewPrefix}/bin/ollama";
 in
 {
   # Override the default systemPackages
@@ -39,7 +42,7 @@ in
 
   homebrew.casks = lib.mkForce [
     "podman-desktop"
-    "ollama-app"
+    "ollama-binary"
   ];
 
   ## Postactivation script for sohfam-ai
@@ -109,13 +112,38 @@ in
     imports = [ ./home.nix ];
   };
 
+  # --- ollama launch agent
+  launchd.user.agents.ollama = {
+    serviceConfig = {
+      Label = "org.nixos.user.ollama";
+      ProgramArguments = [
+        ollamaBin
+        "serve"
+      ];
+      EnvironmentVariables = {
+        OLLAMA_HOST = "127.0.0.1:11434";
+        OLLAMA_MODELS = "${userInfo.home}/.ollama/models";
+        OLLAMA_KEEP_ALIVE = "-1";
+        OLLAMA_MAX_LOADED_MODELS = "1";
+        OLLAMA_NUM_PARALLEL = "1";
+        OLLAMA_FLASH_ATTENTION = "1";
+      };
+      WorkingDirectory = aiHome;
+      KeepAlive = true;
+      RunAtLoad = true;
+      ThrottleInterval = 30;
+      StandardOutPath = "${userInfo.home}/log/ollama.out.log";
+      StandardErrorPath = "${userInfo.home}/log/ollama.err.log";
+    };
+  };
+
   # --- AUTOMATED CONTAINER INFRASTRUCTURE LAUNCH ---
   launchd.user.agents.podman-compose-startup = lib.mkIf (!isVM) {
     serviceConfig = {
       Label = "org.podman.compose-startup";
       RunAtLoad = true;
       KeepAlive = false;
-      WorkingDirectory = "${userInfo.home}/ai-server"; # Your podman-compose folder path
+      WorkingDirectory = "${aiHome}"; # Your podman-compose folder path
       StandardOutPath = "${userInfo.home}/log/podman-compose-startup.log";
       StandardErrorPath = "${userInfo.home}/log/podman-compose-startup-err.log";
     };
