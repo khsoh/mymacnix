@@ -34,7 +34,7 @@ in
 
           if [ "$ss_enabled" -eq 0 ]; then
             ## Screen sharing not enabled - prompt user to enable screen sharing
-            open "x-apple.systempreferences:com.apple.Sharing-Settings.extension?Services_ScreenSharing"
+            /usr/bin/open "x-apple.systempreferences:com.apple.Sharing-Settings.extension?Services_ScreenSharing"
 
             ## Block from further execution until OK button is pressed
             /usr/bin/osascript -e 'display dialog "Press OK after you have enabled Screen Sharing" buttons {"OK"} default button "OK" with title "Enable Screen Sharing Permissions"' >/dev/null 2>&1
