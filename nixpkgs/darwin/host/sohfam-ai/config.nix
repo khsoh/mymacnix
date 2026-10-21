@@ -75,7 +75,7 @@ in
         ## First, check if screen sharing permissions already enabled
         ss_enabled=0
 
-        while "$ss_enabled" -eq 0; do
+        while [ "$ss_enabled" -eq 0 ]; do
           while IFS='|' read -r client auth_value; do
             ss_enabled=1
             # shellcheck disable=SC2059
