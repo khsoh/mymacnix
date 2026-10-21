@@ -10,6 +10,12 @@ let
   isVM = osConfig.machineInfo.is_vm;
 in
 {
+  home.shellAliases = {
+    # Monitoring memory space when hosting 32B+ models locally
+    llm-stat = "top -o mem";
+    ollama-qwen = "ollama run qwen3.5:32b";
+  };
+
   # Ensure that ~/ai-server directory is created
   home.file."ai-server/podman-compose.yml".text = ''
     version: '3.8'

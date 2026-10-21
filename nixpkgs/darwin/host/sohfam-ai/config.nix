@@ -12,12 +12,6 @@ let
   pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
 in
 {
-  environment.interactiveShellInit = ''
-    # Monitoring memory space when hosting 32B+ models locally
-    alias llm-stat="top -o mem"
-    alias ollama-qwen="ollama run qwen3.5:32b"
-  '';
-
   # Override the default systemPackages
   environment.systemPackages = with pkgs; [
     _1password-cli # Helpful for deploying secrets
@@ -134,7 +128,6 @@ in
 
   ## Apply home-manager configuration for all users
   home-manager.users."${userInfo.name}" = {
-    _module.args.user = userInfo;
     imports = [ ./home.nix ];
   };
 
