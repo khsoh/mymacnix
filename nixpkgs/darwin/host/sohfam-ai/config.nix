@@ -57,6 +57,7 @@ in
         printf "''${GREEN}''${BOLD}======== Enabling Remote Login (SSH) ========''${ESC}\n"
         /bin/launchctl load -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
 
+        # shellcheck disable=SC2059
         printf "''${GREEN}''${BOLD}======== Applying headless hardware crash and power survival defaults ========''${ESC}\n"
 
         # 1. Force immediate hardware reboot on a Kernel Panic/System Crash
@@ -68,24 +69,30 @@ in
         /usr/bin/pmset -a autorestart 1
 
         # 3. Enable screen sharing permissions
+        # shellcheck disable=SC2059
         printf "''${GREEN}''${BOLD}======== Enabling screen sharing permissions ========''${ESC}\n"
-        ## First, check if permissions already enabled
+
+        ## First, check if screen sharing permissions already enabled
         ss_enabled=0
-        while IFS='|' read -r client auth_value; do
-          ss_enabled=1
-          break
-        done < <(sqlite3 --readonly "/Library/Application Support/com.apple.TCC/TCC.db" \
-          "SELECT client, auth_value FROM access WHERE service='kTCCServiceScreenCapture';")
 
-        if [ "$ss_enabled" -eq 0 ]; then
-          CUSERID=$(/usr/bin/id -u "$(/usr/bin/stat -f%Su /dev/console)")
+        while "$ss_enabled" -eq 0; do
+          while IFS='|' read -r client auth_value; do
+            ss_enabled=1
+            printf "''${BLUE}''${BOLD}==>''${ESC} Client $client has auth_value $auth_value\n"
+            break
+          done < <(sqlite3 --readonly "/Library/Application Support/com.apple.TCC/TCC.db" \
+            "SELECT client, auth_value FROM access WHERE service='kTCCServiceScreenCapture';")
 
-          ## Screen sharing not enabled - prompt user to enable screen sharing
-          open "x-apple.systempreferences:com.apple.Sharing-Settings.extension?Services_ScreenSharing"
+          if [ "$ss_enabled" -eq 0 ]; then
+            CUSERID=$(/usr/bin/id -u "$(/usr/bin/stat -f%Su /dev/console)")
 
-          ## Block from further execution until OK button is pressed
-          /bin/launchctl asuser "$CUSERID" /usr/bin/osascript -e 'display dialog "Press OK after you have enabled Screen Sharing" buttons {"OK"} default button "OK" with title "Enable Screen Sharing Permissions"' >/dev/null 2>&1
-        fi
+            ## Screen sharing not enabled - prompt user to enable screen sharing
+            open "x-apple.systempreferences:com.apple.Sharing-Settings.extension?Services_ScreenSharing"
+
+            ## Block from further execution until OK button is pressed
+            /bin/launchctl asuser "$CUSERID" /usr/bin/osascript -e 'display dialog "Press OK after you have enabled Screen Sharing" buttons {"OK"} default button "OK" with title "Enable Screen Sharing Permissions"' >/dev/null 2>&1
+          fi
+        done
       '';
 
   # Show all extensions in Finder for sohfam-ai server
