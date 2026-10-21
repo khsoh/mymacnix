@@ -78,6 +78,7 @@ in
         while "$ss_enabled" -eq 0; do
           while IFS='|' read -r client auth_value; do
             ss_enabled=1
+            # shellcheck disable=SC2059
             printf "''${BLUE}''${BOLD}==>''${ESC} Client $client has auth_value $auth_value\n"
             break
           done < <(sqlite3 --readonly "/Library/Application Support/com.apple.TCC/TCC.db" \
