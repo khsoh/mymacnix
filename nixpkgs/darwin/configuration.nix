@@ -285,6 +285,32 @@ in
     "darwin-secrets=${secretsDir}"
   ];
 
+  ## System-wide user agents
+  launchd.agents = {
+    disable-mau-autoupdate = lib.mkIf (Helpers.brewAppInstalled "microsoft-office") {
+      serviceConfig = {
+        # The Label is required for launchd
+        Label = "org.nixos.user.disable-mau-autoupdate";
+        StandardOutPath = "/var/log/org.nixos.user.disable-mau-autoupdate-Out.log";
+        StandardErrorPath = "/var/log/org.nixos.disable-mau-autoupdate-Error.log";
+        RunAtLoad = true;
+        StartInterval = 86400;
+        ProgramArguments = [
+          "${pkgs.zsh}/bin/zsh"
+          "-c"
+          # zsh
+          ''
+            user=$(/usr/bin/stat -f%Su /dev/console)
+            echo "===== Logging for $user ====="
+            /usr/bin/sudo -u "$user" /usr/bin/defaults write com.microsoft.autoupdate2 HowToCheck -string Manual
+            /usr/bin/sudo -u "$user" /usr/bin/defaults write com.microsoft.autoupdate2 StartDaemonOnAppLaunch -bool FALSE
+          ''
+        ];
+      };
+
+    };
+  };
+
   launchd.daemons.generateMachineInfo = {
     serviceConfig = {
       # The Label is required for launchd

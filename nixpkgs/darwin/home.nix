@@ -1295,16 +1295,6 @@ in
             unset NEED_DOCK_RESTART
           ''
       );
-
-      # Disable MS-Office autoupdate
-      disable-mau-autoupdate = lib.mkIf (Helpers.brewAppInstalled "microsoft-office") (
-        lib.hm.dag.entryAfter [ "initTermCtrlVars" ]
-          # bash
-          ''
-            /usr/bin/defaults write com.microsoft.autoupdate2 HowToCheck -string Manual
-            /usr/bin/defaults write com.microsoft.autoupdate2 StartDaemonOnAppLaunch -bool FALSE
-          ''
-      );
     };
 
   # The state version is required and should stay at the version you
