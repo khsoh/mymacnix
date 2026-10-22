@@ -30,7 +30,7 @@ in
             printf "''${BLUE}''${BOLD}==>''${ESC} Client $client has auth_value $auth_value\n"
             break
           done < <(/usr/bin/sqlite3 --readonly "/Library/Application Support/com.apple.TCC/TCC.db" \
-            "SELECT client, auth_value FROM access WHERE service='kTCCServiceScreenCapture';")
+            "SELECT client, auth_value FROM access WHERE service='kTCCServiceScreenCapture' AND client='com.apple.screensharing.agent';")
 
           if [ "$ss_enabled" -eq 0 ]; then
             ## Screen sharing not enabled - prompt user to enable screen sharing

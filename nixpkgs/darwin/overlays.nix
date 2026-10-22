@@ -23,6 +23,7 @@ let
         "f3a77a0c9b18"
         "682ba80136e2"
         "e513db7b0a65"
+        "5adc50831c25"
       ];
       # Optional: Add a description or version tag for clarity
       desc = "Used older audacity";

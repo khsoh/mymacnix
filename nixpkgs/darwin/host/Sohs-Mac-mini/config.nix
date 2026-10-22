@@ -2,9 +2,10 @@
   pkgs,
   lib,
   config,
+  userInfo,
   ...
 }:
-{
+builtins.seq [ lib config userInfo ] {
   environment.systemPackages = with pkgs; [
     exiftool
     ttyplot

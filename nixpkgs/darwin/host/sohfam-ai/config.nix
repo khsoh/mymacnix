@@ -2,11 +2,11 @@
   pkgs,
   lib,
   config,
+  userInfo,
   ...
 }:
 let
   isVM = config.machineInfo.is_vm;
-  userInfo = import ../../userinfo.nix;
   aiHome = "${userInfo.home}/ai-server";
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
@@ -70,11 +70,6 @@ in
         # 2. Automatically power back ON if the Mac mini loses wall power and regains it
         # (Essential for surviving power outages in a server closet)
         /usr/bin/pmset -a autorestart 1
-
-        # 3. Enable screen sharing permissions
-        # shellcheck disable=SC2059
-        printf "''${GREEN}''${BOLD}======== Enabling screen sharing permissions ========''${ESC}\n"
-
       '';
 
   # Show all extensions in Finder for sohfam-ai server

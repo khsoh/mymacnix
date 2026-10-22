@@ -72,6 +72,7 @@ in
   # Replace with pkgs-pinned packages (the default)
   nixpkgs.overlays = import ./overlays.nix;
 
+  _module.args.userInfo = userInfo;
   imports = [
     ./globals.nix
     <home-manager/nix-darwin>

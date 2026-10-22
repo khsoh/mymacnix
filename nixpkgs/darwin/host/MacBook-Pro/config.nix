@@ -2,13 +2,14 @@
   pkgs,
   lib,
   config,
+  userInfo,
   ...
 }:
 let
   # Shortcut to get helper functions
   Helpers = config.helpers;
 in
-{
+builtins.seq [ lib ] {
   environment.systemPackages = with pkgs; [
     exiftool
     ttyplot
@@ -51,6 +52,10 @@ in
       name = "mouseless";
       greedy = true;
       postinstall = Helpers.restartApp2 "Mouseless" "mouseless";
+    }
+    {
+      name = "jump-desktop-connect";
+      greedy = true;
     }
     {
       name = "discord";
@@ -108,4 +113,10 @@ in
     "/System/Applications/Notes.app"
     "/System/Applications/Reminders.app"
   ];
+
+  ## Apply home-manager configuration for all users
+  home-manager.users."${userInfo.name}" = {
+    imports = [ ./home.nix ];
+  };
+
 }
