@@ -30,7 +30,6 @@ let
 
       imports = [
         ./common/options-deploy.nix
-        ./common/options-wsgx.nix
         (import ./common/options-age.nix (args // { cfgdir = ./host; }))
         ./common/options-ssh.nix
         ./host/options-usermap.nix

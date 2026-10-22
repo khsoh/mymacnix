@@ -11,7 +11,7 @@ let
   restartApp = config.hostbrew.helpers.restartApp;
   restartApp2 = config.hostbrew.helpers.restartApp2;
 in
-builtins.seq [ osConfig pkgs ] {
+builtins.seq [ osConfig pkgs restartApp restartApp2 ] {
   usermap = {
     kokhong = "khsoh";
   };
@@ -19,8 +19,6 @@ builtins.seq [ osConfig pkgs ] {
   onepassword = {
     enable = true;
   };
-
-  install_wsgx = true;
 
   agecfg = {
     OPURI = "op://MacBook-Pro-Secrets/Host age secret key/notesPlain";

@@ -10,7 +10,7 @@ let
   isVM = osConfig.machineInfo.is_vm;
 
   ## Use builtins.seq to disable editor diagnostic warning about unused 'user' parameter
-  homecfg = builtins.seq user config.home;
+  homeDir = config.home.homeDirectory;
   onepasscfg = osConfig.secrets.target.host.onepassword;
   sshcfg = osConfig.secrets.target.user.sshcfg;
   ghcfg = config.github;
@@ -33,12 +33,9 @@ let
   default_git_email = "hju37823@outlook.com";
 
   OPCLI = "${pkgs._1password-cli}/bin/op";
-  OPSSHSOCK = "${homecfg.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+  OPSSHSOCK = "${homeDir}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK =
-    if onepasscfg.enable then
-      "${homecfg.homeDirectory}/.1password/agent.sock"
-    else
-      "${homecfg.homeDirectory}/.ssh/ssh-agent.sock";
+    if onepasscfg.enable then "${homeDir}/.1password/agent.sock" else "${homeDir}/.ssh/ssh-agent.sock";
 
   backdropImgPath = "~/" + "${config.xdg.configFile.termBackdrop.target}";
 
@@ -48,9 +45,9 @@ let
   pkusercfg = osConfig.secrets.target.user;
   pkhostcfg = osConfig.secrets.target.host;
   secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/secrets.json.age";
-  userPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkusercfg.agecfg.PKFILE);
-  userPUBFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkusercfg.agecfg.PUBFILE);
-  hostPKFILEPath = (Helpers.resolvePath homecfg.homeDirectory pkhostcfg.agecfg.PKFILE);
+  userPKFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PKFILE);
+  userPUBFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PUBFILE);
+  hostPKFILEPath = (Helpers.resolvePath homeDir pkhostcfg.agecfg.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
   pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkusercfg.name}";
 
@@ -112,7 +109,7 @@ in
     # setting up neovide to use neovim binary
     "neovide/config.toml".text = ''
       # Ensure Neovide uses the exact Neovim binary from your Nix store
-      neovim-bin = "${homecfg.homeDirectory}/${config.xdg.configFile.neovideLauncher.target}"
+      neovim-bin = "${homeDir}/${config.xdg.configFile.neovideLauncher.target}"
     '';
 
     tmux = lib.mkIf (Helpers.pkgInstalled pkgs.tmux) {
@@ -233,7 +230,7 @@ in
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "${homecfg.homeDirectory}/Dygma/mac-raise2.json";
+    path = "${homeDir}/Dygma/mac-raise2.json";
 
     # The default is true if not specified.  We want to make sure that
     # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -414,7 +411,7 @@ in
       };
       gpg = {
         ssh = {
-          allowedSignersFile = "~/" + homecfg.file.gitAllowedSigners.target;
+          allowedSignersFile = "~/" + config.home.file.gitAllowedSigners.target;
         };
       };
       rerere = {
@@ -659,9 +656,9 @@ in
   programs.ghostty = lib.mkIf hasTermGhostty {
     # Commented out items are the defaults
     enable = true;
-    # enableBashIntegration = homecfg.shell.enableBashIntegration;
-    # enableFishIntegration = homecfg.shell.enableFishIntegration;
-    # enableZshIntegration = homecfg.shell.enableZshIntegration;
+    # enableBashIntegration = config.home.shell.enableBashIntegration;
+    # enableFishIntegration = config.home.shell.enableFishIntegration;
+    # enableZshIntegration = config.home.shell.enableZshIntegration;
     package = if Helpers.pkgInstalled pkgs.ghostty-bin then null else pkgs.ghostty-bin;
     # clearDefaultKeybinds = false;
     # installBatSyntax = true;
@@ -796,8 +793,8 @@ in
         WatchPaths = [
           "${dirOf userPKFILEPath}"
         ];
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.age-key-check-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.age-key-check-Error.log";
+        StandardOutPath = "${homeDir}/log/org.nixos.hm.age-key-check-Out.log";
+        StandardErrorPath = "${homeDir}/log/org.nixos.hm.age-key-check-Error.log";
 
         ProgramArguments = [
           "${pkgs.zsh}/bin/zsh"
@@ -842,8 +839,8 @@ in
         Label = "org.nixos.hm.detectNixUpdates";
         RunAtLoad = true;
         StartInterval = 60 * 20;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.detectNixUpdates-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.detectNixUpdates-Error.log";
+        StandardOutPath = "${homeDir}/log/org.nixos.hm.detectNixUpdates-Out.log";
+        StandardErrorPath = "${homeDir}/log/org.nixos.hm.detectNixUpdates-Error.log";
         ProgramArguments = [
           "${pkgs.zsh}/bin/zsh"
           "-l"
@@ -869,7 +866,7 @@ in
               ''
                 IMSGID=$(${pkgs.jq}/bin/jq  -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
                 if [[ -n "$IMSGID" ]]; then
-                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
+                  "${homeDir}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
                 fi
               ''
             }
@@ -885,8 +882,8 @@ in
       config = {
         Label = "org.nixos.hm.LoginStartTerminal";
         RunAtLoad = true;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.LoginStartTerminal-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.LoginStartTerminal-Error.log";
+        StandardOutPath = "${homeDir}/log/org.nixos.hm.LoginStartTerminal-Out.log";
+        StandardErrorPath = "${homeDir}/log/org.nixos.hm.LoginStartTerminal-Error.log";
         ProgramArguments = [
           "osascript"
           "-l"
@@ -934,8 +931,8 @@ in
         KeepAlive = {
           SuccessfulExit = false;
         };
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateTmuxPlugins-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateTmuxPlugins-Error.log";
+        StandardOutPath = "${homeDir}/log/org.nixos.hm.updateTmuxPlugins-Out.log";
+        StandardErrorPath = "${homeDir}/log/org.nixos.hm.updateTmuxPlugins-Error.log";
         ProgramArguments = [
           "${pkgs.zsh}/bin/zsh"
           "-l"
@@ -943,10 +940,10 @@ in
           # zsh
           ''
             date
-            [[ -d "${homecfg.homeDirectory}/.tmux/plugins/tpm" ]] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homecfg.homeDirectory}/.tmux/plugins/tpm
-            ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/install_plugins"
-            ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/update_plugins all"
-            ${pkgs.tmux}/bin/tmux -c "${homecfg.homeDirectory}/.tmux/plugins/tpm/bin/clean_plugins"
+            [[ -d "${homeDir}/.tmux/plugins/tpm" ]] || ${pkgs.git}/bin/git clone https://github.com/tmux-plugins/tpm.git ${homeDir}/.tmux/plugins/tpm
+            ${pkgs.tmux}/bin/tmux -c "${homeDir}/.tmux/plugins/tpm/bin/install_plugins"
+            ${pkgs.tmux}/bin/tmux -c "${homeDir}/.tmux/plugins/tpm/bin/update_plugins all"
+            ${pkgs.tmux}/bin/tmux -c "${homeDir}/.tmux/plugins/tpm/bin/clean_plugins"
             echo "Completed TPM plugin updates"
           ''
         ];
@@ -958,8 +955,8 @@ in
         Label = "org.nixos.hm.updateNvimPlugins";
         RunAtLoad = true;
         StartInterval = 60 * 60 * 2;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.updateNvimPlugins-Error.log";
+        StandardOutPath = "${homeDir}/log/org.nixos.hm.updateNvimPlugins-Out.log";
+        StandardErrorPath = "${homeDir}/log/org.nixos.hm.updateNvimPlugins-Error.log";
         ProgramArguments = [
           "${pkgs.zsh}/bin/zsh"
           "-l"
@@ -1035,211 +1032,13 @@ in
                 IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
                 if [[ -n "$IMSGID" ]]; then
                   LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                  "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
+                  "${homeDir}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
                 fi
               ''
             }
               fi
               echo "==== ${minimaxName} update and sync completed ====="
             fi
-          ''
-        ];
-      };
-    };
-
-    monitor-wsgx = lib.mkIf pkhostcfg.install_wsgx {
-      enable = true;
-      config = {
-        Label = "org.nixos.hm.monitor-wsgx";
-        RunAtLoad = true;
-        KeepAlive = false;
-        StartInterval = 60 * 60 * 2;
-        StandardOutPath = "${homecfg.homeDirectory}/log/org.nixos.hm.monitor-wsgx-Out.log";
-        StandardErrorPath = "${homecfg.homeDirectory}/log/org.nixos.hm.monitor-wsgx-Error.log";
-        ProgramArguments = [
-          "${pkgs.zsh}/bin/zsh"
-          "-l"
-          "-c"
-          # zsh
-          ''
-            ICLOUD_DIR="${homecfg.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
-
-            # Check if iCloud drive exists
-            if [[ ! -d "$ICLOUD_DIR" ]]; then
-              >&2 date
-              >&2 echo "iCloud Drive not yet mounted"
-              >&2 echo "==================="
-              exit 0
-            fi
-
-            WSGX_FILE="$ICLOUD_DIR/WSGX/non-sim.mobileconfig";
-            if [[ ! -f "$WSGX_FILE" ]]; then
-              >&2 date
-              >&2 echo "Warning: Wireless@SGx Profile file absent from WSGX folder in iCloud drive"
-              >&2 echo "==================="
-              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
-                const app = Application.currentApplication();
-                app.includeStandardAdditions = true;
-
-                let response;
-                try {
-                  // Display the alert
-                  response = app.displayAlert("Wireless@SGx not installed", {
-                    message: "Click OK to download Wireless@SGx mobile profile for non-SIM host",
-                    buttons: ["Cancel", "OK"],
-                    defaultButton: "OK"
-                  });
-                } catch (e) {
-                  // Handles user clicking "Cancel" which throws an error in JXA
-                  response = { buttonReturned: "Cancel" };
-                }
-
-                // Handle user response
-                if (response.buttonReturned === "OK") {
-                  app.openLocation("https://go.gov.sg/wsgx");
-                }
-                void(0);
-            EOF_javascript
-              exit 0
-            fi
-
-            # Get the signing time
-            SIGNTIME=$(/usr/bin/openssl cms -inform DER -in "$WSGX_FILE" -cmsout -print|grep -A 2 "signingTime"|grep "UTCTIME" | ${pkgs.gnused}/bin/sed 's/.*UTCTIME://' | tr -d '\n')
-            EXPIRE_DATE="$(date -j -v+12m -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%b %d %Y")"
-            WARN_EPOCH="$(date -j -v +11m -v +10d -f "%b %d %H:%M:%S %Y %Z" "$SIGNTIME" "+%s")"
-
-            # Check if need to update the profile
-            if [[ "$(date "+%s")" -gt "$WARN_EPOCH" ]]; then
-              >&2 date
-              >&2 echo "Warning: Wireless@SGx Profile will expire on $EXPIRE_DATE"
-              >&2 echo "==================="
-              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
-                const app = Application.currentApplication();
-                app.includeStandardAdditions = true;
-
-                let response;
-                try {
-                  // Display the alert
-                  response = app.displayAlert("Wireless@SGx profile expiring soon", {
-                    message: "Click OK to download Wireless@SGx mobile profile for non-SIM host",
-                    buttons: ["Cancel", "OK"],
-                    defaultButton: "OK"
-                  });
-                } catch (e) {
-                  // Handles user clicking "Cancel" which throws an error in JXA
-                  response = { buttonReturned: "Cancel" };
-                }
-
-                // Handle user response
-                if (response.buttonReturned === "OK") {
-                  app.openLocation("https://go.gov.sg/wsgx");
-                }
-                void(0);
-            EOF_javascript
-              exit 0
-            fi
-
-            # Verify the profile
-            TMPFILE=$(/usr/bin/mktemp /tmp/wsgx.XXXXXX)
-            TMPCFG="$TMPFILE".mobileconfig
-            rm -f "$TMPFILE"
-
-            if /usr/bin/openssl smime -inform DER -verify -in "$WSGX_FILE" -noverify >"$TMPCFG" 2>/dev/null; then
-              PAYLOAD_JSON=$(/usr/bin/plutil -convert json -o - "$TMPCFG")
-              PAYLOAD_ID=$(${pkgs.jq}/bin/jq -r ".PayloadIdentifier" <<<"$PAYLOAD_JSON")
-              PAYLOAD_UUID=$(${pkgs.jq}/bin/jq -r ".PayloadUUID" <<<"$PAYLOAD_JSON")
-              PAYLOAD_VERSION=$(${pkgs.jq}/bin/jq -r ".PayloadVersion" <<<"$PAYLOAD_JSON")
-
-              INSTALLED_JSON=$(/usr/bin/profiles show -output stdout-xml | \
-                  /usr/bin/plutil -convert json -o - - | \
-                  ${pkgs.jq}/bin/jq -c --arg id "$PAYLOAD_ID" \
-                  '.[env.USER][]? | select (.ProfileIdentifier == $id)')
-              INSTALLED_UUID=$(${pkgs.jq}/bin/jq -r '.ProfileUUID' <<< "$INSTALLED_JSON")
-              INSTALLED_VERSION=$(${pkgs.jq}/bin/jq -r '.ProfileVersion' <<< "$INSTALLED_JSON")
-
-              if [[ "$PAYLOAD_UUID" == "$INSTALLED_UUID" ]]; then
-                ANNOUNCEMENT="ANNOUNCE: $(date -j '+Week %V %d %b %Y')"
-                GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
-                if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
-                  EXIT_STATUS=0
-                  ${lib.optionalString (!isVM && builtins.pathExists secretsjsonPath)
-                    # zsh
-                    ''
-                      IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
-                      if [[ -n "$IMSGID" ]]; then
-                        LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
-                        "${homecfg.homeDirectory}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"
-                        EXIT_STATUS=$?
-                      fi
-                    ''
-                  }
-                  if [[ $EXIT_STATUS -eq 0 ]]; then
-                    echo "$ANNOUNCEMENT"
-                    echo "Wireless@SGx profile is still valid - will expire on $EXPIRE_DATE"
-                  fi
-                fi
-              else
-                export TMPCFG
-                /usr/bin/osascript -l JavaScript <<'EOF_javascript'
-                  // 1. Get the environment variable
-                  const app = Application.currentApplication();
-                  app.includeStandardAdditions = true;
-                  const tmpCfg = app.systemAttribute("TMPCFG");
-
-                  // 2. Display the alert
-                  let response;
-                  try {
-                    response = app.displayAlert("Install Wireless@SGx profile", {
-                      message: "Click OK to install Wireless@SGx mobile profile for non-SIM host",
-                      buttons: ["Cancel", "OK"],
-                      defaultButton: "OK"
-                    });
-                  } catch (e) {
-                    // Handles user clicking "Cancel" which throws an error in JXA
-                    response = { buttonReturned: "Cancel" };
-                  }
-
-                  // 3. Check user response
-                  if (response.buttonReturned === "OK") {
-                    // Stage the mobileconfig file
-                    app.doShellScript(`open "''${tmpCfg}"`);
-
-                    // Open System Settings to the Profiles pane
-                    app.doShellScript(
-                      'open "x-apple.systempreferences:com.apple.Profiles-Settings.extension"',
-                    );
-                  }
-            EOF_javascript
-              fi
-            else
-              >&2 date
-              >&2 echo "Warning: Wireless@SGx Profile file is CORRUPTED: $WSGX_FILE"
-              >&2 echo "==================="
-              /usr/bin/osascript -l JavaScript <<'EOF_javascript'
-                const app = Application.currentApplication();
-                app.includeStandardAdditions = true;
-
-                let response;
-                try {
-                  // Display the alert
-                  response = app.displayAlert("Wireless@SGx profile corrupted", {
-                    message: "Click OK to download Wireless@SGx mobile profile for non-SIM host",
-                    buttons: ["Cancel", "OK"],
-                    defaultButton: "OK"
-                  });
-                } catch (e) {
-                  // Handles user clicking "Cancel" which throws an error in JXA
-                  response = { buttonReturned: "Cancel" };
-                }
-
-                // Handle user response
-                if (response.buttonReturned === "OK") {
-                  app.openLocation("https://go.gov.sg/wsgx");
-                }
-                void(0);
-            EOF_javascript
-            fi
-            rm -f "$TMPCFG"
           ''
         ];
       };
@@ -1300,7 +1099,7 @@ in
         lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ]
           # bash
           ''
-            CFGFILE="${homecfg.homeDirectory}/${config.xdg.configFile.onepassword_mobileconfig.target}"
+            CFGFILE="${homeDir}/${config.xdg.configFile.onepassword_mobileconfig.target}"
             PAYLOAD_ID=$(${plistbuddy} -c "Print :PayloadIdentifier" "$CFGFILE")
             PAYLOAD_UUID=$(${plistbuddy} -c "Print :PayloadUUID" "$CFGFILE")
             PAYLOAD_VERSION=$(${plistbuddy} -c "Print :PayloadVersion" "$CFGFILE")
