@@ -44,7 +44,10 @@ let
 
   pkusercfg = osConfig.secrets.target.user;
   pkhostcfg = osConfig.secrets.target.host;
-  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/secrets.json.age";
+  secretsjsonFile = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/secrets.json.age";
+  hassecretsjsonPath =
+    (lib.hasAttrByPath [ "path" "secrets.json" "age" ] config)
+    && (builtins.pathExists config.age."secrets.json".path);
   userPKFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PKFILE);
   userPUBFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PUBFILE);
   hostPKFILEPath = (Helpers.resolvePath homeDir pkhostcfg.agecfg.PKFILE);
@@ -204,8 +207,8 @@ in
   ];
 
   # secrets.json stores various secret information in JSON file format
-  age.secrets."secrets.json" = lib.mkIf (builtins.pathExists secretsjsonPath) {
-    file = /. + secretsjsonPath;
+  age.secrets."secrets.json" = lib.mkIf (builtins.pathExists secretsjsonFile) {
+    file = /. + secretsjsonFile;
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
@@ -861,7 +864,7 @@ in
 
                 app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
             EOF_javascript
-            ${lib.optionalString (!isVM && builtins.pathExists secretsjsonPath)
+            ${lib.optionalString (!isVM && hassecretsjsonPath)
               # zsh
               ''
                 IMSGID=$(${pkgs.jq}/bin/jq  -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
@@ -1026,7 +1029,7 @@ in
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
-            ${lib.optionalString (!isVM && builtins.pathExists secretsjsonPath)
+            ${lib.optionalString (!isVM && hassecretsjsonPath)
               # zsh
               ''
                 IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)

@@ -8,7 +8,9 @@
 }:
 let
   homeDir = config.home.homeDirectory;
-  secretsjsonPath = "${config.xdg.configHome}/nixpkgs/secrets/user/${config.home.username}/secrets.json.age";
+  hassecretsjsonPath =
+    (lib.hasAttrByPath [ "path" "secrets.json" "age" ] config)
+    && (builtins.pathExists config.age."secrets.json".path);
 in
 builtins.seq [ config osConfig pkgs user lib ] {
   launchd.agents.monitor-wsgx = {
@@ -126,7 +128,7 @@ builtins.seq [ config osConfig pkgs user lib ] {
               GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
               if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                 EXIT_STATUS=0
-                ${lib.optionalString (builtins.pathExists secretsjsonPath)
+                ${lib.optionalString hassecretsjsonPath
                   # zsh
                   ''
                     IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
