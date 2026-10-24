@@ -44,8 +44,8 @@ let
 
   pkusercfg = osConfig.secrets.target.user;
   pkhostcfg = osConfig.secrets.target.host;
-  secretsDir = Helpers.getNixPathEntry "darwin-secrets";
-  secretsjsonFile = "${secretsDir}/user/${pkusercfg.name}/secrets.json.age";
+  darwinsecrets = Helpers.getNixPathEntry "darwin-secrets";
+  secretsjsonFile = "${darwinsecrets}/user/${pkusercfg.name}/secrets.json.age";
   hassecretsjsonPath =
     (lib.hasAttrByPath [ "path" "secrets.json" "age" ] config)
     && (builtins.pathExists config.age."secrets.json".path);
@@ -53,7 +53,7 @@ let
   userPUBFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PUBFILE);
   hostPKFILEPath = (Helpers.resolvePath homeDir pkhostcfg.agecfg.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
-  pkuserDir = "${secretsDir}/user/${pkusercfg.name}";
+  pkuserDir = "${darwinsecrets}/user/${pkusercfg.name}";
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -232,7 +232,7 @@ in
 
   # Stores the Raise2 backup configuration
   age.secrets."mac-raise2.json" = lib.mkIf (Helpers.brewAppInstalled "bazecor") {
-    file = /. + "${secretsDir}/mac-raise2.json.age";
+    file = /. + "${darwinsecrets}/mac-raise2.json.age";
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path

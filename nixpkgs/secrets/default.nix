@@ -99,6 +99,7 @@ let
   sshpkfile = cfguser.sshcfg.PKFILE;
   sshpubfile = cfguser.sshcfg.PUBFILE;
   sshpubkey = cfguser.sshcfg.pubkey;
+  darwinsecrets = config.helpers.getNixPathEntry "darwin-secrets";
 in
 {
   options.secrets = {
@@ -154,7 +155,7 @@ in
       {
         # Check the target user private key file
         assertion = (sshpkfile == null) || (builtins.pathExists (mkAbsPath sshpkfile));
-        message = "Check the sshcfg.PKFILE definition in ${<darwin-secrets>}/user/${cfguser.name}/default.nix.  The ${sshpkfile} SSH private key file is absent - file must be present to build";
+        message = "Check the sshcfg.PKFILE definition in ${darwinsecrets}/user/${cfguser.name}/default.nix.  ${sshpkfile} SSH private key file is absent - file must be present to build";
       }
 
       {
@@ -163,7 +164,7 @@ in
           (sshpubfile == null)
           || (!builtins.pathExists (mkAbsPath sshpubfile))
           || ((readPubkey sshpubfile) == sshpubkey);
-        message = "Check the sshcfg.PUBFILE and sshcfg.pubkey definition in ${<darwin-secrets>}/user/${cfguser.name}/default.nix.  Contents of ${sshpubfile} do not match the sshcfg.pubkey string";
+        message = "Check the sshcfg.PUBFILE and sshcfg.pubkey definition in ${darwinsecrets}/user/${cfguser.name}/default.nix.  Contents of ${sshpubfile} do not match the sshcfg.pubkey string";
       }
     ];
   };

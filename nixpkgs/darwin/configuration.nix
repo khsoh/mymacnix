@@ -8,6 +8,11 @@
 let
   userInfo = import ./userinfo.nix;
 
+  # Shortcut to get helper functions
+  Helpers = config.helpers;
+
+  darwinsecrets = Helpers.getNixPathEntry "darwin-secrets";
+
   ## List of users to apply home-manager configuration on
   # Specified as a list of attribute sets that is same
   # as users.users.<name> element
@@ -21,7 +26,7 @@ let
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
-  pkhostDir = "${<darwin-secrets>}/host/${pkhostcfg.name}";
+  pkhostDir = "${darwinsecrets}/host/${pkhostcfg.name}";
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkhostcfg.agecfg.PUBFILE);
 
   valkey_base_port = 6379;
@@ -41,9 +46,6 @@ let
 
   # 3. Get the onepassword.enable setting of all user packages
   install_onepassword = pkhostcfg.onepassword.enable;
-
-  # Shortcut to get helper functions
-  Helpers = config.helpers;
 
   # 1. Isolate the highest priority "nixpkgs" path from NIX_PATH
   allNixpkgsEntries = builtins.filter (x: x.prefix == "nixpkgs") builtins.nixPath;
@@ -92,7 +94,7 @@ in
   ];
 
   age.secrets."custom-hosts" = lib.mkIf (!isDefaultHost) {
-    file = /. + "${Helpers.getNixPathEntry "darwin-secrets"}/hosts.age";
+    file = /. + "${darwinsecrets}/hosts.age";
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path

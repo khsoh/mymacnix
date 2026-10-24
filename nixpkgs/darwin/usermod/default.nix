@@ -5,6 +5,8 @@
   ...
 }:
 let
+  darwinsecrets = osConfig.helpers.getNixPathEntry "darwin-secrets";
+
   defaultTermPackages = [
     pkgs.ghostty-bin
   ];
@@ -77,9 +79,9 @@ in
         (onepasscfg.enable && (sshpkfile == null)) || ((!onepasscfg.enable) && (sshpkfile != null));
       message =
         if onepasscfg.enable then
-          "The onepassword.enable flag is set to true in ${<darwin-secrets>}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be set to null in ${<darwin-secrets>}/user/${cfgsec.name}/default.nix"
+          "The onepassword.enable flag is set to true in ${darwinsecrets}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be set to null in ${darwinsecrets}/user/${cfgsec.name}/default.nix"
         else
-          "The onepassword.enable flag is set to false in ${<darwin-secrets>}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be defined in ${<darwin-secrets>}/user/${cfgsec.name}/default.nix";
+          "The onepassword.enable flag is set to false in ${darwinsecrets}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be defined in ${darwinsecrets}/user/${cfgsec.name}/default.nix";
     }
   ];
 }
