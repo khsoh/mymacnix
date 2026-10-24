@@ -8,9 +8,9 @@
 let
   isVM = config.machineInfo.is_vm;
   aiHome = "${userInfo.home}/ai-server";
-  secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
-  pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
+  #pkhostDir = "${Helpers.getNixPathEntry "darwin-secrets"}/host/${pkhostcfg.name}";
+  pkhostDir = "${<darwin-secrets>}/host/${pkhostcfg.name}";
   brewPrefix = config.homebrew.prefix;
   ollamaBin = "${brewPrefix}/bin/ollama";
 in

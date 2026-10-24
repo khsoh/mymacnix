@@ -58,7 +58,6 @@ let
         ./common/options-deploy.nix
         (import ./common/options-age.nix (args // { cfgdir = ./user; }))
         ./common/options-ssh.nix
-        ./common/options-hardlinks.nix
       ];
     };
 

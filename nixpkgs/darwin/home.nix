@@ -44,7 +44,8 @@ let
 
   pkusercfg = osConfig.secrets.target.user;
   pkhostcfg = osConfig.secrets.target.host;
-  secretsjsonFile = "${config.xdg.configHome}/nixpkgs/secrets/user/${pkusercfg.name}/secrets.json.age";
+  secretsDir = Helpers.getNixPathEntry "darwin-secrets";
+  secretsjsonFile = "${secretsDir}/user/${pkusercfg.name}/secrets.json.age";
   hassecretsjsonPath =
     (lib.hasAttrByPath [ "path" "secrets.json" "age" ] config)
     && (builtins.pathExists config.age."secrets.json".path);
@@ -52,7 +53,7 @@ let
   userPUBFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PUBFILE);
   hostPKFILEPath = (Helpers.resolvePath homeDir pkhostcfg.agecfg.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
-  pkuserDir = "${Helpers.getNixPathEntry "darwin-secrets"}/user/${pkusercfg.name}";
+  pkuserDir = "${secretsDir}/user/${pkusercfg.name}";
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -63,12 +64,14 @@ let
     else
       "Terminal.app";
 
+  userConfigPath = ./user + "/${pkusercfg.name}";
 in
 {
   imports = [
     <agenix/modules/age-home.nix>
     ./usermod
-  ];
+  ]
+  ++ lib.optional (builtins.pathExists userConfigPath) userConfigPath;
 
   ##### xdg configuration
   xdg.enable = true;
@@ -229,7 +232,7 @@ in
 
   # Stores the Raise2 backup configuration
   age.secrets."mac-raise2.json" = lib.mkIf (Helpers.brewAppInstalled "bazecor") {
-    file = /. + "${config.xdg.configHome}/nixpkgs/secrets/mac-raise2.json.age";
+    file = /. + "${secretsDir}/mac-raise2.json.age";
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path

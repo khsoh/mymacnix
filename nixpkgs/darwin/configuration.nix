@@ -21,7 +21,7 @@ let
 
   secretsDir = "${userInfo.home}/.config/nixpkgs/secrets";
   pkhostcfg = config.secrets.target.host;
-  pkhostDir = "${secretsDir}/host/${pkhostcfg.name}";
+  pkhostDir = "${<darwin-secrets>}/host/${pkhostcfg.name}";
   pkhostPUBFILEstring = lib.strings.trim (builtins.readFile pkhostcfg.agecfg.PUBFILE);
 
   valkey_base_port = 6379;
@@ -92,7 +92,7 @@ in
   ];
 
   age.secrets."custom-hosts" = lib.mkIf (!isDefaultHost) {
-    file = /. + "${secretsDir}/hosts.age";
+    file = /. + "${Helpers.getNixPathEntry "darwin-secrets"}/hosts.age";
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
