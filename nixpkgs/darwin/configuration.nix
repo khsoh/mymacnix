@@ -35,26 +35,23 @@ let
 
   nixprofile_dir = "${userInfo.home}/.local/state/nix/profiles";
 
-  # 1. Get all user configurations from Home Manager
+  # Get all user configurations from Home Manager
   allHomeConfigs = builtins.attrValues config.home-manager.users;
 
-  # 2. Extract the 'termpkg' from each user, filtering out nulls
+  # Extract the 'termpkg' from each user, filtering out nulls
   # We use '?' to safely check if the option exists in their home.nix
   allTerminalPackages = lib.unique (
     lib.flatten (map (cfg: lib.attrByPath [ "terminal" "packages" ] [ ] cfg) allHomeConfigs)
   );
 
-  # 3. Get the onepassword.enable setting of all user packages
-  install_onepassword = pkhostcfg.onepassword.enable;
-
-  # 1. Isolate the highest priority "nixpkgs" path from NIX_PATH
+  # Isolate the highest priority "nixpkgs" path from NIX_PATH
   allNixpkgsEntries = builtins.filter (x: x.prefix == "nixpkgs") builtins.nixPath;
   highestPriorityEntry =
     if builtins.length allNixpkgsEntries > 0 then builtins.elemAt allNixpkgsEntries 0 else null;
   activeNixpkgsPathStr =
     if highestPriorityEntry != null then toString highestPriorityEntry.path else "";
 
-  # 2. Extract the exact hash from the -I archive URL string
+  # Extract the exact hash from the -I archive URL string
   urlMatch = builtins.match ".*archive/([0-9a-fA-F]{7,40})\\.tar\\.gz" activeNixpkgsPathStr;
   currentRevision = if urlMatch != null then builtins.head urlMatch else null;
 
@@ -268,7 +265,7 @@ in
       # handbrake
     ]
     ++ allTerminalPackages
-    ++ lib.optionals install_onepassword [
+    ++ lib.optionals config.install_onepassword [
       _1password-cli # Helpful for deploying secrets
       _1password-gui
     ];

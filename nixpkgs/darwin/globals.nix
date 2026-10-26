@@ -11,6 +11,12 @@ in
     };
   };
 
+  options.install_onepassword = lib.mkOption {
+    type = lib.types.bool;
+    description = "Indicate whether to install 1Password and CLI program";
+    default = true;
+  };
+
   options.helpers = lib.mkOption {
     type = lib.types.raw;
 

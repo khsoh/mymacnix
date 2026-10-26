@@ -33,7 +33,6 @@ let
         (import ./common/options-age.nix (args // { cfgdir = ./host; }))
         ./common/options-ssh.nix
         ./host/options-usermap.nix
-        ./host/options-1password.nix
       ];
     };
 

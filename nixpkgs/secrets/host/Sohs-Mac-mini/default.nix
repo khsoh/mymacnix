@@ -20,10 +20,6 @@ builtins.seq [ osConfig pkgs ] {
     PUBFILE = "/etc/age/public.txt";
   };
 
-  onepassword = {
-    enable = true;
-  };
-
   deployment = lib.mkDefault [
     {
       OPURI = config.agecfg.OPURI;

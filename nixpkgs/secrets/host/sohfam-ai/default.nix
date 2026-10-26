@@ -14,10 +14,6 @@ builtins.seq [ osConfig pkgs ] {
     khsoh = "khsoh";
   };
 
-  onepassword = {
-    enable = true;
-  };
-
   agecfg = {
     OPURI = "op://sohfam-ai-Secrets/Host age secret key/notesPlain";
     PKFILE = "/etc/age/key.txt";

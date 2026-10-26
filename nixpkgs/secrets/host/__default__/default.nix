@@ -15,10 +15,6 @@ in
     PUBFILE = "/etc/age/nixid_host_public.txt";
   };
 
-  onepassword = {
-    enable = !osConfig.machineInfo.is_vm;
-  };
-
   deployment = lib.mkDefault [
     {
       OPURI = config.agecfg.OPURI;

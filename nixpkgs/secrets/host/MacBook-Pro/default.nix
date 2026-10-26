@@ -16,10 +16,6 @@ builtins.seq [ osConfig pkgs restartApp restartApp2 ] {
     kokhong = "khsoh";
   };
 
-  onepassword = {
-    enable = true;
-  };
-
   agecfg = {
     OPURI = "op://MacBook-Pro-Secrets/Host age secret key/notesPlain";
     PKFILE = "/etc/age/key.txt";

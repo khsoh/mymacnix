@@ -13,7 +13,7 @@ let
 
   cfgsec = osConfig.secrets.target.user;
   cfghost = osConfig.secrets.target.host;
-  onepasscfg = osConfig.secrets.target.host.onepassword;
+  install_onepassword = osConfig.install_onepassword;
   sshcfg = cfgsec.sshcfg;
   sshpkfile = if sshcfg != null then sshcfg.PKFILE else null;
 
@@ -76,9 +76,9 @@ in
     # If 1Password is disabled then must use key files
     {
       assertion =
-        (onepasscfg.enable && (sshpkfile == null)) || ((!onepasscfg.enable) && (sshpkfile != null));
+        (install_onepassword && (sshpkfile == null)) || ((!install_onepassword) && (sshpkfile != null));
       message =
-        if onepasscfg.enable then
+        if install_onepassword then
           "The onepassword.enable flag is set to true in ${darwinsecrets}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be set to null in ${darwinsecrets}/user/${cfgsec.name}/default.nix"
         else
           "The onepassword.enable flag is set to false in ${darwinsecrets}/host/${cfghost.name}/default.nix - so the sshcfg.PKFILE must be defined in ${darwinsecrets}/user/${cfgsec.name}/default.nix";

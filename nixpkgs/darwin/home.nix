@@ -11,7 +11,7 @@ let
 
   ## Use builtins.seq to disable editor diagnostic warning about unused 'user' parameter
   homeDir = config.home.homeDirectory;
-  onepasscfg = osConfig.secrets.target.host.onepassword;
+  install_onepassword = osConfig.install_onepassword;
   sshcfg = osConfig.secrets.target.user.sshcfg;
   ghcfg = config.github;
   glcfg = config.gitlab;
@@ -35,7 +35,10 @@ let
   OPCLI = "${pkgs._1password-cli}/bin/op";
   OPSSHSOCK = "${homeDir}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSHSOCK =
-    if onepasscfg.enable then "${homeDir}/.1password/agent.sock" else "${homeDir}/.ssh/ssh-agent.sock";
+    if install_onepassword then
+      "${homeDir}/.1password/agent.sock"
+    else
+      "${homeDir}/.ssh/ssh-agent.sock";
 
   backdropImgPath = "~/" + "${config.xdg.configFile.termBackdrop.target}";
 
@@ -66,7 +69,7 @@ let
 
   userConfigPath = ./user + "/${pkusercfg.name}";
 in
-{
+builtins.seq [ user ] {
   imports = [
     <agenix/modules/age-home.nix>
     ./usermod
@@ -84,7 +87,7 @@ in
       source = ./jxa/sendimsg.js;
     };
 
-    onepassword_mobileconfig = lib.mkIf onepasscfg.enable {
+    onepassword_mobileconfig = lib.mkIf install_onepassword {
       target = "profiles/1Password_8_profile.mobileconfig";
       source = ./profiles/1Password_8_profile.mobileconfig;
     };
@@ -176,7 +179,7 @@ in
     #   recursive = true;
     # };
 
-    op_agent_toml = lib.mkIf (onepasscfg.enable && sshcfg != null && sshcfg.OPURI != null) {
+    op_agent_toml = lib.mkIf (install_onepassword && sshcfg != null && sshcfg.OPURI != null) {
       target = "1Password/ssh/agent.toml";
       text =
         let
@@ -251,7 +254,7 @@ in
     #group = "staff";
   };
 
-  services.ssh-agent = lib.mkIf (!onepasscfg.enable) {
+  services.ssh-agent = lib.mkIf (!install_onepassword) {
     enable = true;
   };
 
@@ -308,7 +311,7 @@ in
       NVIM_APPNAME = "${nvimDefault}";
       SHELL = "${pkgs.bashInteractive}/bin/bash";
     }
-    // lib.optionalAttrs onepasscfg.enable {
+    // lib.optionalAttrs install_onepassword {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -330,7 +333,7 @@ in
       NVIM_APPNAME = "${nvimDefault}";
       SHELL = "${pkgs.zsh}/bin/zsh";
     }
-    // lib.optionalAttrs onepasscfg.enable {
+    // lib.optionalAttrs install_onepassword {
       SSH_AUTH_SOCK = "${SSHSOCK}";
     }; # Written to start of .profile
 
@@ -352,7 +355,7 @@ in
 
   ### Enable ssh configuration
   programs.ssh = lib.mkMerge [
-    (lib.mkIf onepasscfg.enable {
+    (lib.mkIf install_onepassword {
       enable = true;
       enableDefaultConfig = false;
       settings = {
@@ -374,7 +377,7 @@ in
       '';
     })
 
-    (lib.mkIf (!onepasscfg.enable) {
+    (lib.mkIf (!install_onepassword) {
       enable = true;
       enableDefaultConfig = false;
       settings = {
@@ -566,8 +569,8 @@ in
       key = sshcfg.pubkey;
       signByDefault = true;
     }
-    // lib.optionalAttrs onepasscfg.enable {
-      signer = onepasscfg.SSHSIGN_PROGRAM;
+    // lib.optionalAttrs install_onepassword {
+      signer = "${Helpers.getMacBundleAppName pkgs._1password-gui}/Contents/MacOS/op-ssh-sign";
     };
 
   };
@@ -1099,7 +1102,7 @@ in
             fi
           '';
 
-      install1PasswordCfg = lib.mkIf onepasscfg.enable (
+      install1PasswordCfg = lib.mkIf install_onepassword (
         # Need to put this after linkGeneration
         # to access config.xdg.configFile.onepassword_mobileconfig.target
         lib.hm.dag.entryAfter [ "initTermCtrlVars" "linkGeneration" ]
@@ -1133,7 +1136,7 @@ in
           ''
       );
 
-      start1Password = lib.mkIf onepasscfg.enable (
+      start1Password = lib.mkIf install_onepassword (
         lib.hm.dag.entryAfter [ "install1PasswordCfg" ]
           # bash
           ''
