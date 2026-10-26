@@ -47,7 +47,6 @@ in
       postinstall = ''
         /usr/bin/xattr -dr com.apple.quarantine \"${brewPrefix}/Caskroom/ollama-binary\" 2>/dev/null || true
       '';
-
     }
   ];
 

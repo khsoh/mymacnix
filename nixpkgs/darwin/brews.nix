@@ -5,8 +5,8 @@
   ...
 }:
 let
-  cfghost = config.secrets.target.host;
   Helpers = config.helpers;
+  brewPrefix = config.homebrew.prefix;
 in
 builtins.seq [ pkgs lib ] {
   ### Homebrew setup.
@@ -94,6 +94,9 @@ builtins.seq [ pkgs lib ] {
       {
         name = "handbrake-app";
         greedy = true;
+        postinstall = ''
+          /usr/bin/xattr -dr com.apple.quarantine \"${brewPrefix}/Caskroom/handbrake-app\" 2>/dev/null || true
+        '';
       }
       {
         name = "yubico-authenticator";
