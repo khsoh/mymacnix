@@ -33,7 +33,7 @@ display_input: none
 event_tap_location: hid_head
 excluded_input_devices: []
 general_settings:
-  automatically_check_for_updates: true
+  automatically_check_for_updates: false
   check_for_preview_releases: false
   hide_welcome_screen: true
   ignore_update_to_version: null
