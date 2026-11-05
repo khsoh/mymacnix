@@ -751,7 +751,6 @@ in
       ++ lib.optional (Helpers.pkgInstalled pkgs.google-chrome) (
         Helpers.getMacBundleAppName pkgs.google-chrome
       )
-      ++ lib.optional (Helpers.pkgInstalled pkgs.brave) (Helpers.getMacBundleAppName pkgs.brave)
       ++ lib.optional (Helpers.brewAppInstalled "brave-browser") "/Applications/Brave Browser.app"
       ++ lib.optional (Helpers.brewAppInstalled "google-chrome") "/Applications/Google Chrome.app"
     );
@@ -775,32 +774,30 @@ in
 
     ## Setup to debloat brave browser
     CustomUserPreferences = {
-      "com.brave.Browser" =
-        lib.mkIf ((Helpers.pkgInstalled pkgs.brave) || (Helpers.brewAppInstalled "brave-browser"))
-          {
-            # 1. Web3 & Crypto Debloat
-            BraveRewardsDisabled = true;
-            BraveWalletDisabled = true;
+      "com.brave.Browser" = lib.mkIf (Helpers.brewAppInstalled "brave-browser") {
+        # 1. Web3 & Crypto Debloat
+        BraveRewardsDisabled = true;
+        BraveWalletDisabled = true;
 
-            # 2. AI Chat & Leo
-            BraveAIChatEnabled = false;
+        # 2. AI Chat & Leo
+        BraveAIChatEnabled = false;
 
-            # 3. Network, VPN & Video Conferencing
-            BraveVPNDisabled = true;
-            BraveTalkDisabled = true;
+        # 3. Network, VPN & Video Conferencing
+        BraveVPNDisabled = true;
+        BraveTalkDisabled = true;
 
-            # 4. Security & Password Management
-            PasswordManagerEnabled = false;
+        # 4. Security & Password Management
+        PasswordManagerEnabled = false;
 
-            # 5. Forcefully turns off the Brave News feed infrastructure entirely
-            BraveNewsDisabled = true;
+        # 5. Forcefully turns off the Brave News feed infrastructure entirely
+        BraveNewsDisabled = true;
 
-            # 6. Disables Promotional Tabs
-            PromotionalTabsEnabled = false;
+        # 6. Disables Promotional Tabs
+        PromotionalTabsEnabled = false;
 
-            # 7. Disables Promotions
-            PromotionsEnabled = false;
-          };
+        # 7. Disables Promotions
+        PromotionsEnabled = false;
+      };
     };
   };
 
