@@ -28,15 +28,15 @@ let
     #   # Optional: Add a description or version tag for clarity
     #   desc = "Used older audacity";
     # };
-    "neovide" = {
-      url = "https://github.com/NixOS/nixpkgs/archive/13e53762c5af.tar.gz"; # GOOD
-      # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
-      ignoredCommits = [
-        "6dadaf4375be"
-      ];
-      # Optional: Add a description or version tag for clarity
-      desc = "Used older neovide";
-    };
+    # "neovide" = {
+    #   url = "https://github.com/NixOS/nixpkgs/archive/13e53762c5af.tar.gz"; # GOOD
+    #   # url = <nixpkgs>; # Use the latest version - will add in permittedInsecurePackages attribute
+    #   ignoredCommits = [
+    #     "6dadaf4375be"
+    #   ];
+    #   # Optional: Add a description or version tag for clarity
+    #   desc = "Used older neovide";
+    # };
   };
 
   # 2. Helper function to create the override logic for a single package
