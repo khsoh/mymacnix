@@ -8,9 +8,12 @@
 }:
 let
   homeDir = config.home.homeDirectory;
-  hassecretsjsonPath =
-    (lib.hasAttrByPath [ "path" "secrets.json" "age" ] config)
-    && (builtins.pathExists config.age."secrets.json".path);
+  hasiMessageIDjsonFile =
+    let
+      pathObj = config.age.secrets."iMessageID.json".file or null;
+      filePath = if pathObj != null then toString pathObj else null;
+    in
+    filePath != null && builtins.pathExists filePath;
 in
 builtins.seq [ config osConfig pkgs user lib ] {
   launchd.agents.monitor-wsgx = {
@@ -128,10 +131,12 @@ builtins.seq [ config osConfig pkgs user lib ] {
               GREPANNOUNCE="ANNOUNCE: $(date -j '+Week %V .*%Y$')"
               if ! /usr/bin/grep -q "$GREPANNOUNCE" "${config.launchd.agents.monitor-wsgx.config.StandardOutPath}"; then
                 EXIT_STATUS=0
-                ${lib.optionalString hassecretsjsonPath
+                ${lib.optionalString hasiMessageIDjsonFile
                   # zsh
                   ''
-                    IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                    IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${
+                      config.age.secrets."iMessageID.json".path
+                    } 2>/dev/null)
                     if [[ -n "$IMSGID" ]]; then
                       LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
                       "${homeDir}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Wireless@SGx profile is still valid on $LOCALHOSTNAME - will expire on $EXPIRE_DATE"

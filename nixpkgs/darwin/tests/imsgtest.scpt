@@ -6,7 +6,7 @@ use scripting additions
 
 -- 1. Handle the File Path
 -- Expanding ~/ manually to ensure AppleScript can find it
-set tildePath to "~/.config/nix/secrets.json"
+set tildePath to "~/.config/nix/iMessageID.json"
 set absolutePath to (current application's NSString's stringWithString:tildePath)'s stringByExpandingTildeInPath() as text
 
 -- 2. Read the File Content
@@ -28,7 +28,7 @@ set imsgid to (theJSON's valueForKey:"iMessageID") as text
 tell application "Messages"
     -- Identify the active iMessage service
     set iMessageService to 1st service whose service type = iMessage
-    
+
     -- Target the buddy (recipient) and send the message
     set theBuddy to buddy imsgid of iMessageService
     send "Test message from AppleScript" to theBuddy

@@ -4,25 +4,25 @@
 const app = Application.currentApplication();
 app.includeStandardAdditions = true;
 
-// 2. secrets.json
-const secretsPath = "~/.config/nix/secrets.json";
+// 2. iMessageID.json
+const iMessageIDjsonPath = "~/.config/nix/iMessageID.json";
 
 // 3. Use NSString to expand the tilde to a full POSIX path
-const fullPath = $(secretsPath).stringByExpandingTildeInPath.js;
-
+const fullPath = $(iMessageIDjsonPath).stringByExpandingTildeInPath.js;
 
 const secrets = JSON.parse(app.read(Path(fullPath)));
 
 console.log(`iMessage receiver: ${secrets.iMessageID}`);
 
-const Messages = Application('Messages');
+const Messages = Application("Messages");
 
 // 4. Find the person whose account can receive iMessage
-const person = Messages.participants.whose({ handle: secrets.iMessageID })().
-    find(p => p.account().serviceType() == 'iMessage');
+const person = Messages.participants
+  .whose({ handle: secrets.iMessageID })()
+  .find((p) => p.account().serviceType() == "iMessage");
 
 if (person) {
-    Messages.send("hello world", { to: person });
+  Messages.send("hello world", { to: person });
 } else {
-    console.log("Cannot find person to send to");
+  console.log("Cannot find person to send to");
 }

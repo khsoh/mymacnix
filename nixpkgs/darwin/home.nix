@@ -48,15 +48,15 @@ let
   pkusercfg = osConfig.secrets.target.user;
   pkhostcfg = osConfig.secrets.target.host;
   darwinsecrets = Helpers.getNixPathEntry "darwin-secrets";
-  secretsjsonFile = "${darwinsecrets}/user/${pkusercfg.name}/secrets.json.age";
-  hassecretsjsonPath =
-    (lib.hasAttrByPath [ "path" "secrets.json" "age" ] config)
-    && (builtins.pathExists config.age."secrets.json".path);
   userPKFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PKFILE);
   userPUBFILEPath = (Helpers.resolvePath homeDir pkusercfg.agecfg.PUBFILE);
   hostPKFILEPath = (Helpers.resolvePath homeDir pkhostcfg.agecfg.PKFILE);
   pkuserPUBFILEstring = lib.strings.trim (builtins.readFile userPUBFILEPath);
   pkuserDir = "${darwinsecrets}/user/${pkusercfg.name}";
+
+  ## Checks for presence of iMessageID.json file
+  iMessageIDjsonFile = "${pkuserDir}/iMessageID.json.age";
+  hasiMessageIDjsonFile = builtins.pathExists iMessageIDjsonFile;
 
   hasTermPackages = (builtins.length termcfg.packages) > 0;
   hasTermKitty = (builtins.elem pkgs.kitty termcfg.packages);
@@ -212,13 +212,13 @@ builtins.seq [ user ] {
     hostPKFILEPath
   ];
 
-  # secrets.json stores various secret information in JSON file format
-  age.secrets."secrets.json" = lib.mkIf (builtins.pathExists secretsjsonFile) {
-    file = /. + secretsjsonFile;
+  # iMessageID.json stores various secret information in JSON file format
+  age.secrets."iMessageID.json" = lib.mkIf hasiMessageIDjsonFile {
+    file = /. + iMessageIDjsonFile;
 
     # path should be a string expression (in quotes), not a path expression
     # IMPORTANT: READ THE DOCUMENTATION on age.secrets.<name>.path
-    path = "${config.xdg.configHome}/nix/secrets.json";
+    path = "${config.xdg.configHome}/nix/iMessageID.json";
 
     # The default is true if not specified.  We want to make sure that
     # the "file" (decrypted secret) is symlinked and not generated directly into
@@ -870,10 +870,12 @@ builtins.seq [ user ] {
 
                 app.displayNotification(updateText, { withTitle: 'New nix channel updates' });
             EOF_javascript
-            ${lib.optionalString (!isVM && hassecretsjsonPath)
+            ${lib.optionalString (!isVM && hasiMessageIDjsonFile)
               # zsh
               ''
-                IMSGID=$(${pkgs.jq}/bin/jq  -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                IMSGID=$(${pkgs.jq}/bin/jq  -r '.iMessageID' ${
+                  config.age.secrets."iMessageID.json".path
+                } 2>/dev/null)
                 if [[ -n "$IMSGID" ]]; then
                   "${homeDir}/${config.xdg.configFile.sendimsg.target}" $IMSGID "$LOCALHOSTNAME nix-channel updates:" "$UPDATENIXPKGS"
                 fi
@@ -1035,10 +1037,12 @@ builtins.seq [ user ] {
 
                   app.displayNotification(updateText, { withTitle: 'Neovim plugins updates' });
             EOF_javascript
-            ${lib.optionalString (!isVM && hassecretsjsonPath)
+            ${lib.optionalString (!isVM && hasiMessageIDjsonFile)
               # zsh
               ''
-                IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${config.age.secrets."secrets.json".path} 2>/dev/null)
+                IMSGID=$(${pkgs.jq}/bin/jq -r '.iMessageID' ${
+                  config.age.secrets."iMessageID.json".path
+                } 2>/dev/null)
                 if [[ -n "$IMSGID" ]]; then
                   LOCALHOSTNAME=$(/usr/sbin/scutil --get LocalHostName)
                   "${homeDir}/${config.xdg.configFile.sendimsg.target}" $IMSGID "Neovim plugin updates in $LOCALHOSTNAME" "$PLUGINUPDATES"
