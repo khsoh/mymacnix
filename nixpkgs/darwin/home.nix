@@ -1154,6 +1154,9 @@ builtins.seq [ user ] {
             # Check that 1Password is running
             if ! ${pgrep} -x "1Password" > /dev/null; then
               printf "\n''${GREEN}''${BOLD}--- Executing 1Password ---''${ESC}\n"
+
+              ## Wait 2 seconds for 1Password to be properly installed
+              sleep 2
               run ${open} -a "1Password" --args --silent
               sleep 2
             fi
