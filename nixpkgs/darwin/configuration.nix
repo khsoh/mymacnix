@@ -455,6 +455,7 @@ in
 
           # Only edit /etc/hosts if the contents do not match
           if [ "$NEW_BLOCK" != "$CURRENT_BLOCK" ]; then
+            date
             echo "Need to update /etc/hosts"
             echo "===== CURRENT_BLOCK ====="
             echo "$CURRENT_BLOCK"
@@ -462,6 +463,8 @@ in
             echo "===== NEW_BLOCK ====="
             echo "$NEW_BLOCK"
             echo "================="
+            echo ""
+            echo ""
             # Root cleans out the old markers from /etc/hosts and appends a new block
             sed -i "/$START_MARKER/,/$END_MARKER/d; $ r"<(echo "$NEW_BLOCK") /etc/hosts
           fi
